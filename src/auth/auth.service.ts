@@ -105,7 +105,7 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    if(!user.isActivated){
+    if (!user.isActivated) {
       throw new BadRequestException('Confirm your email');
     }
     const isValid = await bcrypt.compare(dto.password, user.password);
@@ -131,6 +131,61 @@ export class AuthService {
       },
       data: {
         isActivated: true,
+      },
+    });
+  }
+  async generateResetPasswordToken(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const resetToken = crypto.randomUUID();
+    const expirationDate = new Date();
+    expirationDate.setHours(expirationDate.getHours() + 1); // Токен будет действителен в течение 1 часа
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpiration: expirationDate,
+      },
+    });
+    await this.mailService.sendActivationMail(
+      user.email,
+      `${process.env.FRONTEND_URL}/reset-password/${resetToken}`,
+    );
+  }
+  async forgotPassword(email: string) {
+    await this.generateResetPasswordToken(email);
+  }
+  async resetPassword(token: string, dto: AuthDto) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpiration: {
+          gte: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: await bcrypt.hash(dto.password, 5) },
+    });
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: null,
+        resetPasswordExpiration: null,
       },
     });
   }

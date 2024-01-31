@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Param,
   Post,
   UsePipes,
   ValidationPipe,
@@ -34,6 +35,25 @@ export class AuthController {
   @Post('login/access-token')
   async getNewTokens(@Body() dto: RefreshTokenDto) {
     return this.authService.getNewTokens(dto.refreshToken);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  @Post('forgot-password')
+  async forgotPassword(email: string) {
+    await this.authService.forgotPassword(email);
+    return { message: 'Reset password email has been sent' };
+  }
+
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  @Post('reset-password/:token')
+  async resetPassword(
+    @Param('token') token: string,
+    @Body() dto: Partial<AuthDto>,
+  ) {
+    await this.authService.resetPassword(token, dto as AuthDto);
+    return { message: 'Password has been reset' };
   }
 
   @UsePipes(new ValidationPipe())
