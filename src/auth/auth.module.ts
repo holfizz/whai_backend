@@ -33,6 +33,7 @@ import { MailService } from './mail.service';
       transport: {
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
+        ignoreTLS: false,
         secure: false,
         auth: {
           user: process.env.SMTP_USER,
