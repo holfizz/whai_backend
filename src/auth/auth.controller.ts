@@ -40,9 +40,8 @@ export class AuthController {
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
   @Post('forgot-password')
-  async forgotPassword(email: string) {
-    await this.authService.forgotPassword(email);
-    return { message: 'Reset password email has been sent' };
+  async forgotPassword(@Body() email: string) {
+    return this.authService.forgotPassword(email);
   }
 
   @UsePipes(new ValidationPipe())

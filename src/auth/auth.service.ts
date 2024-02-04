@@ -26,7 +26,7 @@ export class AuthService {
     });
 
     if (existUser) {
-      throw new BadRequestException('User already exist');
+      throw new BadRequestException('Пользователь уже существует');
     }
     const activationLink = crypto.randomUUID(); // v34fa-asfasf-142saf-sa-asf
 
@@ -103,20 +103,20 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException('Пользователь не найден');
     }
     if (!user.isActivated) {
-      throw new BadRequestException('Confirm your email');
+      throw new BadRequestException('Подтвердите почту');
     }
     const isValid = await bcrypt.compare(dto.password, user.password);
 
-    if (!isValid) throw new UnauthorizedException('Invalid password');
+    if (!isValid) throw new UnauthorizedException('Неверный пароль');
     return user;
   }
 
   async isActivated(activationLink) {
     if (!activationLink.link) {
-      return 'adsasdasdasd';
+      return false;
     }
     const user = await this.prisma.user.findFirst({
       where: {
@@ -124,7 +124,7 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new Error('user not found');
+      throw new Error('Пользователь не найден');
     }
 
     await this.prisma.user.update({
@@ -145,7 +145,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException('Пользователь не найден');
     }
 
     const resetToken = crypto.randomUUID();
@@ -160,13 +160,15 @@ export class AuthService {
       },
     });
     await this.mailService.sendActivationMail(
-      user.email,
+      email,
       `${process.env.FRONTEND_URL}/reset-password/${resetToken}`,
     );
+    return 'Сообщение отправлено';
   }
 
-  async forgotPassword(email: string) {
-    await this.generateResetPasswordToken(email);
+  async forgotPassword(email) {
+    await this.generateResetPasswordToken(email.email);
+    return true;
   }
 
   async resetPassword(token: string, dto: AuthDto) {
@@ -180,7 +182,9 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Invalid or expired token');
+      throw new BadRequestException(
+        'Ссылка неверная или срок действия ссылки истек',
+      );
     }
 
     await this.prisma.user.update({
