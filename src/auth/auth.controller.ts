@@ -59,7 +59,7 @@ export class AuthController {
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
   @Get('/activate/:link')
-  async isActivated(activationLink: string) {
+  async isActivated(@Param() activationLink: string) {
     return this.authService.isActivated(activationLink);
   }
 }

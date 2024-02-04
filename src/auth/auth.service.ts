@@ -32,7 +32,7 @@ export class AuthService {
 
     await this.mailService.sendActivationMail(
       dto.email,
-      `${process.env.API_URL}/api/auth/activate/${activationLink}`,
+      `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`,
     );
     const user = await this.prisma.user.create({
       data: {
@@ -114,25 +114,30 @@ export class AuthService {
     return user;
   }
 
-  async isActivated(activationLink: string) {
+  async isActivated(activationLink) {
+    if (!activationLink.link) {
+      return 'adsasdasdasd';
+    }
     const user = await this.prisma.user.findFirst({
       where: {
-        activationLink: activationLink,
+        activationLink: activationLink.link,
       },
     });
-
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new Error('user not found');
     }
 
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: {
         id: user.id,
       },
       data: {
         isActivated: true,
+        activationLink: null,
       },
     });
+
+    return true;
   }
   async generateResetPasswordToken(email: string) {
     const user = await this.prisma.user.findFirst({
@@ -159,9 +164,11 @@ export class AuthService {
       `${process.env.FRONTEND_URL}/reset-password/${resetToken}`,
     );
   }
+
   async forgotPassword(email: string) {
     await this.generateResetPasswordToken(email);
   }
+
   async resetPassword(token: string, dto: AuthDto) {
     const user = await this.prisma.user.findFirst({
       where: {
