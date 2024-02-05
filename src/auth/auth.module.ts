@@ -23,7 +23,7 @@ import { MailService } from './mail.service';
     MailService,
   ],
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot(),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
