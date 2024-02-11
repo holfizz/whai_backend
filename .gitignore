@@ -30,6 +30,7 @@ lerna-debug.log*
 #env
 .env
 *.ogg
+sessions.json
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json

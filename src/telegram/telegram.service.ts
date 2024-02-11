@@ -1,11 +1,16 @@
-import { Ctx, On, Start, Update } from 'nestjs-telegraf';
-import { Scenes, Telegraf } from 'telegraf';
+import { Command, Ctx, On, Start, Update } from 'nestjs-telegraf';
+import { Context, Telegraf } from 'telegraf';
 import { ConfigService } from '@nestjs/config';
 import { OggConverterService } from '@/ogg-converter/ogg-converter.service';
-import { OpenaiService } from '@/openai/openai.service';
+import { OpenAIRoles, OpenaiService } from '@/openai/openai.service';
 import { bold } from 'telegraf/format';
+import { SceneContext } from 'telegraf/typings/scenes';
 
-type MessageContext = Scenes.SceneContext;
+// Определяем интерфейс для сессии бота
+
+type init_session_type = { messages: any[] };
+
+type MessageContext = Context & { session: init_session_type } & SceneContext;
 
 interface TelegramMessage {
   voice: {
@@ -16,6 +21,10 @@ interface TelegramMessage {
     file_size: number;
   };
 }
+
+const INITIAL_SESSION: init_session_type = {
+  messages: [],
+};
 
 @Update()
 export class TelegramService extends Telegraf<MessageContext> {
@@ -37,8 +46,21 @@ export class TelegramService extends Telegraf<MessageContext> {
 `);
   }
 
+  @Command('deletecontext')
+  async newContext(@Ctx() ctx: MessageContext) {
+    ctx.session = {
+      messages: [],
+    };
+    await ctx.reply(
+      bold(
+        '🧹Контекст отчищен. По умолчанию, бот учитывает контекст предыдущего вопроса и свой собственный ответ',
+      ),
+    );
+  }
+
   @On('voice')
-  async voiceMessage(@Ctx() ctx: Scenes.WizardContext): Promise<any> {
+  async voiceMessage(@Ctx() ctx: MessageContext): Promise<any> {
+    ctx.session = INITIAL_SESSION;
     try {
       await ctx.reply(bold('Принято! 😊 Жду ответа от сервера. 🤖'));
       const link = await ctx.telegram.getFileLink(
@@ -46,10 +68,41 @@ export class TelegramService extends Telegraf<MessageContext> {
       );
       const userId = String(ctx.message.from.id);
       const oggPath = await this.ogg.create(link.href, userId);
-      const response = await this.openai.transcription(oggPath);
+
+      const text = await this.openai.transcription(oggPath);
       await ctx.replyWithHTML(
-        `<b>Ваш запрос: </b><span class="tg-spoiler">${response}</span>`,
+        `<b>Ваш запрос: </b><span class="tg-spoiler">${text}</span>`,
       );
+
+      ctx.session.messages.push({ role: OpenAIRoles.USER, content: text });
+      const response = await this.openai.chat(ctx.session.messages);
+      ctx.session.messages.push({
+        role: OpenAIRoles.ASSISTANT,
+        content: response.content,
+      });
+
+      await ctx.reply(response.content);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  @On('text')
+  async textMessage(@Ctx() ctx: any): Promise<any> {
+    ctx.session ??= INITIAL_SESSION;
+    try {
+      await ctx.reply(bold('Принято! 😊 Жду ответа от сервера. 🤖'));
+      ctx.session.messages.push({
+        role: OpenAIRoles.USER,
+        content: ctx.message.text,
+      });
+      const response = await this.openai.chat(ctx.session.messages);
+      ctx.session.messages.push({
+        role: OpenAIRoles.ASSISTANT,
+        content: response.content,
+      });
+
+      await ctx.reply(response.content);
     } catch (e) {
       console.log(e);
     }
