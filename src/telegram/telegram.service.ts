@@ -1,8 +1,9 @@
-import { Ctx, On, Start, Update } from 'nestjs-telegraf';
+import { Command, Ctx, On, Update } from 'nestjs-telegraf';
 import { Scenes, Telegraf } from 'telegraf';
 import { ConfigService } from '@nestjs/config';
-import { ChatService } from '@/chat/chat.service';
 import { OggConverterService } from '@/ogg-converter/ogg-converter.service';
+import { OpenaiService } from '@/openai/openai.service';
+import { bold } from 'telegraf/format';
 
 type MessageContext = Scenes.SceneContext;
 
@@ -20,13 +21,13 @@ interface TelegramMessage {
 export class TelegramService extends Telegraf<MessageContext> {
   constructor(
     private readonly configService: ConfigService,
-    private readonly gtp: ChatService,
     private readonly ogg: OggConverterService,
+    private readonly openai: OpenaiService,
   ) {
-    super(configService.get('TELEGRAM_API'));
+    super(configService.get('TELEGRAM_KEY'));
   }
 
-  @Start()
+  @Command('/start')
   async onStart(@Ctx() ctx: MessageContext) {
     await ctx.replyWithHTML(`<b>Привет, @${ctx.from.username}!</b>
 
@@ -39,13 +40,16 @@ export class TelegramService extends Telegraf<MessageContext> {
   @On('voice')
   async voiceMessage(@Ctx() ctx: Scenes.WizardContext): Promise<any> {
     try {
+      await ctx.reply(bold('Принято! 😊 Жду ответа от сервера. 🤖'));
       const link = await ctx.telegram.getFileLink(
         (ctx.message as TelegramMessage).voice.file_id,
       );
       const userId = String(ctx.message.from.id);
       const oggPath = await this.ogg.create(link.href, userId);
-      const mp3Path = await this.ogg.toMp3(oggPath, userId);
-      return ctx.reply(mp3Path);
+      const response = await this.openai.transcription(oggPath);
+      await ctx.replyWithHTML(
+        `<b>Ваш запрос: </b><span class="tg-spoiler">${response}</span>`,
+      );
     } catch (e) {
       console.log(e);
     }

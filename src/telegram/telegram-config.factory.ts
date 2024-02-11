@@ -8,7 +8,7 @@ const telegrafModuleOptions = (
   config: ConfigService,
 ): TelegrafModuleOptions => {
   return {
-    token: config.get('TELEGRAM_API'),
+    token: config.get('TELEGRAM_KEY'),
   };
 };
 

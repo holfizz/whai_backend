@@ -2,18 +2,17 @@ import { Module } from '@nestjs/common';
 import { TelegramService } from './telegram.service';
 import { TelegrafModule } from 'nestjs-telegraf';
 import { options } from './telegram-config.factory';
-import { ChatModule } from '@/chat/chat.module';
 import { OggConverterModule } from '@/ogg-converter/ogg-converter.module';
 import { OggConverterService } from '@/ogg-converter/ogg-converter.service';
-import { FluentFfmpegModule } from '@mrkwskiti/fluent-ffmpeg-nestjs';
+import { OpenaiModule } from '@/openai/openai.module';
+import { OpenaiService } from '@/openai/openai.service';
 
 @Module({
   imports: [
     TelegrafModule.forRootAsync(options()),
-    ChatModule,
     OggConverterModule,
-    FluentFfmpegModule.forRoot(),
+    OpenaiModule,
   ],
-  providers: [TelegramService, OggConverterService],
+  providers: [TelegramService, OggConverterService, OpenaiService],
 })
 export class TelegramModule {}

@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { TelegramModule } from './telegram/telegram.module';
-import { ChatModule } from './chat/chat.module';
 import { OggConverterModule } from './ogg-converter/ogg-converter.module';
+import { OpenaiModule } from '@/openai/openai.module';
 
 @Module({
   imports: [
@@ -14,8 +14,8 @@ import { OggConverterModule } from './ogg-converter/ogg-converter.module';
     ConfigModule.forRoot(),
     AuthModule,
     TelegramModule,
-    ChatModule,
     OggConverterModule,
+    OpenaiModule,
   ],
 })
 export class AppModule {}
