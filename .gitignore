@@ -29,7 +29,8 @@ lerna-debug.log*
 
 #env
 .env
-
+*.mp3
+*.ogg
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json

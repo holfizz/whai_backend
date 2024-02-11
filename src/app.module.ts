@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { ChatModule } from './chat/chat.module';
+import { OggConverterModule } from './ogg-converter/ogg-converter.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ChatModule } from './chat/chat.module';
     AuthModule,
     TelegramModule,
     ChatModule,
+    OggConverterModule,
   ],
 })
 export class AppModule {}
