@@ -1,4 +1,4 @@
-import { Command, Ctx, On, Update } from 'nestjs-telegraf';
+import { Ctx, On, Start, Update } from 'nestjs-telegraf';
 import { Scenes, Telegraf } from 'telegraf';
 import { ConfigService } from '@nestjs/config';
 import { OggConverterService } from '@/ogg-converter/ogg-converter.service';
@@ -27,7 +27,7 @@ export class TelegramService extends Telegraf<MessageContext> {
     super(configService.get('TELEGRAM_KEY'));
   }
 
-  @Command('/start')
+  @Start()
   async onStart(@Ctx() ctx: MessageContext) {
     await ctx.replyWithHTML(`<b>Привет, @${ctx.from.username}!</b>
 
