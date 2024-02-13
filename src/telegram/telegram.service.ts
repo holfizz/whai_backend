@@ -72,18 +72,21 @@ export class TelegramService extends Telegraf<MessageContext> {
       ? MAX_REQUESTS_SUBSCRIBED
       : MAX_REQUESTS_UNSUBSCRIBED;
     if (timeSinceLastRequest < REQUESTS_CACHE_EXPIRY && count >= maxRequests) {
-      await ctx.reply(
-        `Вы исчерпали свой лимит запросов. Следущие ${MAX_REQUESTS_SUBSCRIBED} запросов будут доступны завтра.`,
-      );
-      return false;
+      if (subscribed) {
+        await ctx.reply(
+          `Вы исчерпали свой лимит запросов. Следущие ${MAX_REQUESTS_SUBSCRIBED} запросов будут доступны завтра.`,
+        );
+      } else {
+        const keyboardMarkup = Markup.inlineKeyboard([
+          Markup.button.url('Подпишись на наш канал', 't.me/whai_channel'),
+        ]);
+        await ctx.reply(
+          `Вы исчерпали свой лимит запросов. Чтобы получить ${MAX_REQUESTS_SUBSCRIBED} запросов в день, подпишитесь на канал.`,
+          keyboardMarkup,
+        );
+        return false;
+      }
     }
-    const keyboardMarkup = Markup.inlineKeyboard([
-      Markup.button.url('Подпишись на наш канал', 't.me/whai_channel'),
-    ]);
-    await ctx.reply(
-      `Вы исчерпали свой лимит запросов. Чтобы получить ${MAX_REQUESTS_SUBSCRIBED} запросов в день, подпишитесь на канал.`,
-      keyboardMarkup,
-    );
     return true;
   }
 
