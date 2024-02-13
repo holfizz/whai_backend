@@ -9,8 +9,6 @@ const dirname = path.resolve(__dirname, '..', '..');
 export class OggConverterService {
   async create(url: string, filename: string): Promise<string> {
     try {
-      console.log(dirname);
-
       const oggPath = resolve(dirname, 'uploads/voices', `${filename}.ogg`);
       const response = await axios({
         method: 'get',
