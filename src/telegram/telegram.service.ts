@@ -24,7 +24,7 @@ const INITIAL_SESSION: InitSessionType = {
   messages: [],
 };
 const MAX_REQUESTS_UNSUBSCRIBED = 10;
-const MAX_REQUESTS_SUBSCRIBED = 24;
+const MAX_REQUESTS_SUBSCRIBED = 25;
 const REQUESTS_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 @Update()
@@ -49,7 +49,6 @@ export class TelegramService extends Telegraf<MessageContext> {
     );
 
     const subscribed = chatMember.status;
-    console.log(subscribed);
     if (!subscribed) {
       const keyboardMarkup = Markup.inlineKeyboard([
         Markup.button.url('Подпишись на наш канал', 't.me/whai_channel'),
