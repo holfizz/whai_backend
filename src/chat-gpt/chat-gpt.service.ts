@@ -52,6 +52,7 @@ export class ChatGptService {
       if (!user) {
         throw new Error(`User with ID ${userId} not found`);
       }
+
       const chat = await this.prisma.chats.create({
         data: {
           userId: user.id,
