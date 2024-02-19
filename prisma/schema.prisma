@@ -19,6 +19,7 @@ model User {
   resetPasswordToken      String?          @map("reset_password_token")
   resetPasswordExpiration DateTime?        @map("reset_password_expiration")
   businessProfile         BusinessProfile?
+  chats                   Chats[]
 }
 
 model BusinessProfile {
@@ -26,8 +27,64 @@ model BusinessProfile {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   name      String
-  user      User     @relation(fields: [userId], references: [id])
   userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  courses   Course[]
+  lessons   Lesson[]
 }
 
-// sd
+model Course {
+  id                Int              @id @default(autoincrement())
+  title             String
+  description       String?
+  businessProfileId Int?
+  BusinessProfile   BusinessProfile? @relation(fields: [businessProfileId], references: [id])
+  lessons           Lesson[]
+}
+
+model Lesson {
+  id                Int              @id @default(autoincrement())
+  title             String
+  content           String
+  courseId          Int              @map("course_id")
+  businessProfileId Int?
+  BusinessProfile   BusinessProfile? @relation(fields: [businessProfileId], references: [id])
+  course            Course           @relation(fields: [courseId], references: [id])
+  quizzes           Quiz[]
+}
+
+model Quiz {
+  id        Int        @id @default(autoincrement())
+  title     String
+  lessonId  Int        @map("lesson_id")
+  questions Question[]
+  lesson    Lesson     @relation(fields: [lessonId], references: [id])
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  content       String
+  options       String[]
+  correctOption Int
+  quizId        Int      @map("quiz_id")
+  quiz          Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model Chats {
+  id       Int       @id @default(autoincrement())
+  title    String?   @default("New chat")
+  userId   Int
+  user     User      @relation(fields: [userId], references: [id])
+  messages Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  userId    Int?
+  createdAt DateTime @default(now())
+  chatsId   Int?
+  chats     Chats?   @relation(fields: [chatsId], references: [id])
+  text      String
+  from      String?
+}

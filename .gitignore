@@ -11,6 +11,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+pnpm-lock.yaml
 # OS
 .DS_Store
 
@@ -37,4 +38,3 @@ sessions.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-pnpm-lock.yaml
