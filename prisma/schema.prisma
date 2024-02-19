@@ -8,14 +8,24 @@ datasource db {
 }
 
 model User {
-  id                      Int       @id @default(autoincrement())
-  createdAt               DateTime  @default(now()) @map("created_at")
-  updatedAt               DateTime  @updatedAt @map("updated_at")
-  email                   String    @unique
+  id                      Int              @id @default(autoincrement())
+  createdAt               DateTime         @default(now()) @map("created_at")
+  updatedAt               DateTime         @updatedAt @map("updated_at")
+  email                   String           @unique
   password                String
-  isAdmin                 Boolean   @default(false) @map("is_admin")
-  isActivated             Boolean   @default(false) @map("is_activated")
-  activationLink          String?   @unique @map("activation_link")
-  resetPasswordToken      String?   @map("reset_password_token")
-  resetPasswordExpiration DateTime? @map("reset_password_expiration")
+  isAdmin                 Boolean          @default(false) @map("is_admin")
+  isActivated             Boolean          @default(false) @map("is_activated")
+  activationLink          String?          @unique @map("activation_link")
+  resetPasswordToken      String?          @map("reset_password_token")
+  resetPasswordExpiration DateTime?        @map("reset_password_expiration")
+  businessProfile         BusinessProfile?
+}
+
+model BusinessProfile {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  name      String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
 }
