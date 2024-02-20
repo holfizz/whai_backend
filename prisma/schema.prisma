@@ -8,49 +8,55 @@ datasource db {
 }
 
 model User {
-  id                      Int              @id @default(autoincrement())
-  createdAt               DateTime         @default(now()) @map("created_at")
-  updatedAt               DateTime         @updatedAt @map("updated_at")
-  email                   String           @unique
+  id                      Int          @id @default(autoincrement())
+  createdAt               DateTime     @default(now()) @map("created_at")
+  updatedAt               DateTime     @updatedAt @map("updated_at")
+  firstName               String
+  lastName                String
+  phoneNumber             BigInt
+  avatarPath              String?
+  email                   String       @unique
   password                String
-  isAdmin                 Boolean          @default(false) @map("is_admin")
-  isActivated             Boolean          @default(false) @map("is_activated")
-  activationLink          String?          @unique @map("activation_link")
-  resetPasswordToken      String?          @map("reset_password_token")
-  resetPasswordExpiration DateTime?        @map("reset_password_expiration")
-  businessProfile         BusinessProfile?
+  isAdmin                 Boolean      @default(false) @map("is_admin")
+  isActivated             Boolean      @default(false) @map("is_activated")
+  activationLink          String?      @unique @map("activation_link")
+  resetPasswordToken      String?      @map("reset_password_token")
+  resetPasswordExpiration DateTime?    @map("reset_password_expiration")
   chats                   Chats[]
+  creatorMode             CreatorMode?
+  userMode                UserMode     @default(STUDENT)
 }
 
-model BusinessProfile {
+model CreatorMode {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   name      String
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id]) // Связь с User
+  userId    Int?     @unique
   courses   Course[]
   lessons   Lesson[]
 }
 
 model Course {
-  id                Int              @id @default(autoincrement())
+  id                Int          @id @default(autoincrement())
   title             String
   description       String?
   businessProfileId Int?
-  BusinessProfile   BusinessProfile? @relation(fields: [businessProfileId], references: [id])
   lessons           Lesson[]
+  creatorMode       CreatorMode? @relation(fields: [creatorModeId], references: [id])
+  creatorModeId     Int?
 }
 
 model Lesson {
-  id                Int              @id @default(autoincrement())
-  title             String
-  content           String
-  courseId          Int              @map("course_id")
-  businessProfileId Int?
-  BusinessProfile   BusinessProfile? @relation(fields: [businessProfileId], references: [id])
-  course            Course           @relation(fields: [courseId], references: [id])
-  quizzes           Quiz[]
+  id            Int          @id @default(autoincrement())
+  title         String
+  content       String
+  courseId      Int          @map("course_id")
+  course        Course       @relation(fields: [courseId], references: [id])
+  quizzes       Quiz[]
+  creatorMode   CreatorMode? @relation(fields: [creatorModeId], references: [id])
+  creatorModeId Int?
 }
 
 model Quiz {
@@ -87,4 +93,9 @@ model Message {
   chats     Chats?   @relation(fields: [chatsId], references: [id])
   text      String
   from      String?
+}
+
+enum UserMode {
+  STUDENT
+  CREATOR
 }

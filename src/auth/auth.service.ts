@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma.service';
-import { AuthDto } from './dto/auth.dto';
+import { AuthLoginDto, AuthRegisterDto } from './dto/authLoginDto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
@@ -20,7 +20,7 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async register(dto: AuthDto) {
+  async register(dto: AuthRegisterDto) {
     const existUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -36,6 +36,9 @@ export class AuthService {
     );
     const user = await this.prisma.user.create({
       data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phoneNumber: +dto.phoneNumber,
         email: dto.email,
         password: await bcrypt.hash(dto.password, 5),
         activationLink: activationLink,
@@ -71,7 +74,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: AuthDto) {
+  async login(dto: AuthLoginDto) {
     const user = await this.validateUser(dto);
 
     const tokens = await this.issueTokens(user.id);
@@ -80,6 +83,7 @@ export class AuthService {
       ...tokens,
     };
   }
+
   async getNewTokens(refreshToken: string) {
     const result = await this.jwt.verifyAsync(refreshToken);
     if (!result) throw new UnauthorizedException('Invalid refresh token');
@@ -94,7 +98,8 @@ export class AuthService {
       ...tokens,
     };
   }
-  private async validateUser(dto: AuthDto) {
+
+  private async validateUser(dto: AuthLoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -136,6 +141,7 @@ export class AuthService {
 
     return true;
   }
+
   async generateResetPasswordToken(email: string) {
     const user = await this.prisma.user.findFirst({
       where: { email },
@@ -168,7 +174,7 @@ export class AuthService {
     return true;
   }
 
-  async resetPassword(token: string, dto: AuthDto) {
+  async resetPassword(token: string, dto: AuthLoginDto) {
     const user = await this.prisma.user.findFirst({
       where: {
         resetPasswordToken: token,

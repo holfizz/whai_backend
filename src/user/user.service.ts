@@ -1,8 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UserDto } from './user.dto';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Prisma } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -18,23 +16,21 @@ export class UserService {
     return user;
   }
 
-  async updateProfile(id: number, dto: UserDto) {
-    const isSameUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (isSameUser && id !== isSameUser.id) {
-      throw new BadRequestException('Email already in use');
-    }
-
-    return this.prisma.user.update({
-      where: {
-        id,
-      },
-      data: {
-        email: dto.email,
-        password: dto.password ?? (await bcrypt.hash(dto.password, 5)),
-      },
-    });
-  }
+  //TODO:нужно сделать update
+  // async updateProfile(id: number, dto: UserDto) {
+  //   return this.prisma.user.update({
+  //     where: {
+  //       id,
+  //     },
+  //     data: {
+  //       email: dto.email,
+  //       password: dto.password ?? (await bcrypt.hash(dto.password, 5)),
+  //       phoneNumber: dto.phoneNumber,
+  //       avatarPath: dto.avatarPath,
+  //       firstName: dto.firstName,
+  //       lastName: dto.lastName,
+  //       userMode: dto.userMode,
+  //     },
+  //   });
+  // }
 }

@@ -9,7 +9,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto/auth.dto';
+import { AuthLoginDto, AuthRegisterDto } from './dto/authLoginDto';
 import { RefreshTokenDto } from './dto/refreshToken.dto';
 
 @Controller('auth')
@@ -19,14 +19,14 @@ export class AuthController {
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
   @Post('register')
-  async register(@Body() dto: AuthDto) {
+  async register(@Body() dto: AuthRegisterDto) {
     return this.authService.register(dto);
   }
 
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
   @Post('login')
-  async login(@Body() dto: AuthDto) {
+  async login(@Body() dto: AuthLoginDto) {
     return this.authService.login(dto);
   }
 
@@ -49,9 +49,9 @@ export class AuthController {
   @Post('reset-password/:token')
   async resetPassword(
     @Param('token') token: string,
-    @Body() dto: Partial<AuthDto>,
+    @Body() dto: Partial<AuthLoginDto>,
   ) {
-    await this.authService.resetPassword(token, dto as AuthDto);
+    await this.authService.resetPassword(token, dto as AuthLoginDto);
     return { message: 'Password has been reset' };
   }
 
