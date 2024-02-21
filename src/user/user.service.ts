@@ -1,10 +1,15 @@
+import { FileService, FileType } from '@/file/file.service';
+import { PrismaService } from '@/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
 import { Prisma } from '@prisma/client';
+import { UpdateUserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly fileService: FileService,
+  ) {}
 
   async byId(id: number, selectObject?: Prisma.UserSelect) {
     const user = await this.prisma.user.findUnique({
@@ -16,21 +21,27 @@ export class UserService {
     return user;
   }
 
-  //TODO:нужно сделать update
-  // async updateProfile(id: number, dto: UserDto) {
-  //   return this.prisma.user.update({
-  //     where: {
-  //       id,
-  //     },
-  //     data: {
-  //       email: dto.email,
-  //       password: dto.password ?? (await bcrypt.hash(dto.password, 5)),
-  //       phoneNumber: dto.phoneNumber,
-  //       avatarPath: dto.avatarPath,
-  //       firstName: dto.firstName,
-  //       lastName: dto.lastName,
-  //       userMode: dto.userMode,
-  //     },
-  //   });
-  // }
+  async updateProfile(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    picture: string,
+  ) {
+    let avatarPath: string | undefined = undefined;
+
+    if (picture) {
+      avatarPath = this.fileService.createFile(FileType.IMAGE, picture);
+    }
+
+    const data = {
+      ...updateUserDto,
+      ...(avatarPath && { avatarPath }),
+    };
+
+    return this.prisma.user.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  }
 }

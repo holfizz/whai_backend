@@ -1,13 +1,11 @@
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import {
   IsEmail,
   IsEnum,
-  IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
   MinLength,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 
 export enum UserMode {
   'STUDENT' = 'STUDENT',
@@ -36,15 +34,15 @@ export class UserDto {
   @IsString()
   lastName: string;
 
-  @MinLength(9)
-  @MaxLength(12)
-  @IsNumber()
-  phoneNumber: number;
+  // @MinLength(9)
+  // @MaxLength(12)
+  @IsString()
+  phoneNumber: string;
 
   @IsOptional()
-  @IsString()
   avatarPath: string;
 
   @IsEnum(UserMode)
   userMode: UserMode;
 }
+export class UpdateUserDto extends PartialType(UserDto) {}

@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { ChatHistoryManager } from '@/chat-gpt/entities/chat-history-manager.entity';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import * as process from 'process';
 import {
   ChatGptAnswerDto,
   ChatGptRequestDto,
 } from '@/chat-gpt/dto/chat-gpt.dto';
+import { ChatHistoryManager } from '@/chat-gpt/entities/chat-history-manager.entity';
 import { PrismaService } from '@/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+import * as process from 'process';
 
 const DEFAULT_TEMPERATURE = 1;
 const DEFAULT_MODEL = 'gpt-3.5-turbo';

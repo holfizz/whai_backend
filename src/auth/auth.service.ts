@@ -1,14 +1,14 @@
+import { PrismaService } from '@/prisma.service';
+import { UserService } from '@/user/user.service';
 import {
   BadRequestException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma.service';
-import { AuthLoginDto, AuthRegisterDto } from './dto/authLoginDto';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
-import { UserService } from '@/user/user.service';
+import * as bcrypt from 'bcrypt';
+import { AuthLoginDto, AuthRegisterDto } from './dto/authLoginDto';
 import { MailService } from './mail.service';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class AuthService {
     if (existUser) {
       throw new BadRequestException('Пользователь уже существует');
     }
-    const activationLink = crypto.randomUUID(); // v34fa-asfasf-142saf-sa-asf
+    const activationLink = crypto.randomUUID();
 
     await this.mailService.sendActivationMail(
       dto.email,
@@ -38,7 +38,7 @@ export class AuthService {
       data: {
         firstName: dto.firstName,
         lastName: dto.lastName,
-        phoneNumber: +dto.phoneNumber,
+        phoneNumber: dto.phoneNumber,
         email: dto.email,
         password: await bcrypt.hash(dto.password, 5),
         activationLink: activationLink,
