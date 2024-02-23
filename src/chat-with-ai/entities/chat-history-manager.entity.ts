@@ -22,7 +22,6 @@ export class ChatHistoryManager {
 
   addAiMessage(message: string) {
     this.chatHistory.push(new AIMessage(message));
-    console.log(this.chatHistory);
   }
 
   addHumanMessage(message: string) {
@@ -30,5 +29,8 @@ export class ChatHistoryManager {
   }
   deleteContext() {
     return this.chatHistory.splice(0, this.chatHistory.length);
+  }
+  getChatMessages() {
+    return this.chatHistory;
   }
 }

@@ -8,7 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { AuthLoginDto, AuthRegisterDto } from './dto/authLoginDto';
+import { AuthLoginDto, AuthSignUpDto } from './dto/authLoginDto';
 import { MailService } from './mail.service';
 
 @Injectable()
@@ -20,9 +20,9 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async register(dto: AuthRegisterDto) {
+  async signUp(dto: AuthSignUpDto) {
     const existUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email: dto.email, phoneNumber: dto.phoneNumber },
     });
 
     if (existUser) {
@@ -64,13 +64,17 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private returnUserFields(user: Partial<User>) {
+  private returnUserFields(user: Partial<User>): Partial<User> {
     return {
       id: user.id,
       email: user.email,
       isAdmin: user.isAdmin,
       isActivated: user.isActivated,
       activationLink: user.activationLink,
+      phoneNumber: user.phoneNumber,
+      avatarPath: user.avatarPath,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
   }
 

@@ -13,7 +13,7 @@ model User {
   updatedAt               DateTime     @updatedAt @map("updated_at")
   firstName               String
   lastName                String
-  phoneNumber             String
+  phoneNumber             String       @unique
   avatarPath              String?
   email                   String       @unique
   password                String
@@ -22,9 +22,7 @@ model User {
   activationLink          String?      @unique @map("activation_link")
   resetPasswordToken      String?      @map("reset_password_token")
   resetPasswordExpiration DateTime?    @map("reset_password_expiration")
-  chats                   Chats[]
-  creatorMode             CreatorMode?
-  userMode                UserMode     @default(STUDENT)
+  chatsWithAI             ChatWithAI[]
 }
 
 model CreatorMode {
@@ -32,70 +30,96 @@ model CreatorMode {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   name      String
-  user      User?    @relation(fields: [userId], references: [id]) // Связь с User
-  userId    Int?     @unique
-  courses   Course[]
-  lessons   Lesson[]
+  // courses   Course[]
+  // lessons   Lesson[]
 }
 
-model Course {
-  id                Int          @id @default(autoincrement())
-  title             String
-  description       String?
-  businessProfileId Int?
-  lessons           Lesson[]
-  creatorMode       CreatorMode? @relation(fields: [creatorModeId], references: [id])
-  creatorModeId     Int?
-}
-
-model Lesson {
-  id            Int          @id @default(autoincrement())
-  title         String
-  content       String
-  courseId      Int          @map("course_id")
-  course        Course       @relation(fields: [courseId], references: [id])
-  quizzes       Quiz[]
-  creatorMode   CreatorMode? @relation(fields: [creatorModeId], references: [id])
-  creatorModeId Int?
-}
-
-model Quiz {
-  id        Int        @id @default(autoincrement())
-  title     String
-  lessonId  Int        @map("lesson_id")
-  questions Question[]
-  lesson    Lesson     @relation(fields: [lessonId], references: [id])
-}
-
-model Question {
-  id            Int      @id @default(autoincrement())
-  content       String
-  options       String[]
-  correctOption Int
-  quizId        Int      @map("quiz_id")
-  quiz          Quiz     @relation(fields: [quizId], references: [id])
-}
-
-model Chats {
-  id       Int       @id @default(autoincrement())
-  title    String?   @default("New chat")
+model ChatWithAI {
+  id       Int             @id @default(autoincrement())
+  title    String          @default("New chat")
   userId   Int
-  user     User      @relation(fields: [userId], references: [id])
-  messages Message[]
+  user     User            @relation(fields: [userId], references: [id])
+  messages MessageWIthAI[]
 }
 
-model Message {
-  id        Int      @id @default(autoincrement())
-  content   String
-  userId    Int?
-  createdAt DateTime @default(now())
-  chatsId   Int?
-  chats     Chats?   @relation(fields: [chatsId], references: [id])
-  text      String
-  from      String?
+model MessageWIthAI {
+  id           Int               @id @default(autoincrement())
+  text         String
+  file         String?
+  type         MessageWIthAIType @default(TEXT)
+  from         MessageWIthAIFrom @default(USER)
+  chatWithAI   ChatWithAI?       @relation(fields: [chatWithAIId], references: [id])
+  chatWithAIId Int               @map("chat_with_ai_id")
 }
 
 enum UserMode {
   STUDENT
   CREATOR
 }
+
+enum MessageWIthAIFrom {
+  AI
+  USER
+}
+
+enum MessageWIthAIType {
+  VOICE
+  TEXT
+}
+
+// model Course {
+//   id                Int          @id @default(autoincrement())
+//   title             String
+//   description       String?
+//   businessProfileId Int?
+//   lessons           Lesson[]
+//   creatorMode       CreatorMode? @relation(fields: [creatorModeId], references: [id])
+//   creatorModeId     Int?
+// }
+
+// model Lesson {
+//   id            Int          @id @default(autoincrement())
+//   title         String
+//   content       String
+//   courseId      Int          @map("course_id")
+//   course        Course       @relation(fields: [courseId], references: [id])
+//   quizzes       Quiz[]
+//   creatorMode   CreatorMode? @relation(fields: [creatorModeId], references: [id])
+//   creatorModeId Int?
+// }
+
+// model Quiz {
+//   id        Int        @id @default(autoincrement())
+//   title     String
+//   lessonId  Int        @map("lesson_id")
+//   questions Question[]
+//   lesson    Lesson     @relation(fields: [lessonId], references: [id])
+// }
+
+// model Question {
+//   id            Int      @id @default(autoincrement())
+//   content       String
+//   options       String[]
+//   correctOption Int
+//   quizId        Int      @map("quiz_id")
+//   quiz          Quiz     @relation(fields: [quizId], references: [id])
+// }
+
+// model Chats {
+//   id       Int       @id @default(autoincrement())
+//   title    String    @default("New chat")
+//   userId   Int
+//   user     User      @relation(fields: [userId], references: [id])
+//   messages Message[]
+// }
+
+// model Message {
+//   id        Int      @id @default(autoincrement())
+//   content   String
+//   userId    Int
+//   createdAt DateTime @default(now())
+//   chatsId   Int
+//   chats     Chats?   @relation(fields: [chatsId], references: [id])
+//   text      String
+//   from      String?
+// }

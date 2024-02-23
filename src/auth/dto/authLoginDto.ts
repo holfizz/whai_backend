@@ -17,7 +17,7 @@ export class AuthLoginDto {
   @IsString()
   password: string;
 }
-export class AuthRegisterDto {
+export class AuthSignUpDto {
   @ApiProperty({ example: 'exaple@mail.com', description: 'user email' })
   @IsEmail(
     {},
