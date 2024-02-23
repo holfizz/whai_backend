@@ -1,7 +1,7 @@
 import { Auth } from '@/auth/decorators/auth.decorator';
 import { CurrentUser } from '@/auth/decorators/user.decorator';
-import { Body, Controller, Post } from '@nestjs/common';
-import { ChatGptService } from './chat-with-ai.service';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import ChatGptService from './chat-with-ai.service';
 import { chatWithAiRequestDto, createChatWithAI } from './dto/chat-with-ai.dto';
 
 @Controller('chat-with-ai')
@@ -23,11 +23,11 @@ export class ChatGptController {
     return this.chatGptService.createMessageWithAI(id, dto);
   }
 
-  // @Get()
-  // @Auth('user')
-  // getUserChats(@CurrentUser('id') id: number) {
-  //   return this.chatGptService.getUserChats(id);
-  // }
+  @Get(':id')
+  @Auth('user')
+  getUserChats(@Param('id') id: string) {
+    return this.chatGptService.getAllMessageInChatWithAI(+id);
+  }
   // @Get('/:id')
   // getAllMessages(@Param('id') id: string) {
   //   return this.chatGptService.getAllMessages(+id);

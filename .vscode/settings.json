@@ -1,3 +1,4 @@
 {
-  "prisma.fileWatcher": false
+  "prisma.fileWatcher": false,
+  "cSpell.words": ["langchain", "openai"]
 }
