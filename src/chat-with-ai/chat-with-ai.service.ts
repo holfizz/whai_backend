@@ -49,20 +49,33 @@ export default class ChatWithAIService {
   }
   async createMessageWithAI(userId: number, dto: chatWithAiRequestDto, file) {
     try {
-      let filePath: string | undefined = undefined;
+      let filePath: string = '';
 
+      let fileData = '';
       if (file) {
-        filePath = this.fileService.createFile(FileType.DOCUMENT, file);
+        filePath = await this.fileService.createFile(FileType.DOCUMENT, file);
+        fileData = await this.documentReader.readDocumentFile(filePath);
       }
-      return this.documentReader.readDocumentFile(filePath);
+      // Убедитесь, что filePath является строкой перед его использованием
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (!user) {
         throw new Error(`User with ID ${userId} not found`);
       }
+      const textData = (dto, fileData) => {
+        if (fileData) {
+          return dto.text + '' + `{fileData: ${fileData} }`;
+        } else {
+          return dto.text;
+        }
+      };
       await this.prisma.messageWIthAI.create({
-        data: dto,
+        data: {
+          ...dto,
+          text: textData(dto, fileData),
+          chatWithAIId: +dto.chatWithAIId,
+        },
       });
-      return this.getAiModelAnswer(userId, dto);
+      return this.getAiModelAnswer(dto, fileData);
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
     }
@@ -76,15 +89,16 @@ export default class ChatWithAIService {
     }
   }
 
-  async getAiModelAnswer(userId: number, dto: chatWithAiRequestDto) {
+  async getAiModelAnswer(dto: chatWithAiRequestDto, fileData?: string) {
     try {
       const chatHistory = new ChatHistoryManager();
       const getAllMessages = await this.prisma.messageWIthAI.findMany({
-        where: { chatWithAIId: dto.chatWithAIId },
+        where: { chatWithAIId: +dto.chatWithAIId },
       });
+
       getAllMessages.forEach((message) => {
         if (message.from === MessageWIthAIFrom.USER) {
-          chatHistory.addHumanMessage(message.text);
+          chatHistory.addHumanMessage(message.text, !!fileData && fileData);
         } else if (message.from === MessageWIthAIFrom.AI) {
           chatHistory.addAiMessage(message.text);
         }
@@ -97,7 +111,7 @@ export default class ChatWithAIService {
       const data = {
         text: aiMessage,
         from: MessageWIthAIFrom.AI,
-        chatWithAIId: dto.chatWithAIId,
+        chatWithAIId: +dto.chatWithAIId,
       };
 
       await this.prisma.messageWIthAI.create({

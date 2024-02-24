@@ -31,7 +31,7 @@ export class ChatWithAIController {
     @Body() dto: chatWithAiRequestDto,
     @UploadedFiles() document,
   ) {
-    let file;
+    let file = undefined;
     if (document && document.file && document.file.length > 0) {
       file = document.file[0];
     }

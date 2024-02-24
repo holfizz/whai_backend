@@ -24,8 +24,15 @@ export class ChatHistoryManager {
     this.chatHistory.push(new AIMessage(message));
   }
 
-  addHumanMessage(message: string) {
-    this.chatHistory.push(new HumanMessage(message));
+  addHumanMessage(message: string, fileData?: string) {
+    const textData = (message, fileData) => {
+      if (fileData) {
+        return message + '' + `{fileData: ${fileData} }`;
+      } else {
+        return message;
+      }
+    };
+    this.chatHistory.push(new HumanMessage(textData(message, fileData)));
   }
   deleteContext() {
     return this.chatHistory.splice(0, this.chatHistory.length);
