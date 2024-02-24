@@ -32,17 +32,12 @@ export default class ChatWithAIService {
 
   async createChatWithAI(userId: number, dto: createChatWithAI) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        throw new Error(`User with ID ${userId} not found`);
-      }
-      const chat = await this.prisma.chatWithAI.create({
+      return await this.prisma.chatWithAI.create({
         data: {
           ...dto,
-          userId: user.id,
+          userId,
         },
       });
-      return chat;
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
     }
@@ -56,11 +51,7 @@ export default class ChatWithAIService {
         filePath = await this.fileService.createFile(FileType.DOCUMENT, file);
         fileData = await this.documentReader.readDocumentFile(filePath);
       }
-      // Убедитесь, что filePath является строкой перед его использованием
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        throw new Error(`User with ID ${userId} not found`);
-      }
+
       const textData = (dto, fileData) => {
         if (fileData) {
           return dto.text + '' + `{fileData: ${fileData} }`;

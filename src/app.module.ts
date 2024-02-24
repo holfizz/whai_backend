@@ -5,7 +5,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
 import { AuthModule } from './auth/auth.module';
 import { ChatWIthAIModule } from './chat-with-ai/chat-with-ai.module';
+import { ChatModule } from './chat/chat.module';
 import { FileModule } from './file/file.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { FileModule } from './file/file.module';
     ChatWIthAIModule,
     UserModule,
     FileModule,
+    ChatModule,
+    MessageModule,
   ],
 })
 export class AppModule {}
