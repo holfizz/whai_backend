@@ -1,12 +1,21 @@
 import { Auth } from '@/auth/decorators/auth.decorator';
 import { CurrentUser } from '@/auth/decorators/user.decorator';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import ChatGptService from './chat-with-ai.service';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import ChatWithAIService from './chat-with-ai.service';
 import { chatWithAiRequestDto, createChatWithAI } from './dto/chat-with-ai.dto';
 
 @Controller('chat-with-ai')
-export class ChatGptController {
-  constructor(private readonly chatGptService: ChatGptService) {}
+export class ChatWithAIController {
+  constructor(private readonly chatGptService: ChatWithAIService) {}
 
   @Post('')
   @Auth('user')
@@ -16,11 +25,18 @@ export class ChatGptController {
 
   @Post('message')
   @Auth('user')
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }]))
   createMessage(
     @CurrentUser('id') id: number,
     @Body() dto: chatWithAiRequestDto,
+    @UploadedFiles() document,
   ) {
-    return this.chatGptService.createMessageWithAI(id, dto);
+    let file;
+    if (document && document.file && document.file.length > 0) {
+      file = document.file[0];
+    }
+
+    return this.chatGptService.createMessageWithAI(id, dto, file);
   }
 
   @Get(':id')

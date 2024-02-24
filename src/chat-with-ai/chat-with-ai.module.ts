@@ -1,11 +1,12 @@
+import { FileService } from '@/file/file.service';
 import { PrismaService } from '@/prisma.service';
 import { Module } from '@nestjs/common';
-import { ChatGptController } from './chat-with-ai.controller';
-import ChatGptService from './chat-with-ai.service';
+import { ChatWithAIController } from './chat-with-ai.controller';
+import ChatWithAIService from './chat-with-ai.service';
 
 @Module({
-  controllers: [ChatGptController],
-  providers: [ChatGptService, PrismaService],
+  controllers: [ChatWithAIController],
+  providers: [ChatWithAIService, PrismaService, FileService],
   imports: [],
 })
-export class ChatGptModule {}
+export class ChatWIthAIModule {}

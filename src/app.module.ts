@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
 import { AuthModule } from './auth/auth.module';
-import { ChatGptModule } from './chat-with-ai/chat-with-ai.module';
+import { ChatWIthAIModule } from './chat-with-ai/chat-with-ai.module';
 import { FileModule } from './file/file.module';
 
 @Module({
@@ -18,7 +18,7 @@ import { FileModule } from './file/file.module';
     }),
     ConfigModule.forRoot(),
     AuthModule,
-    ChatGptModule,
+    ChatWIthAIModule,
     UserModule,
     FileModule,
   ],

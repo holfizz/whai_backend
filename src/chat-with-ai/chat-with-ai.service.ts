@@ -1,26 +1,33 @@
 import { ChatHistoryManager } from '@/chat-with-ai/entities/chat-history-manager.entity';
+import { FileService, FileType } from '@/file/file.service';
 import { PrismaService } from '@/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { MessageWIthAIFrom } from '@prisma/client';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import * as process from 'process';
 import { chatWithAiRequestDto, createChatWithAI } from './dto/chat-with-ai.dto';
+import { DocumentReader } from './entities/document_reader.entity';
 
 const DEFAULT_TEMPERATURE = 1;
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
 @Injectable()
-export default class ChatGptService {
+export default class ChatWithAIService {
   private readonly chatHistory: ChatHistoryManager;
+  private readonly documentReader: DocumentReader;
   private readonly chat: ChatOpenAI;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileService: FileService,
+  ) {
     this.chatHistory = new ChatHistoryManager();
     this.chat = new ChatOpenAI({
       temperature: DEFAULT_TEMPERATURE,
       openAIApiKey: process.env.OPENAI_KEY, // Use your OpenAI Key here
       modelName: DEFAULT_MODEL,
     });
+    this.documentReader = new DocumentReader();
   }
 
   async createChatWithAI(userId: number, dto: createChatWithAI) {
@@ -40,8 +47,14 @@ export default class ChatGptService {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
-  async createMessageWithAI(userId: number, dto: chatWithAiRequestDto) {
+  async createMessageWithAI(userId: number, dto: chatWithAiRequestDto, file) {
     try {
+      let filePath: string | undefined = undefined;
+
+      if (file) {
+        filePath = this.fileService.createFile(FileType.DOCUMENT, file);
+      }
+      return this.documentReader.readDocumentFile(filePath);
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (!user) {
         throw new Error(`User with ID ${userId} not found`);
