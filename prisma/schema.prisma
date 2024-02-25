@@ -39,8 +39,8 @@ model CreatorMode {
 model ChatWithAI {
   id       Int             @id @default(autoincrement())
   title    String
-  userId   Int             @map("user_id")
-  user     User            @relation(fields: [userId], references: [id])
+  userId   Int?            @map("user_id")
+  user     User?           @relation(fields: [userId], references: [id])
   messages MessageWIthAI[]
 }
 
@@ -59,8 +59,8 @@ model Chat {
   name        String?       @default("New chat")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  owner       User          @relation(fields: [ownerId], references: [id])
-  ownerId     Int           @unique
+  owner       User?         @relation(fields: [ownerId], references: [id])
+  ownerId     Int
   messages    Message[]
   chatMembers ChatMembers[]
   inviteLink  String?       @unique
@@ -77,15 +77,15 @@ model ChatMembers {
 
 model Message {
   id          Int           @id @default(autoincrement())
-  user        User          @relation(fields: [userId], references: [id])
+  user        User?         @relation(fields: [userId], references: [id])
   userId      Int           @map("user_id")
   type        MessageType   @default(TEXT)
   text        String
   imgPath     String?
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  chat        Chat          @relation(fields: [chatId], references: [id])
-  chatId      Int           @map("chat_id")
+  chat        Chat?         @relation(fields: [chatId], references: [id])
+  chatId      Int?          @map("chat_id")
   chatMembers ChatMembers[]
 }
 

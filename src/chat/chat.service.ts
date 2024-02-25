@@ -18,6 +18,15 @@ export class ChatService {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
+  async getAllChats(userId: number) {
+    try {
+      return await this.prisma.chat.findMany({
+        where: { ownerId: userId },
+      });
+    } catch (error) {
+      throw new Error(`Error creating chat: ${error.message}`);
+    }
+  }
 
   async updateChat(userId: number, id: number, dto: UpdateChatDto) {
     return await this.prisma.chat.update({

@@ -33,7 +33,7 @@ export class UserController {
   async updateProfile(
     @CurrentUser('id') id: number,
     @Body() dto: UpdateUserDto,
-    @UploadedFiles() files,
+    @UploadedFiles() files?: any,
   ) {
     let picture;
     if (files && files.picture && files.picture.length > 0) {

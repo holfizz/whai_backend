@@ -1,6 +1,14 @@
 import { Auth } from '@/auth/decorators/auth.decorator';
 import { CurrentUser } from '@/auth/decorators/user.decorator';
-import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
@@ -15,7 +23,14 @@ export class ChatController {
     @CurrentUser('id') userId: number,
     @Body() createChatDto: CreateChatDto,
   ) {
+    console.log(createChatDto);
     return this.chatService.createChat(userId, createChatDto);
+  }
+
+  @Auth('user')
+  @Get()
+  getAllChats(@CurrentUser('id') userId: number) {
+    return this.chatService.getAllChats(userId);
   }
 
   @Patch(':id')
