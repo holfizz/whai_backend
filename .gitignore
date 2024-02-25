@@ -14,7 +14,7 @@ lerna-debug.log*
 pnpm-lock.yaml
 # OS
 .DS_Store
-
+.vs_code
 # Tests
 /coverage
 /.nyc_output

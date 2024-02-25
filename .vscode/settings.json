@@ -1,4 +1,5 @@
 {
   "prisma.fileWatcher": false,
-  "cSpell.words": ["langchain", "openai"]
+  "cSpell.words": ["langchain", "openai"],
+  "GitHooks.hooksDirectory": "/Users/holfizz/Developer/whai/backend/.git/hooks"
 }
