@@ -1,23 +1,23 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
+import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { IsEmail, IsEnum, IsString, MinLength } from "class-validator";
 
 export enum UserMode {
-  'STUDENT' = 'STUDENT',
-  'CREATOR' = 'CREATOR',
+  "STUDENT" = "STUDENT",
+  "CREATOR" = "CREATOR",
 }
 
 export class UserDto {
-  @ApiProperty({ example: 'exaple@mail.com', description: 'user email' })
+  @ApiProperty({ example: "exaple@mail.com", description: "user email" })
   @IsEmail(
     {},
     {
-      message: 'email must be an email',
+      message: "email must be an email",
     },
   )
   email: string;
-  @ApiProperty({ example: 'password123', description: 'user password' })
+  @ApiProperty({ example: "password123", description: "user password" })
   @MinLength(6, {
-    message: 'Password must be at least 6 characters long',
+    message: "Password must be at least 6 characters long",
   })
   @IsString()
   password: string;

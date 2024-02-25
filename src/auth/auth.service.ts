@@ -1,15 +1,11 @@
-import { PrismaService } from '@/prisma.service';
-import { UserService } from '@/user/user.service';
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
-import { AuthLoginDto, AuthSignUpDto } from './dto/authLoginDto';
-import { MailService } from './mail.service';
+import { PrismaService } from "@/prisma.service";
+import { UserService } from "@/user/user.service";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { User } from "@prisma/client";
+import * as bcrypt from "bcrypt";
+import { AuthLoginDto, AuthSignUpDto } from "./dto/authLoginDto";
+import { MailService } from "./mail.service";
 
 @Injectable()
 export class AuthService {
@@ -26,14 +22,11 @@ export class AuthService {
     });
 
     if (existUser) {
-      throw new BadRequestException('Пользователь уже существует');
+      throw new BadRequestException("Пользователь уже существует");
     }
     const activationLink = crypto.randomUUID();
 
-    await this.mailService.sendActivationMail(
-      dto.email,
-      `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`,
-    );
+    await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
     const user = await this.prisma.user.create({
       data: {
         firstName: dto.firstName,
@@ -55,11 +48,11 @@ export class AuthService {
     const data = { id: userId };
 
     const accessToken = this.jwt.sign(data, {
-      expiresIn: '1h',
+      expiresIn: "1h",
     });
 
     const refreshToken = this.jwt.sign(data, {
-      expiresIn: '7d',
+      expiresIn: "7d",
     });
     return { accessToken, refreshToken };
   }
@@ -90,7 +83,7 @@ export class AuthService {
 
   async getNewTokens(refreshToken: string) {
     const result = await this.jwt.verifyAsync(refreshToken);
-    if (!result) throw new UnauthorizedException('Invalid refresh token');
+    if (!result) throw new UnauthorizedException("Invalid refresh token");
     const user = await this.prisma.user.findUnique({
       where: { id: result.id },
     });
@@ -109,14 +102,14 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Пользователь не найден');
+      throw new BadRequestException("Пользователь не найден");
     }
     if (!user.isActivated) {
-      throw new BadRequestException('Подтвердите почту');
+      throw new BadRequestException("Подтвердите почту");
     }
     const isValid = await bcrypt.compare(dto.password, user.password);
 
-    if (!isValid) throw new UnauthorizedException('Неверный пароль');
+    if (!isValid) throw new UnauthorizedException("Неверный пароль");
     return user;
   }
 
@@ -130,7 +123,7 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new Error('Пользователь не найден');
+      throw new Error("Пользователь не найден");
     }
 
     await this.prisma.user.update({
@@ -152,7 +145,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Пользователь не найден');
+      throw new BadRequestException("Пользователь не найден");
     }
 
     const resetToken = crypto.randomUUID();
@@ -166,11 +159,8 @@ export class AuthService {
         resetPasswordExpiration: expirationDate,
       },
     });
-    await this.mailService.sendActivationMail(
-      email,
-      `${process.env.FRONTEND_URL}/reset-password/${resetToken}`,
-    );
-    return 'Сообщение отправлено';
+    await this.mailService.sendActivationMail(email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
+    return "Сообщение отправлено";
   }
 
   async forgotPassword(email) {
@@ -189,9 +179,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException(
-        'Ссылка неверная или срок действия ссылки истек',
-      );
+      throw new BadRequestException("Ссылка неверная или срок действия ссылки истек");
     }
 
     await this.prisma.user.update({

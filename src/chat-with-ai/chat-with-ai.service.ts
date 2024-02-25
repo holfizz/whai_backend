@@ -1,15 +1,15 @@
-import { ChatHistoryManager } from '@/chat-with-ai/entities/chat-history-manager.entity';
-import { FileService, FileType } from '@/file/file.service';
-import { PrismaService } from '@/prisma.service';
-import { Injectable } from '@nestjs/common';
-import { MessageWIthAIFrom } from '@prisma/client';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import * as process from 'process';
-import { chatWithAiRequestDto, createChatWithAI } from './dto/chat-with-ai.dto';
-import { DocumentReader } from './entities/document_reader.entity';
+import { ChatHistoryManager } from "@/chat-with-ai/entities/chat-history-manager.entity";
+import { FileService, FileType } from "@/file/file.service";
+import { PrismaService } from "@/prisma.service";
+import { Injectable } from "@nestjs/common";
+import { MessageWIthAIFrom } from "@prisma/client";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import * as process from "process";
+import { chatWithAiRequestDto, createChatWithAI } from "./dto/chat-with-ai.dto";
+import { DocumentReader } from "./entities/document_reader.entity";
 
 const DEFAULT_TEMPERATURE = 1;
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_MODEL = "gpt-3.5-turbo";
 
 @Injectable()
 export default class ChatWithAIService {
@@ -44,9 +44,9 @@ export default class ChatWithAIService {
   }
   async createMessageWithAI(userId: number, dto: chatWithAiRequestDto, file) {
     try {
-      let filePath: string = '';
+      let filePath: string = "";
 
-      let fileData = '';
+      let fileData = "";
       if (file) {
         filePath = await this.fileService.createFile(FileType.DOCUMENT, file);
         fileData = await this.documentReader.readDocumentFile(filePath);
@@ -54,7 +54,7 @@ export default class ChatWithAIService {
 
       const textData = (dto, fileData) => {
         if (fileData) {
-          return dto.text + '' + `{fileData: ${fileData} }`;
+          return dto.text + "" + `{fileData: ${fileData} }`;
         } else {
           return dto.text;
         }
@@ -87,7 +87,7 @@ export default class ChatWithAIService {
         where: { chatWithAIId: +dto.chatWithAIId },
       });
 
-      getAllMessages.forEach((message) => {
+      getAllMessages.forEach(message => {
         if (message.from === MessageWIthAIFrom.USER) {
           chatHistory.addHumanMessage(message.text, !!fileData && fileData);
         } else if (message.from === MessageWIthAIFrom.AI) {

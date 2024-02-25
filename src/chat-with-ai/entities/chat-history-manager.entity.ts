@@ -1,9 +1,4 @@
-import {
-  AIMessage,
-  BaseMessage,
-  HumanMessage,
-  SystemMessage,
-} from 'langchain/schema';
+import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from "langchain/schema";
 
 export class ChatHistoryManager {
   readonly chatHistory: BaseMessage[];
@@ -27,7 +22,7 @@ export class ChatHistoryManager {
   addHumanMessage(message: string, fileData?: string) {
     const textData = (message, fileData) => {
       if (fileData) {
-        return message + '' + `{fileData: ${fileData} }`;
+        return message + "" + `{fileData: ${fileData} }`;
       } else {
         return message;
       }
