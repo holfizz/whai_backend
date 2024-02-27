@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
-import { AuthLoginDto, AuthSignUpDto } from "./dto/authLoginDto";
+import { SignInInput, SignUpInput } from "./dto/auth.input";
 import { MailService } from "./mail.service";
 
 @Injectable()
@@ -15,35 +15,6 @@ export class AuthService {
     private userService: UserService,
     private mailService: MailService,
   ) {}
-
-  async signUp(dto: AuthSignUpDto) {
-    const existUser = await this.prisma.user.findUnique({
-      where: { email: dto.email, phoneNumber: dto.phoneNumber },
-    });
-
-    if (existUser) {
-      throw new BadRequestException("Пользователь уже существует");
-    }
-    const activationLink = crypto.randomUUID();
-
-    await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
-    const user = await this.prisma.user.create({
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phoneNumber: dto.phoneNumber,
-        email: dto.email,
-        password: await bcrypt.hash(dto.password, 5),
-        activationLink: activationLink,
-      },
-    });
-    const tokens = await this.issueTokens(user.id);
-    return {
-      user: this.returnUserFields(user),
-      ...tokens,
-    };
-  }
-
   private async issueTokens(userId: number) {
     const data = { id: userId };
 
@@ -71,7 +42,35 @@ export class AuthService {
     };
   }
 
-  async login(dto: AuthLoginDto) {
+  async signUp(dto: SignUpInput) {
+    const existUser = await this.prisma.user.findUnique({
+      where: { email: dto.email, phoneNumber: dto.phoneNumber },
+    });
+
+    if (existUser) {
+      throw new BadRequestException("Пользователь уже существует");
+    }
+    const activationLink = crypto.randomUUID();
+
+    await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
+    const user = await this.prisma.user.create({
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phoneNumber: dto.phoneNumber,
+        email: dto.email,
+        password: await bcrypt.hash(dto.password, 5),
+        activationLink: activationLink,
+      },
+    });
+    const tokens = await this.issueTokens(user.id);
+    return {
+      user: this.returnUserFields(user),
+      ...tokens,
+    };
+  }
+
+  async signIn(dto: SignInInput) {
     const user = await this.validateUser(dto);
 
     const tokens = await this.issueTokens(user.id);
@@ -87,16 +86,14 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { id: result.id },
     });
-    const tokens = await this.userService.byId(result.id, {
-      isAdmin: true,
-    });
+    const tokens = await this.userService.byId(result.id);
     return {
       user: this.returnUserFields(user),
       ...tokens,
     };
   }
 
-  private async validateUser(dto: AuthLoginDto) {
+  private async validateUser(dto: SignInInput) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -168,7 +165,7 @@ export class AuthService {
     return true;
   }
 
-  async resetPassword(token: string, dto: AuthLoginDto) {
+  async resetPassword(token: string, dto: SignInInput) {
     const user = await this.prisma.user.findFirst({
       where: {
         resetPasswordToken: token,

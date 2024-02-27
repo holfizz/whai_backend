@@ -1,0 +1,48 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  signUp(signUpInput: SignUpInput!): SignResponse!
+  signIn(signInInput: SignInInput!): SignResponse!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
+
+type SignResponse {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+input SignUpInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  phoneNumber: String!
+}
+
+type User {
+  avatarPath: String
+  createdAt: String!
+  email: String!
+  firstName: String!
+  id: Int!
+  isActivated: Boolean!
+  isAdmin: Boolean!
+  lastName: String!
+  password: String!
+  phoneNumber: String!
+  resetPasswordExpiration: DateTime
+  resetPasswordToken: String
+  updatedAt: String!
+}

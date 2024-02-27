@@ -46,4 +46,24 @@ export class ChatService {
       },
     });
   }
+  async getAllMessages(userId: number, chatId: number) {
+    const chat = await this.prisma.chat.findUnique({
+      where: { id: chatId },
+      select: {
+        messages: {
+          take: 20,
+        },
+        chatMembers: true, // Включаем информацию о членах чата
+      },
+    });
+
+    // Проверяем, есть ли пользователь в чате
+    const isUserInChat = chat?.chatMembers.some(member => member.userId === userId);
+
+    if (!isUserInChat) {
+      throw new Error("Пользователь не является членом этого чата.");
+    }
+
+    return chat;
+  }
 }

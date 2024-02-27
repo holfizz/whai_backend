@@ -8,15 +8,13 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
-import * as process from "process";
-import { AuthController } from "./auth.controller";
+import { AuthResolver } from "./auth.resolver";
 import { AuthService } from "./auth.service";
 import { JwtStrategy } from "./jwt.strategy";
 import { MailService } from "./mail.service";
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService, PrismaService, JwtStrategy, ConfigService, UserService, MailService, FileService],
+  providers: [AuthService, PrismaService, JwtStrategy, ConfigService, UserService, MailService, FileService, AuthResolver],
   imports: [
     ConfigModule.forRoot(),
     JwtModule.registerAsync({

@@ -37,11 +37,4 @@ export class MessageService {
       },
     });
   }
-
-  async getAllMessages(userId: number, chatId: number) {
-    return this.prisma.message.findMany({
-      where: { userId, chatId },
-      take: 20,
-    });
-  }
 }

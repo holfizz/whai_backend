@@ -33,4 +33,9 @@ export class ChatController {
   deleteChat(@CurrentUser("id") userId: number, @Param("id") id: string) {
     return this.chatService.deleteChat(userId, +id);
   }
+  @Get()
+  @Auth("user")
+  getAllMessages(@CurrentUser("id") userId: number, @Body() UpdateMessageDto) {
+    return this.chatService.getAllMessages(userId, UpdateMessageDto.chatId);
+  }
 }

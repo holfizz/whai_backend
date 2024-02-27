@@ -1,30 +1,33 @@
-import { UserModule } from "@/user/user.module";
+import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { GraphQLModule } from "@nestjs/graphql";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { AuthModule } from "./auth/auth.module";
-import { ChatWIthAIModule } from "./chat-with-ai/chat-with-ai.module";
-import { ChatModule } from "./chat/chat.module";
-import { FileModule } from "./file/file.module";
-import { MessageModule } from "./message/message.module";
+import { PrismaService } from "./prisma.service";
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: path.resolve(__dirname, "static"),
-    }),
+    AuthModule,
     ConfigModule.forRoot({
       envFilePath: ".env",
       isGlobal: true,
     }),
-    ConfigModule.forRoot(),
-    AuthModule,
-    ChatWIthAIModule,
-    UserModule,
-    FileModule,
-    ChatModule,
-    MessageModule,
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: "src/schema.gql",
+      sortSchema: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: path.resolve(__dirname, "static"),
+    }),
+    // ChatWIthAIModule,
+    // UserModule,
+    // FileModule,
+    // ChatModule,
+    // MessageModule,
   ],
+  providers: [PrismaService],
 })
 export class AppModule {}
