@@ -4,7 +4,8 @@ import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
-import { SignInInput, SignUpInput } from "./dto/auth.input";
+import { ActivationLinkInput, ResetPasswordInput, SignInInput, SignUpInput } from "./dto/auth.input";
+import { SignResponse } from "./dto/sign-response";
 import { MailService } from "./mail.service";
 
 @Injectable()
@@ -72,7 +73,6 @@ export class AuthService {
 
   async signIn(dto: SignInInput) {
     const user = await this.validateUser(dto);
-
     const tokens = await this.issueTokens(user.id);
     return {
       user: this.returnUserFields(user),
@@ -80,15 +80,15 @@ export class AuthService {
     };
   }
 
-  async getNewTokens(refreshToken: string) {
+  async getNewTokens(refreshToken: string): Promise<SignResponse> {
     const result = await this.jwt.verifyAsync(refreshToken);
     if (!result) throw new UnauthorizedException("Invalid refresh token");
     const user = await this.prisma.user.findUnique({
       where: { id: result.id },
     });
-    const tokens = await this.userService.byId(result.id);
+    const tokens = await this.issueTokens(user.id);
     return {
-      user: this.returnUserFields(user),
+      user: user,
       ...tokens,
     };
   }
@@ -110,13 +110,13 @@ export class AuthService {
     return user;
   }
 
-  async isActivated(activationLink) {
-    if (!activationLink.link) {
+  async isActivated(dto: ActivationLinkInput) {
+    if (!dto.activationLink) {
       return false;
     }
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findUnique({
       where: {
-        activationLink: activationLink.link,
+        activationLink: dto.activationLink,
       },
     });
     if (!user) {
@@ -156,7 +156,7 @@ export class AuthService {
         resetPasswordExpiration: expirationDate,
       },
     });
-    await this.mailService.sendActivationMail(email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
+    await this.mailService.sendActivationMail(user.email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
     return "Сообщение отправлено";
   }
 
@@ -165,10 +165,10 @@ export class AuthService {
     return true;
   }
 
-  async resetPassword(token: string, dto: SignInInput) {
+  async resetPassword(dto: ResetPasswordInput) {
     const user = await this.prisma.user.findFirst({
       where: {
-        resetPasswordToken: token,
+        resetPasswordToken: dto.token,
         resetPasswordExpiration: {
           gte: new Date(),
         },

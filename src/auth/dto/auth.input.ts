@@ -54,3 +54,25 @@ export class SignInInput {
   @Field(type => String)
   password: string;
 }
+
+@InputType()
+export class ResetPasswordInput {
+  @MinLength(6, { message: "Password must be at least 6 characters long" })
+  @IsString()
+  @IsNotEmpty()
+  @Field(type => String)
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Field(type => String)
+  token: string;
+}
+
+@InputType()
+export class ActivationLinkInput {
+  @IsString()
+  @IsNotEmpty()
+  @Field(type => String)
+  activationLink: string;
+}

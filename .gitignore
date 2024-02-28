@@ -18,7 +18,6 @@ pnpm-lock.yaml
 # Tests
 /coverage
 /.nyc_output
-
 # IDEs and editors
 /.idea
 .project
@@ -38,3 +37,5 @@ sessions.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+# save file
+.save
