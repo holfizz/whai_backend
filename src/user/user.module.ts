@@ -1,12 +1,13 @@
-import { FileService } from "@/file/file.service";
+import { FileModule } from "@/file-/file.module";
+import { FileService } from "@/file-/file.service";
+import { PrismaService } from "@/prisma.service";
 import { Module } from "@nestjs/common";
-import { PrismaService } from "../prisma.service";
-import { UserController } from "./user.controller";
+import { UserResolver } from "./user.resolver";
 import { UserService } from "./user.service";
 
 @Module({
-  controllers: [UserController],
-  providers: [UserService, PrismaService, FileService],
+  providers: [UserService, PrismaService, FileService, UserResolver],
   exports: [UserService],
+  imports: [FileModule],
 })
 export class UserModule {}

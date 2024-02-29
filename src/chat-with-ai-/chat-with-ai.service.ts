@@ -1,5 +1,5 @@
-import { ChatHistoryManager } from "@/chat-with-ai/entities/chat-history-manager.entity";
-import { FileService, FileType } from "@/file/file.service";
+import { ChatHistoryManager } from "@/chat-with-ai-/entities/chat-history-manager.entity";
+import { FileService, FileType } from "@/file-/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { MessageWIthAIFrom } from "@prisma/client";

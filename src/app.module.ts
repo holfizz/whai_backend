@@ -1,10 +1,12 @@
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { AuthModule } from "./auth/auth.module";
+import { JwtStrategy } from "./auth/jwt.strategy";
 import { PrismaService } from "./prisma.service";
 import { UserModule } from "./user/user.module";
 
@@ -30,6 +32,6 @@ import { UserModule } from "./user/user.module";
     // ChatModule,
     // MessageModule,
   ],
-  providers: [PrismaService],
+  providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })
 export class AppModule {}

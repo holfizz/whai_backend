@@ -1,6 +1,6 @@
 import { getJwtConfig } from "@/config/jwt.config";
-import { FileModule } from "@/file/file.module";
-import { FileService } from "@/file/file.service";
+import { FileModule } from "@/file-/file.module";
+import { FileService } from "@/file-/file.service";
 import { PrismaService } from "@/prisma.service";
 import { UserModule } from "@/user/user.module";
 import { UserService } from "@/user/user.service";

@@ -11,16 +11,22 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+input FileInput {
+  picture: Upload
+}
+
 type Mutation {
   forgotPassword(email: String!): Boolean!
   getNewTokens(dto: RefreshTokenInput!): SignResponse!
   resetPassword(dto: ResetPasswordInput!): Boolean!
   signIn(signInInput: SignInInput!): SignResponse!
   signUp(signUpInput: SignUpInput!): SignResponse!
+  updateProfile(dto: UpdateUserInput!, files: FileInput): User!
 }
 
 type Query {
   isActivated(activationLink: ActivationLinkInput!): Boolean!
+  profile: User!
 }
 
 input RefreshTokenInput {
@@ -51,12 +57,24 @@ input SignUpInput {
   phoneNumber: String!
 }
 
+input UpdateUserInput {
+  email: String
+  firstName: String
+  lastName: String
+  password: String
+  phoneNumber: String
+  userMode: UserMode
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
 type User {
   avatarPath: String
   createdAt: String!
   email: String!
   firstName: String!
-  id: Int!
+  id: ID!
   isActivated: Boolean!
   isAdmin: Boolean!
   lastName: String!
@@ -65,4 +83,9 @@ type User {
   resetPasswordExpiration: DateTime
   resetPasswordToken: String
   updatedAt: String!
+}
+
+enum UserMode {
+  CREATOR
+  STUDENT
 }

@@ -1,7 +1,7 @@
-import { FileService, FileType } from "@/file/file.service";
+import { FileService, FileType } from "@/file-/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { UpdateUserDto } from "./dto/user.dto";
+import { UpdateUserInput } from "./dto/update-user.input";
 
 @Injectable()
 export class UserService {
@@ -13,13 +13,6 @@ export class UserService {
   async byId(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        createdAt: true,
-        email: true,
-        firstName: true,
-        phoneNumber: true,
-        lastName: true,
-      },
     });
     if (!user) {
       throw new Error("User not found");
@@ -27,7 +20,7 @@ export class UserService {
     return user;
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateUserDto, picture: string) {
+  async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: Express.Multer.File) {
     let avatarPath: string | undefined = undefined;
 
     if (picture) {
