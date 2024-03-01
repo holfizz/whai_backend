@@ -1,11 +1,12 @@
-import { ChatHistoryManager } from "@/chat-with-ai-/entities/chat-history-manager.entity";
+import { ChatHistoryManager } from "@/chat-with-ai/entities/chat-history-manager.entity";
+import { CreateChatInput } from "@/chat/dto/create-chat.input";
 import { FileService, FileType } from "@/file/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { MessageWIthAIFrom } from "@prisma/client";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import * as process from "process";
-import { chatWithAiRequestDto, createChatWithAI } from "./dto/chat-with-ai.dto";
+import { ChatWithAiRequestInput } from "./dto/create-chat-with-ai.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 
 const DEFAULT_TEMPERATURE = 1;
@@ -30,25 +31,26 @@ export default class ChatWithAIService {
     this.documentReader = new DocumentReader();
   }
 
-  async createChatWithAI(userId: number, dto: createChatWithAI) {
+  async createChatWithAI(userId: number, dto: CreateChatInput) {
     try {
-      return await this.prisma.chatWithAI.create({
+      const createChat = await this.prisma.chatWithAI.create({
         data: {
           ...dto,
           userId,
         },
       });
+      return createChat;
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
-  async createMessageWithAI(userId: number, dto: chatWithAiRequestDto, file) {
+  async createMessageWithAI(userId: number, dto: ChatWithAiRequestInput, file) {
     try {
       let filePath: string = "";
 
       let fileData = "";
       if (file) {
-        filePath = await this.fileService.createFile(FileType.DOCUMENT, file);
+        filePath = this.fileService.createFile(FileType.DOCUMENT, file);
         fileData = await this.documentReader.readDocumentFile(filePath);
       }
 
@@ -58,6 +60,7 @@ export default class ChatWithAIService {
         } else {
           return dto.text;
         }
+        return "";
       };
       await this.prisma.messageWIthAI.create({
         data: {
@@ -66,7 +69,8 @@ export default class ChatWithAIService {
           chatWithAIId: +dto.chatWithAIId,
         },
       });
-      return this.getAiModelAnswer(dto, fileData);
+      console.log(await this.getAiModelAnswer(dto, fileData));
+      return await this.getAiModelAnswer(dto, fileData);
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
     }
@@ -80,7 +84,7 @@ export default class ChatWithAIService {
     }
   }
 
-  async getAiModelAnswer(dto: chatWithAiRequestDto, fileData?: string) {
+  async getAiModelAnswer(dto: ChatWithAiRequestInput, fileData?: string) {
     try {
       const chatHistory = new ChatHistoryManager();
       const getAllMessages = await this.prisma.messageWIthAI.findMany({
@@ -109,7 +113,7 @@ export default class ChatWithAIService {
         data,
       });
 
-      return chatHistory.getChatMessages();
+      return data;
     } catch (error) {
       throw new Error(`Error getting AI model answer: ${error.message}`);
     }

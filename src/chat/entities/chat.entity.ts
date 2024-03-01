@@ -8,7 +8,7 @@ export class Chat {
 
   @Field(() => String)
   @IsString()
-  name: string;
+  title: string;
   @IsOptional()
   @IsString()
   @Field(() => ID)

@@ -23,7 +23,6 @@ export class UserResolver {
     @Args("dto") dto: UpdateUserInput,
     @Args("picture", { type: () => GraphQLUpload, nullable: true }) picture: Promise<FileUpload>,
   ): Promise<User> {
-    console.log(id);
     return this.userService.updateProfile(id, dto, picture);
   }
 }

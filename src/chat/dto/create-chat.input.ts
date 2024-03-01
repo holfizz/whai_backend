@@ -6,5 +6,5 @@ export class CreateChatInput {
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
-  name?: string;
+  title?: string;
 }

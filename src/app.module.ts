@@ -7,11 +7,12 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { AuthModule } from "./auth/auth.module";
 import { JwtStrategy } from "./auth/jwt.strategy";
+import { ChatWIthAIModule } from "./chat-with-ai/chat-with-ai.module";
 import { ChatModule } from "./chat/chat.module";
 import { FileModule } from "./file/file.module";
+import { MessageModule } from "./message/message.module";
 import { PrismaService } from "./prisma.service";
 import { UserModule } from "./user/user.module";
-import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { MessageModule } from './message/message.module';
     FileModule,
     ChatModule,
     MessageModule,
+    ChatWIthAIModule,
     // ChatWIthAIModule,
     // ChatModule,
     // MessageModule,

@@ -9,12 +9,30 @@ input ActivationLinkInput {
 type Chat {
   id: ID!
   inviteLink: String
-  name: String!
   ownerId: ID!
+  title: String!
+}
+
+type ChatWithAI {
+  id: Int!
+  title: String!
+  userId: String!
+}
+
+type ChatWithAiAnswerResponse {
+  aiMessage: String!
+  from: MessageWIthAIFrom!
+  id: Int!
+}
+
+input ChatWithAiRequestInput {
+  chatWithAIId: Int!
+  file: String!
+  text: String!
 }
 
 input CreateChatInput {
-  name: String
+  title: String
 }
 
 input CreateMessageInput {
@@ -43,9 +61,16 @@ enum MessageType {
   VOICE
 }
 
+enum MessageWIthAIFrom {
+  AI
+  USER
+}
+
 type Mutation {
   createChat(createChatDto: CreateChatInput!): Chat!
+  createChatWithAi(createChatInput: CreateChatInput): ChatWithAI!
   createMessage(createMessageInput: CreateMessageInput!): Message!
+  createMessageWithAi(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): ChatWithAiAnswerResponse!
   deleteChat(id: Float!): Chat!
   deleteMessage(id: Float!): Message!
   forgotPassword(email: String!): Boolean!
@@ -95,8 +120,8 @@ input SignUpInput {
 
 input UpdateChatInput {
   inviteLink: String
-  name: String
   ownerId: ID
+  title: String
 }
 
 input UpdateMessageInput {
