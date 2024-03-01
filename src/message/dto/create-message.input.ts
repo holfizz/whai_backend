@@ -1,12 +1,13 @@
-import { Field, ID, InputType } from "@nestjs/graphql";
+import { Field, InputType, Int } from "@nestjs/graphql";
 import { IsNumber, IsString } from "class-validator";
+
 @InputType()
-export class CreateMessageDto {
+export class CreateMessageInput {
   @Field(() => String)
   @IsString()
   text: string;
 
-  @Field(() => ID)
+  @Field(() => Int)
   @IsNumber()
   chatId: number;
 }

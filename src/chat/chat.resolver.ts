@@ -1,5 +1,6 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
+import { Message } from "@/message/entities/message.entity";
 import { Body } from "@nestjs/common";
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { ChatService } from "./chat.service";
@@ -35,7 +36,8 @@ export class ChatResolver {
     return this.chatService.deleteChat(userId, id);
   }
 
-  @Query(() => [Chat])
+  @Query(() => [Message])
+  @Auth("user")
   getAllMessages(@CurrentUser("id") userId: number, @Args("chatId") chatId: number) {
     return this.chatService.getAllMessages(userId, chatId);
   }

@@ -17,26 +17,50 @@ input CreateChatInput {
   name: String
 }
 
+input CreateMessageInput {
+  chatId: Int!
+  text: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
+type Message {
+  chatId: ID!
+  createdAt: DateTime!
+  file: String
+  id: ID!
+  text: String!
+  type: MessageType!
+  updatedAt: String!
+  userId: ID!
+}
+
+enum MessageType {
+  TEXT
+  VOICE
+}
+
 type Mutation {
   createChat(createChatDto: CreateChatInput!): Chat!
+  createMessage(createMessageInput: CreateMessageInput!): Message!
   deleteChat(id: Float!): Chat!
+  deleteMessage(id: Float!): Message!
   forgotPassword(email: String!): Boolean!
   getNewTokens(dto: RefreshTokenInput!): SignResponse!
   resetPassword(dto: ResetPasswordInput!): Boolean!
   signIn(signInInput: SignInInput!): SignResponse!
   signUp(signUpInput: SignUpInput!): SignResponse!
   updateChat(id: Float!, updateChatDto: UpdateChatInput!): Chat!
+  updateMessage(id: Float!, updateMessageInput: UpdateMessageInput!): Message!
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
 }
 
 type Query {
   getAllChats: [Chat!]!
-  getAllMessages(chatId: Float!): [Chat!]!
+  getAllMessages(chatId: Float!): [Message!]!
   getProfile: User!
   isActivated(activationLink: ActivationLinkInput!): Boolean!
 }
@@ -73,6 +97,11 @@ input UpdateChatInput {
   inviteLink: String
   name: String
   ownerId: ID
+}
+
+input UpdateMessageInput {
+  chatId: Int
+  text: String
 }
 
 input UpdateUserInput {

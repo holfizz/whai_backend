@@ -11,6 +11,7 @@ import { ChatModule } from "./chat/chat.module";
 import { FileModule } from "./file/file.module";
 import { PrismaService } from "./prisma.service";
 import { UserModule } from "./user/user.module";
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { UserModule } from "./user/user.module";
     UserModule,
     FileModule,
     ChatModule,
+    MessageModule,
     // ChatWIthAIModule,
     // ChatModule,
     // MessageModule,
