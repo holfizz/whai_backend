@@ -3,7 +3,7 @@ import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import { UpdateUserInput } from "./dto/update-user.input";
-import { User } from "./dto/user.module";
+import { User } from "./entities/user.entity";
 import { UserService } from "./user.service";
 
 @Resolver()
@@ -12,7 +12,7 @@ export class UserResolver {
 
   @Query(() => User)
   @Auth("user")
-  async profile(@CurrentUser("id") id: number) {
+  async getProfile(@CurrentUser("id") id: number) {
     return this.userService.byId(id);
   }
 

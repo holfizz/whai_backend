@@ -7,6 +7,8 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { AuthModule } from "./auth/auth.module";
 import { JwtStrategy } from "./auth/jwt.strategy";
+import { ChatModule } from "./chat/chat.module";
+import { FileModule } from "./file/file.module";
 import { PrismaService } from "./prisma.service";
 import { UserModule } from "./user/user.module";
 
@@ -28,8 +30,9 @@ import { UserModule } from "./user/user.module";
     }),
     AuthModule,
     UserModule,
+    FileModule,
+    ChatModule,
     // ChatWIthAIModule,
-    // FileModule,
     // ChatModule,
     // MessageModule,
   ],

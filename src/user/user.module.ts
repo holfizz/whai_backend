@@ -1,5 +1,5 @@
-import { FileModule } from "@/file-/file.module";
-import { FileService } from "@/file-/file.service";
+import { FileModule } from "@/file/file.module";
+import { FileService } from "@/file/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Module } from "@nestjs/common";
 import { UserResolver } from "./user.resolver";

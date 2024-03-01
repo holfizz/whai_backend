@@ -1,12 +1,12 @@
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { CreateChatDto } from "./dto/create-chat.dto";
-import { UpdateChatDto } from "./dto/update-chat.dto";
+import { CreateChatInput } from "./dto/create-chat.input";
+import { UpdateChatInput } from "./dto/update-chat.input";
 
 @Injectable()
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
-  async createChat(userId: number, dto: CreateChatDto) {
+  async createChat(userId: number, dto: CreateChatInput) {
     try {
       return await this.prisma.chat.create({
         data: {
@@ -20,16 +20,17 @@ export class ChatService {
   }
   async getAllChats(userId: number) {
     try {
-      return await this.prisma.chat.findMany({
+      const chats = await this.prisma.chat.findMany({
         where: { ownerId: userId },
       });
+      return chats;
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
 
-  async updateChat(userId: number, id: number, dto: UpdateChatDto) {
-    return await this.prisma.chat.update({
+  async updateChat(userId: number, id: number, dto: UpdateChatInput) {
+    return this.prisma.chat.update({
       where: {
         id,
         ownerId: userId,

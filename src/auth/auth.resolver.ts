@@ -3,9 +3,8 @@ import { AuthService } from "./auth.service";
 import { ActivationLinkInput, ResetPasswordInput, SignInInput, SignUpInput } from "./dto/auth.input";
 import { RefreshTokenInput } from "./dto/refreshToken.input";
 import { SignResponse } from "./dto/sign-response";
-import { Auth } from "./entities/auth.entity";
 
-@Resolver(of => Auth)
+@Resolver(SignResponse)
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 

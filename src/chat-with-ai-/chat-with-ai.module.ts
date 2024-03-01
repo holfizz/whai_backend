@@ -1,4 +1,4 @@
-import { FileService } from "@/file-/file.service";
+import { FileService } from "@/file/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Module } from "@nestjs/common";
 import { ChatWithAIController } from "./chat-with-ai.controller";

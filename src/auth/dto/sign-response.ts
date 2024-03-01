@@ -1,4 +1,4 @@
-import { User } from "@/user/dto/user.module";
+import { User } from "@/user/entities/user.entity";
 import { Field, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()

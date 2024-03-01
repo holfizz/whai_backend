@@ -1,6 +1,7 @@
-import { FileService, FileType } from "@/file-/file.service";
+import { FileService, FileType } from "@/file/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { FileUpload } from "graphql-upload-ts";
 import { UpdateUserInput } from "./dto/update-user.input";
 
 @Injectable()
@@ -20,7 +21,7 @@ export class UserService {
     return user;
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: any) {
+  async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: Promise<FileUpload>) {
     let avatarPath: string | undefined = undefined;
 
     if (picture) {
