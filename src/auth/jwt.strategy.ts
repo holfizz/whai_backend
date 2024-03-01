@@ -20,9 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validateUser(id: number): Promise<any> {
-    // Вместо использования прямого поиска пользователя можно добавить ваш логику проверки пользователя в базе данных
-    // Например, можно использовать PrismaService для поиска пользователя
-    // Но для примера я оставлю просто возврат id пользователя
     return { id };
   }
 

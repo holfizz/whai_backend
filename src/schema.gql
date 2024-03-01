@@ -11,17 +11,13 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-input FileInput {
-  picture: Upload
-}
-
 type Mutation {
   forgotPassword(email: String!): Boolean!
   getNewTokens(dto: RefreshTokenInput!): SignResponse!
   resetPassword(dto: ResetPasswordInput!): Boolean!
   signIn(signInInput: SignInInput!): SignResponse!
   signUp(signUpInput: SignUpInput!): SignResponse!
-  updateProfile(dto: UpdateUserInput!, files: FileInput): User!
+  updateProfile(dto: UpdateUserInput!, picture: Upload): User!
 }
 
 type Query {

@@ -20,7 +20,7 @@ export class UserService {
     return user;
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: Express.Multer.File) {
+  async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: any) {
     let avatarPath: string | undefined = undefined;
 
     if (picture) {
@@ -34,7 +34,7 @@ export class UserService {
 
     return this.prisma.user.update({
       where: {
-        id,
+        id: id,
       },
       data,
     });
