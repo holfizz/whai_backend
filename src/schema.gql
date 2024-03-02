@@ -20,14 +20,14 @@ type ChatWithAI {
 }
 
 type ChatWithAiAnswerResponse {
-  aiMessage: String!
+  chatWithAIId: Int!
   from: MessageWIthAIFrom!
-  id: Int!
+  text: String!
 }
 
 input ChatWithAiRequestInput {
   chatWithAIId: Int!
-  file: String!
+  file: String
   text: String!
 }
 

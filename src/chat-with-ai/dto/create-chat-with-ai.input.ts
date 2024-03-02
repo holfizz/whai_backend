@@ -22,7 +22,7 @@ export class ChatWithAiRequestInput {
   })
   @IsOptional()
   @IsString()
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   file?: string;
 
   @IsString()
@@ -56,7 +56,7 @@ export class ChatWithAiAnswerResponse {
   @IsString()
   @IsNotEmpty()
   @Field(() => String)
-  aiMessage: string;
+  text: string;
 
   @IsString()
   @IsNotEmpty()
@@ -65,7 +65,7 @@ export class ChatWithAiAnswerResponse {
 
   @IsNumber()
   @Field(() => Int)
-  id: number;
+  chatWithAIId: number;
 }
 @ObjectType()
 export class ChatWithAI {

@@ -60,7 +60,6 @@ export default class ChatWithAIService {
         } else {
           return dto.text;
         }
-        return "";
       };
       await this.prisma.messageWIthAI.create({
         data: {
@@ -69,7 +68,6 @@ export default class ChatWithAIService {
           chatWithAIId: +dto.chatWithAIId,
         },
       });
-      console.log(await this.getAiModelAnswer(dto, fileData));
       return await this.getAiModelAnswer(dto, fileData);
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
@@ -100,13 +98,13 @@ export default class ChatWithAIService {
       });
 
       const result = await this.chat.invoke(chatHistory.getChatMessages());
-      const aiMessage = result.content as string;
+      const aiMessage = String(result.content);
       chatHistory.addAiMessage(aiMessage);
 
       const data = {
         text: aiMessage,
         from: MessageWIthAIFrom.AI,
-        chatWithAIId: +dto.chatWithAIId,
+        chatWithAIId: dto.chatWithAIId,
       };
 
       await this.prisma.messageWIthAI.create({
