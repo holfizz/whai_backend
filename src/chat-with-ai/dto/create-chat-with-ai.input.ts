@@ -4,7 +4,7 @@ import { MessageWIthAIFrom } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 @InputType()
-export class CreateChatInput {
+export class CreateChatWithAIInput {
   @IsString()
   @Field(() => String, { nullable: true })
   title?: string;

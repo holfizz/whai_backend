@@ -1,12 +1,11 @@
 import { ChatHistoryManager } from "@/chat-with-ai/entities/chat-history-manager.entity";
-import { CreateChatInput } from "@/chat/dto/create-chat.input";
 import { FileService, FileType } from "@/file/file.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { MessageWIthAIFrom } from "@prisma/client";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import * as process from "process";
-import { ChatWithAiRequestInput } from "./dto/create-chat-with-ai.input";
+import { ChatWithAiRequestInput, CreateChatWithAIInput } from "./dto/create-chat-with-ai.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 
 const DEFAULT_TEMPERATURE = 1;
@@ -31,7 +30,7 @@ export default class ChatWithAIService {
     this.documentReader = new DocumentReader();
   }
 
-  async createChatWithAI(userId: number, dto: CreateChatInput) {
+  async createChatWithAI(userId: number, dto: CreateChatWithAIInput) {
     try {
       const createChat = await this.prisma.chatWithAI.create({
         data: {

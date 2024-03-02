@@ -6,7 +6,11 @@ const start = async () => {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT || 7700;
   app.setGlobalPrefix("api");
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }) as any);
   const config = new DocumentBuilder().setTitle("less about nest js").setDescription("rest api documentation").setVersion("1.0.0").addTag("holfizz").build();
   const document = SwaggerModule.createDocument(app, config);

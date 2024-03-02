@@ -56,7 +56,7 @@ model MessageWIthAI {
 
 model Chat {
   id          Int           @id @default(autoincrement())
-  title       String?       @default("New chat")
+  title       String        @default("New chat")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
   owner       User?         @relation(fields: [ownerId], references: [id])

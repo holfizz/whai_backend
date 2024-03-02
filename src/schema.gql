@@ -13,6 +13,13 @@ type Chat {
   title: String!
 }
 
+type ChatMember {
+  chatId: Int!
+  createdAt: DateTime!
+  id: Int!
+  userId: Int!
+}
+
 type ChatWithAI {
   id: Int!
   title: String!
@@ -32,6 +39,10 @@ input ChatWithAiRequestInput {
 }
 
 input CreateChatInput {
+  title: String
+}
+
+input CreateChatWithAIInput {
   title: String
 }
 
@@ -68,18 +79,20 @@ enum MessageWIthAIFrom {
 
 type Mutation {
   createChat(createChatDto: CreateChatInput!): Chat!
-  createChatWithAi(createChatInput: CreateChatInput): ChatWithAI!
+  createChatWithAi(createChatInput: CreateChatWithAIInput): ChatWithAI!
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAi(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): ChatWithAiAnswerResponse!
   deleteChat(id: Float!): Chat!
   deleteMessage(id: Float!): Message!
+  enterChat(chatId: Float!): ChatMember!
   forgotPassword(email: String!): Boolean!
   getNewTokens(dto: RefreshTokenInput!): SignResponse!
+  leaveChat(chatId: Float!): ChatMember!
   resetPassword(dto: ResetPasswordInput!): Boolean!
   signIn(signInInput: SignInInput!): SignResponse!
   signUp(signUpInput: SignUpInput!): SignResponse!
   updateChat(id: Float!, updateChatDto: UpdateChatInput!): Chat!
-  updateMessage(id: Float!, updateMessageInput: UpdateMessageInput!): Message!
+  updateMessage(messageId: Float!, updateMessageInput: UpdateMessageInput!): Message!
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
 }
 
@@ -116,6 +129,10 @@ input SignUpInput {
   lastName: String!
   password: String!
   phoneNumber: String!
+}
+
+type Subscription {
+  newMessage: Message!
 }
 
 input UpdateChatInput {

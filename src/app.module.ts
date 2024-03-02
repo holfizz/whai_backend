@@ -7,6 +7,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import * as path from "path";
 import { AuthModule } from "./auth/auth.module";
 import { JwtStrategy } from "./auth/jwt.strategy";
+import { ChatMembersModule } from "./chat-members/chat-members.module";
 import { ChatWIthAIModule } from "./chat-with-ai/chat-with-ai.module";
 import { ChatModule } from "./chat/chat.module";
 import { FileModule } from "./file/file.module";
@@ -24,9 +25,15 @@ import { UserModule } from "./user/user.module";
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: "src/schema.gql",
+      installSubscriptionHandlers: true,
       sortSchema: true,
       useGlobalPrefix: true,
+      subscriptions: {
+        "graphql-ws": true,
+        "subscriptions-transport-ws": true,
+      },
     }),
+
     ServeStaticModule.forRoot({
       rootPath: path.resolve(__dirname, "static"),
     }),
@@ -36,9 +43,7 @@ import { UserModule } from "./user/user.module";
     ChatModule,
     MessageModule,
     ChatWIthAIModule,
-    // ChatWIthAIModule,
-    // ChatModule,
-    // MessageModule,
+    ChatMembersModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

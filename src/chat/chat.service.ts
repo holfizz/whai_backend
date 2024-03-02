@@ -8,12 +8,21 @@ export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
   async createChat(userId: number, dto: CreateChatInput) {
     try {
-      return await this.prisma.chat.create({
+      const chat = await this.prisma.chat.create({
         data: {
           ...dto,
           ownerId: userId,
         },
       });
+
+      await this.prisma.chatMembers.create({
+        data: {
+          userId: userId,
+          chatId: chat.id,
+        },
+      });
+
+      return chat;
     } catch (error) {
       throw new Error(`Error creating chat: ${error.message}`);
     }
