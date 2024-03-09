@@ -164,17 +164,23 @@ type User {
   email: String!
   firstName: String!
   id: ID!
-  isActivated: Boolean!
-  isAdmin: Boolean!
+  isVerified: Boolean!
   lastName: String!
-  password: String!
   phoneNumber: String!
   resetPasswordExpiration: DateTime
   resetPasswordToken: String
+  roles: [UserRole!]!
   updatedAt: String!
 }
 
 enum UserMode {
   CREATOR
   STUDENT
+}
+
+enum UserRole {
+  ADMIN
+  CREATOR
+  STUDENT
+  USER
 }

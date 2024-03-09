@@ -17,13 +17,29 @@ export class ChatMembersService {
       throw new Error("User or chat not found");
     }
 
-    await this.prismaService.chatMembers.create({
+    // Проверяем, существует ли уже такая связь
+    const existingChatMember = await this.prismaService.chatMembers.findFirst({
+      where: {
+        userId: userId,
+        chatId: chatId,
+      },
+    });
+
+    // Если связь существует, выбрасываем исключение или возвращаем существующую связь
+    if (existingChatMember) {
+      throw new Error("The user is already a member of the chat");
+      // или можно просто вернуть existingChatMember, если это приемлемо для вашей логики
+    }
+
+    // Создаем связь, если она не найдена
+    return await this.prismaService.chatMembers.create({
       data: {
         userId: userId,
         chatId: chatId,
       },
     });
   }
+
   async leaveChat(userId: number, chatId: number) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },

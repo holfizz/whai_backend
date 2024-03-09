@@ -33,8 +33,8 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      isAdmin: user.isAdmin,
-      isActivated: user.isActivated,
+      roles: user.roles,
+      isVerified: user.isVerified,
       activationLink: user.activationLink,
       phoneNumber: user.phoneNumber,
       avatarPath: user.avatarPath,
@@ -45,7 +45,7 @@ export class AuthService {
 
   async signUp(dto: SignUpInput) {
     const existUser = await this.prisma.user.findUnique({
-      where: { email: dto.email, phoneNumber: dto.phoneNumber },
+      where: { email: dto.email },
     });
 
     if (existUser) {
@@ -101,7 +101,7 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException("Пользователь не найден");
     }
-    if (!user.isActivated) {
+    if (!user.isVerified) {
       throw new BadRequestException("Подтвердите почту");
     }
     const isValid = await bcrypt.compare(dto.password, user.password);
@@ -128,7 +128,7 @@ export class AuthService {
         id: user.id,
       },
       data: {
-        isActivated: true,
+        isVerified: true,
         activationLink: null,
       },
     });
