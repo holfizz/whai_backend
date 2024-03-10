@@ -1,6 +1,6 @@
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { AuthService } from "./auth.service";
-import { ActivationLinkInput, ResetPasswordInput, SignInInput, SignUpInput } from "./dto/auth.input";
+import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
 import { RefreshTokenInput } from "./dto/refreshToken.input";
 import { SignResponse } from "./dto/sign-response";
 
@@ -14,8 +14,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => SignResponse)
-  signIn(@Args("signInInput") signInInput: SignInInput) {
-    return this.authService.signIn(signInInput);
+  login(@Args("loginInput") loginInput: loginInput) {
+    return this.authService.login(loginInput);
   }
 
   @Mutation(() => SignResponse)

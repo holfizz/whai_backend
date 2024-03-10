@@ -42,7 +42,7 @@ export class SignUpInput {
 }
 
 @InputType()
-export class SignInInput {
+export class loginInput {
   @IsEmail({}, { message: "email must be an email" })
   @IsNotEmpty()
   @Field(type => String)

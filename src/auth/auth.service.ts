@@ -4,7 +4,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
-import { ActivationLinkInput, ResetPasswordInput, SignInInput, SignUpInput } from "./dto/auth.input";
+import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
 import { SignResponse } from "./dto/sign-response";
 import { MailService } from "./mail.service";
 
@@ -71,7 +71,7 @@ export class AuthService {
     };
   }
 
-  async signIn(dto: SignInInput) {
+  async login(dto: loginInput) {
     const user = await this.validateUser(dto);
     const tokens = await this.issueTokens(user.id);
     return {
@@ -93,7 +93,7 @@ export class AuthService {
     };
   }
 
-  private async validateUser(dto: SignInInput) {
+  private async validateUser(dto: loginInput) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
