@@ -1,22 +1,22 @@
 import { PrismaService } from "@/prisma.service";
-import { UserService } from "@/user/user.service";
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
+import { Response } from "express";
 import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
-import { SignResponse } from "./dto/sign-response";
 import { MailService } from "./mail.service";
 
 @Injectable()
 export class AuthService {
+  REFRESH_TOKEN_NAME = "refreshToken";
+  EXPIRE_DAY_REFRESH_TOKEN = 1;
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private userService: UserService,
     private mailService: MailService,
   ) {}
-  private async issueTokens(userId: number) {
+  private issueTokens(userId: number) {
     const data = { id: userId };
 
     const accessToken = this.jwt.sign(data, {
@@ -25,7 +25,8 @@ export class AuthService {
 
     const refreshToken = this.jwt.sign(data, {
       expiresIn: "7d",
-    });
+    }) as string;
+
     return { accessToken, refreshToken };
   }
 
@@ -44,13 +45,22 @@ export class AuthService {
   }
 
   async signUp(dto: SignUpInput) {
-    const existUser = await this.prisma.user.findUnique({
+    const existUserByEmail = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    if (existUser) {
-      throw new BadRequestException("Пользователь уже существует");
+    if (existUserByEmail) {
+      throw new BadRequestException("Пользователь с таким email уже существует");
     }
+
+    const existUserByPhoneNumber = await this.prisma.user.findUnique({
+      where: { phoneNumber: dto.phoneNumber },
+    });
+
+    if (existUserByPhoneNumber) {
+      throw new BadRequestException("Пользователь с таким номером телефона уже существует");
+    }
+
     const activationLink = crypto.randomUUID();
 
     await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
@@ -72,25 +82,33 @@ export class AuthService {
   }
 
   async login(dto: loginInput) {
-    const user = await this.validateUser(dto);
-    const tokens = await this.issueTokens(user.id);
+    const { password, ...user } = await this.validateUser(dto);
+    const tokens = this.issueTokens(user.id);
+
     return {
-      user: this.returnUserFields(user),
+      user,
       ...tokens,
     };
   }
 
-  async getNewTokens(refreshToken: string): Promise<SignResponse> {
-    const result = await this.jwt.verifyAsync(refreshToken);
-    if (!result) throw new UnauthorizedException("Invalid refresh token");
-    const user = await this.prisma.user.findUnique({
-      where: { id: result.id },
-    });
-    const tokens = await this.issueTokens(user.id);
-    return {
-      user: user,
-      ...tokens,
-    };
+  async getNewTokens(refreshToken: string) {
+    try {
+      const result = await this.jwt.verifyAsync(refreshToken);
+      if (!result) {
+        throw new UnauthorizedException("Invalid refresh token");
+      }
+      const { password, ...user } = await this.prisma.user.findUnique({
+        where: { id: result.id },
+      });
+      const tokens = this.issueTokens(user.id);
+      return {
+        user,
+        ...tokens,
+      };
+    } catch (error) {
+      // Handle error appropriately
+      throw new UnauthorizedException("Error verifying refresh token");
+    }
   }
 
   private async validateUser(dto: loginInput) {
@@ -190,6 +208,30 @@ export class AuthService {
         resetPasswordToken: null,
         resetPasswordExpiration: null,
       },
+    });
+  }
+  addRefreshTokenToResponse(res: Response, refreshToken: string) {
+    const expiresIn = new Date();
+    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+    res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+      httpOnly: true,
+      domain: process.env.DOMAIN,
+      expires: expiresIn,
+      secure: true,
+      //PRODUCTION - нужно поставить lax
+      sameSite: "none",
+    });
+  }
+  removeRefreshTokenFromResponse(res: Response) {
+    const expiresIn = new Date();
+    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+    res.cookie(this.REFRESH_TOKEN_NAME, "", {
+      httpOnly: true,
+      domain: process.env.DOMAIN,
+      expires: new Date(0),
+      secure: true,
+      //PRODUCTION - нужно поставить lax
+      sameSite: "none",
     });
   }
 }

@@ -7,8 +7,5 @@ export class SignResponse {
   accessToken: string;
 
   @Field()
-  refreshToken: string;
-
-  @Field()
   user: User;
 }

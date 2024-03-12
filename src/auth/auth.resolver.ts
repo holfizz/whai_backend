@@ -1,7 +1,8 @@
-import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { UnauthorizedException } from "@nestjs/common";
+import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
-import { RefreshTokenInput } from "./dto/refreshToken.input";
 import { SignResponse } from "./dto/sign-response";
 
 @Resolver(SignResponse)
@@ -9,32 +10,55 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => SignResponse)
-  signUp(@Args("signUpInput") signUpInput: SignUpInput) {
-    return this.authService.signUp(signUpInput);
+  async login(@Args("loginInput") loginInput: loginInput, @Context("res") res: Response) {
+    const { refreshToken, ...response } = await this.authService.login(loginInput);
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+    return response;
   }
 
   @Mutation(() => SignResponse)
-  login(@Args("loginInput") loginInput: loginInput) {
-    return this.authService.login(loginInput);
+  async signUp(@Args("signUpInput") signUpInput: SignUpInput, @Context("res") res: Response) {
+    const { refreshToken, ...response } = await this.authService.signUp(signUpInput);
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+
+    return response;
   }
 
-  @Mutation(() => SignResponse)
-  async getNewTokens(@Args("dto") dto: RefreshTokenInput): Promise<SignResponse> {
-    return this.authService.getNewTokens(dto.refreshToken);
+  @Query(() => SignResponse)
+  async getNewTokens(@Context("req") req: Request, @Context("res") res: Response) {
+    console.log(req.cookies);
+    const refreshTokenFromCookies = req.cookies[this.authService.REFRESH_TOKEN_NAME];
+
+    if (!refreshTokenFromCookies) {
+      this.authService.removeRefreshTokenFromResponse(res);
+      throw new UnauthorizedException("Refresh token not passed");
+    }
+
+    const { refreshToken, ...response } = await this.authService.getNewTokens(refreshTokenFromCookies);
+
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+
+    return response;
+  }
+
+  @Query(() => Boolean)
+  async logout(@Context("res") res: Response) {
+    this.authService.removeRefreshTokenFromResponse(res);
+    return true;
   }
 
   @Mutation(() => Boolean)
-  async forgotPassword(@Args("email") email: string): Promise<boolean> {
+  async forgotPassword(@Args("email") email: string) {
     return this.authService.forgotPassword(email);
   }
 
   @Mutation(() => Boolean)
-  async resetPassword(@Args("dto") dto: ResetPasswordInput): Promise<boolean> {
+  async resetPassword(@Args("dto") dto: ResetPasswordInput) {
     await this.authService.resetPassword(dto);
     return true;
   }
   @Query(() => Boolean)
-  async isActivated(@Args("activationLink") activationLink: ActivationLinkInput): Promise<boolean> {
+  async isActivated(@Args("activationLink") activationLink: ActivationLinkInput) {
     return this.authService.isActivated(activationLink);
   }
 }

@@ -86,7 +86,6 @@ type Mutation {
   deleteMessage(id: Float!): Message!
   enterChat(chatId: Float!): ChatMember!
   forgotPassword(email: String!): Boolean!
-  getNewTokens(dto: RefreshTokenInput!): SignResponse!
   leaveChat(chatId: Float!): ChatMember!
   login(loginInput: loginInput!): SignResponse!
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -99,12 +98,10 @@ type Mutation {
 type Query {
   getAllChats: [Chat!]!
   getAllMessages(chatId: Float!): [Message!]!
+  getNewTokens: SignResponse!
   getProfile: User!
   isActivated(activationLink: ActivationLinkInput!): Boolean!
-}
-
-input RefreshTokenInput {
-  refreshToken: String!
+  logout: Boolean!
 }
 
 input ResetPasswordInput {
@@ -114,7 +111,6 @@ input ResetPasswordInput {
 
 type SignResponse {
   accessToken: String!
-  refreshToken: String!
   user: User!
 }
 
