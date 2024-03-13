@@ -1,9 +1,11 @@
-import { UnauthorizedException } from "@nestjs/common";
+import { UnauthorizedException, UseGuards } from "@nestjs/common";
 import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
+import { RefreshTokenResponse } from "./dto/refreshToken.input";
 import { SignResponse } from "./dto/sign-response";
+import { JwtAuthGuard } from "./guards/jwt.guard";
 
 @Resolver(SignResponse)
 export class AuthResolver {
@@ -24,9 +26,9 @@ export class AuthResolver {
     return response;
   }
 
-  @Query(() => SignResponse)
-  async getNewTokens(@Context("req") req: Request, @Context("res") res: Response) {
-    console.log(req.cookies);
+  //TODO:короче по видео все
+  @Mutation(() => RefreshTokenResponse)
+  async getNewToken(@Context("req") req: Request, @Context("res") res: Response) {
     const refreshTokenFromCookies = req.cookies[this.authService.REFRESH_TOKEN_NAME];
 
     if (!refreshTokenFromCookies) {
@@ -55,6 +57,11 @@ export class AuthResolver {
   @Mutation(() => Boolean)
   async resetPassword(@Args("dto") dto: ResetPasswordInput) {
     await this.authService.resetPassword(dto);
+    return true;
+  }
+  @UseGuards(JwtAuthGuard)
+  @Query(() => Boolean)
+  async ping() {
     return true;
   }
   @Query(() => Boolean)
