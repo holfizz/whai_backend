@@ -102,7 +102,6 @@ type Query {
   getProfile: User!
   isActivated(activationLink: ActivationLinkInput!): Boolean!
   logout: Boolean!
-  ping: Boolean!
 }
 
 type RefreshTokenResponse {

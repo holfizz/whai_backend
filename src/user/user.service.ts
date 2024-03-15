@@ -12,32 +12,40 @@ export class UserService {
   ) {}
 
   async byId(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
-    if (!user) {
-      throw new Error("User not found");
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+      });
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return user;
+    } catch (error) {
+      throw error;
     }
-    return user;
   }
 
   async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: Promise<FileUpload>) {
-    let avatarPath: string | undefined = undefined;
+    try {
+      let avatarPath: string | undefined = undefined;
 
-    if (picture) {
-      avatarPath = this.fileService.createFile(FileType.IMAGE, picture);
+      if (picture) {
+        avatarPath = this.fileService.createFile(FileType.IMAGE, picture);
+      }
+
+      const data = {
+        ...updateUserDto,
+        ...(avatarPath && { avatarPath }),
+      };
+
+      return this.prisma.user.update({
+        where: {
+          id: id,
+        },
+        data,
+      });
+    } catch (error) {
+      throw error;
     }
-
-    const data = {
-      ...updateUserDto,
-      ...(avatarPath && { avatarPath }),
-    };
-
-    return this.prisma.user.update({
-      where: {
-        id: id,
-      },
-      data,
-    });
   }
 }

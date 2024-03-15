@@ -16,18 +16,23 @@ export class AuthService {
     private jwt: JwtService,
     private mailService: MailService,
   ) {}
-  private issueTokens(userId: number) {
-    const data = { id: userId };
 
-    const accessToken = this.jwt.sign(data, {
-      expiresIn: "10s",
-    });
+  private async issueTokens(userId: number) {
+    try {
+      const data = { id: userId };
 
-    const refreshToken = this.jwt.sign(data, {
-      expiresIn: "7d",
-    }) as string;
+      const accessToken = this.jwt.sign(data, {
+        expiresIn: "1h",
+      });
 
-    return { accessToken, refreshToken };
+      const refreshToken = this.jwt.sign(data, {
+        expiresIn: "7d",
+      }) as string;
+
+      return { accessToken, refreshToken };
+    } catch (error) {
+      throw new Error("Ошибка при генерации токенов");
+    }
   }
 
   private returnUserFields(user: Partial<User>): Partial<User> {
@@ -45,50 +50,58 @@ export class AuthService {
   }
 
   async signUp(dto: SignUpInput) {
-    const existUserByEmail = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    try {
+      const existUserByEmail = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
 
-    if (existUserByEmail) {
-      throw new BadRequestException("Пользователь с таким email уже существует");
+      if (existUserByEmail) {
+        throw new BadRequestException("Пользователь с таким email уже существует");
+      }
+
+      const existUserByPhoneNumber = await this.prisma.user.findUnique({
+        where: { phoneNumber: dto.phoneNumber },
+      });
+
+      if (existUserByPhoneNumber) {
+        throw new BadRequestException("Пользователь с таким номером телефона уже существует");
+      }
+
+      const activationLink = crypto.randomUUID();
+
+      await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
+      const user = await this.prisma.user.create({
+        data: {
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phoneNumber: dto.phoneNumber,
+          email: dto.email,
+          password: await bcrypt.hash(dto.password, 5),
+          activationLink: activationLink,
+        },
+      });
+      const tokens = await this.issueTokens(user.id);
+      return {
+        user: this.returnUserFields(user),
+        ...tokens,
+      };
+    } catch (error) {
+      throw new Error("Ошибка при регистрации пользователя");
     }
-
-    const existUserByPhoneNumber = await this.prisma.user.findUnique({
-      where: { phoneNumber: dto.phoneNumber },
-    });
-
-    if (existUserByPhoneNumber) {
-      throw new BadRequestException("Пользователь с таким номером телефона уже существует");
-    }
-
-    const activationLink = crypto.randomUUID();
-
-    await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
-    const user = await this.prisma.user.create({
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phoneNumber: dto.phoneNumber,
-        email: dto.email,
-        password: await bcrypt.hash(dto.password, 5),
-        activationLink: activationLink,
-      },
-    });
-    const tokens = await this.issueTokens(user.id);
-    return {
-      user: this.returnUserFields(user),
-      ...tokens,
-    };
   }
 
   async login(dto: loginInput) {
-    const { password, ...user } = await this.validateUser(dto);
-    const tokens = this.issueTokens(user.id);
+    try {
+      const { password, ...user } = await this.validateUser(dto);
+      const tokens = await this.issueTokens(user.id);
 
-    return {
-      user,
-      ...tokens,
-    };
+      return {
+        user,
+        ...tokens,
+      };
+    } catch (error) {
+      throw new Error("Ошибка при входе пользователя");
+    }
   }
 
   async getNewTokens(refreshToken: string) {
@@ -100,138 +113,167 @@ export class AuthService {
       const { password, ...user } = await this.prisma.user.findUnique({
         where: { id: result.id },
       });
-      const tokens = this.issueTokens(user.id);
+      const tokens = await this.issueTokens(user.id);
       return {
         user,
         ...tokens,
       };
     } catch (error) {
-      // Handle error appropriately
-      throw new UnauthorizedException("Error verifying refresh token");
+      throw new Error("Ошибка при получении новых токенов");
     }
   }
 
   private async validateUser(dto: loginInput) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
 
-    if (!user) {
-      throw new BadRequestException("Пользователь не найден");
-    }
-    if (!user.isVerified) {
-      throw new BadRequestException("Подтвердите почту");
-    }
-    const isValid = await bcrypt.compare(dto.password, user.password);
+      if (!user) {
+        throw new BadRequestException("Пользователь не найден");
+      }
+      if (!user.isVerified) {
+        throw new BadRequestException("Подтвердите почту");
+      }
+      const isValid = await bcrypt.compare(dto.password, user.password);
 
-    if (!isValid) throw new UnauthorizedException("Неверный пароль");
-    return user;
+      if (!isValid) throw new UnauthorizedException("Неверный пароль");
+      return user;
+    } catch (error) {
+      throw new Error("Ошибка при валидации пользователя");
+    }
   }
 
   async isActivated(dto: ActivationLinkInput) {
-    if (!dto.activationLink) {
-      return false;
-    }
-    const user = await this.prisma.user.findUnique({
-      where: {
-        activationLink: dto.activationLink,
-      },
-    });
-    if (!user) {
-      throw new Error("Пользователь не найден");
-    }
+    try {
+      if (!dto.activationLink) {
+        return false;
+      }
+      const user = await this.prisma.user.findUnique({
+        where: {
+          activationLink: dto.activationLink,
+        },
+      });
+      if (!user) {
+        throw new Error("Пользователь не найден");
+      }
 
-    await this.prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        isVerified: true,
-        activationLink: null,
-      },
-    });
+      await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          isVerified: true,
+          activationLink: null,
+        },
+      });
 
-    return true;
+      return true;
+    } catch (error) {
+      throw new Error("Ошибка при активации пользователя");
+    }
   }
 
   async generateResetPasswordToken(email: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { email },
-    });
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { email },
+      });
 
-    if (!user) {
-      throw new BadRequestException("Пользователь не найден");
+      if (!user) {
+        throw new BadRequestException("Пользователь не найден");
+      }
+
+      const resetToken = crypto.randomUUID();
+      const expirationDate = new Date();
+      expirationDate.setHours(expirationDate.getHours() + 1); // Токен будет действителен в течение 1 часа
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken: resetToken,
+          resetPasswordExpiration: expirationDate,
+        },
+      });
+      await this.mailService.sendActivationMail(user.email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
+      return "Сообщение отправлено";
+    } catch (error) {
+      throw new Error("Ошибка при генерации токена для сброса пароля");
     }
-
-    const resetToken = crypto.randomUUID();
-    const expirationDate = new Date();
-    expirationDate.setHours(expirationDate.getHours() + 1); // Токен будет действителен в течение 1 часа
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetPasswordToken: resetToken,
-        resetPasswordExpiration: expirationDate,
-      },
-    });
-    await this.mailService.sendActivationMail(user.email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
-    return "Сообщение отправлено";
   }
 
   async forgotPassword(email) {
-    await this.generateResetPasswordToken(email.email);
-    return true;
+    try {
+      await this.generateResetPasswordToken(email.email);
+      return true;
+    } catch (error) {
+      throw new Error("Ошибка при забытом пароле");
+    }
   }
 
   async resetPassword(dto: ResetPasswordInput) {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        resetPasswordToken: dto.token,
-        resetPasswordExpiration: {
-          gte: new Date(),
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          resetPasswordToken: dto.token,
+          resetPasswordExpiration: {
+            gte: new Date(),
+          },
         },
-      },
-    });
+      });
 
-    if (!user) {
-      throw new BadRequestException("Ссылка неверная или срок действия ссылки истек");
+      if (!user) {
+        throw new BadRequestException("Ссылка неверная или срок действия ссылки истек");
+      }
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: await bcrypt.hash(dto.password, 5) },
+      });
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken: null,
+          resetPasswordExpiration: null,
+        },
+      });
+    } catch (error) {
+      throw new Error("Ошибка при сбросе пароля");
     }
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { password: await bcrypt.hash(dto.password, 5) },
-    });
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetPasswordToken: null,
-        resetPasswordExpiration: null,
-      },
-    });
   }
+
   addRefreshTokenToResponse(res: Response, refreshToken: string) {
-    const expiresIn = new Date();
-    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
-    res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
-      httpOnly: true,
-      domain: process.env.DOMAIN,
-      expires: expiresIn,
-      secure: true,
-      //PRODUCTION - нужно поставить lax
-      sameSite: "none",
-    });
+    try {
+      const expiresIn = new Date();
+      expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+      res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+        httpOnly: true,
+        domain: process.env.DOMAIN,
+        expires: expiresIn,
+        secure: true,
+        //PRODUCTION - нужно поставить lax
+        sameSite: "none",
+      });
+    } catch (error) {
+      throw new Error("Ошибка при добавлении токена обновления в ответ");
+    }
   }
+
   removeRefreshTokenFromResponse(res: Response) {
-    const expiresIn = new Date();
-    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
-    res.cookie(this.REFRESH_TOKEN_NAME, "", {
-      httpOnly: true,
-      domain: process.env.DOMAIN,
-      expires: new Date(0),
-      secure: true,
-      //PRODUCTION - нужно поставить lax
-      sameSite: "none",
-    });
+    try {
+      const expiresIn = new Date();
+      expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+      res.cookie(this.REFRESH_TOKEN_NAME, "", {
+        httpOnly: true,
+        domain: process.env.DOMAIN,
+        expires: new Date(0),
+        secure: true,
+        //PRODUCTION - нужно поставить lax
+        sameSite: "none",
+      });
+    } catch (error) {
+      throw new Error("Ошибка при удалении токена обновления из ответа");
+    }
   }
 }
