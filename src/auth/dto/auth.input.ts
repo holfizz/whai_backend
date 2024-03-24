@@ -12,7 +12,7 @@ export class SignUpInput {
     },
   )
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   email: string;
   @ApiProperty({ example: "password123", description: "user password" })
   @MinLength(6, {
@@ -20,24 +20,24 @@ export class SignUpInput {
   })
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   password: string;
 
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   firstName: string;
 
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   lastName: string;
 
   // @MinLength(9)
   // @MaxLength(12)
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   phoneNumber: string;
 }
 
@@ -45,13 +45,13 @@ export class SignUpInput {
 export class loginInput {
   @IsEmail({}, { message: "email must be an email" })
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   email: string;
 
   @MinLength(6, { message: "Password must be at least 6 characters long" })
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   password: string;
 }
 
@@ -60,12 +60,12 @@ export class ResetPasswordInput {
   @MinLength(6, { message: "Password must be at least 6 characters long" })
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   password: string;
 
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   token: string;
 }
 
@@ -73,6 +73,6 @@ export class ResetPasswordInput {
 export class ActivationLinkInput {
   @IsString()
   @IsNotEmpty()
-  @Field(type => String)
+  @Field(() => String)
   activationLink: string;
 }

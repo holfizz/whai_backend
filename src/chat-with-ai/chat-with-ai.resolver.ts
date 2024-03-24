@@ -1,9 +1,12 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
-import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
+import { PubSub } from "graphql-subscriptions";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import ChatWithAIService from "./chat-with-ai.service";
 import { ChatWithAI, ChatWithAiAnswerResponse, ChatWithAiRequestInput, CreateChatWithAIInput } from "./dto/create-chat-with-ai.input";
+const pubSub = new PubSub();
+
 @Resolver(ChatWithAI)
 export class ChatWithAIResolver {
   constructor(private readonly chatWithAI: ChatWithAIService) {}
@@ -17,11 +20,25 @@ export class ChatWithAIResolver {
   @Mutation(() => ChatWithAiAnswerResponse)
   @Auth("user")
   async createMessageWithAi(
-    @CurrentUser("id") userId: number,
     @Args("chatWithAIRequestDto") chatWithAIRequestDto: ChatWithAiRequestInput,
     @Args("file", { type: () => GraphQLUpload, nullable: true }) file?: Promise<FileUpload>,
   ) {
-    return this.chatWithAI.createMessageWithAI(userId, chatWithAIRequestDto, file);
+    const userMessage = await this.chatWithAI.saveUserAIMessage(chatWithAIRequestDto, file);
+    await pubSub.publish("chatWithAIAnswer", { messageWithAiCreate: userMessage });
+
+    const aiAnswer = await this.chatWithAI.createMessageWithAI(chatWithAIRequestDto, file);
+    await pubSub.publish("chatWithAIAnswer", { messageWithAiCreate: aiAnswer });
+
+    return aiAnswer;
+  }
+  @Subscription(() => ChatWithAiAnswerResponse, {
+    filter: (payload, variables) => {
+      console.log(payload, variables);
+      return true;
+    },
+  })
+  messageWithAiCreate(): AsyncIterator<ChatWithAiAnswerResponse> {
+    return pubSub.asyncIterator<ChatWithAiAnswerResponse>("chatWithAIAnswer");
   }
   @Query(() => [ChatWithAiAnswerResponse])
   @Auth("user")

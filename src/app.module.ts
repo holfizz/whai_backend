@@ -32,6 +32,7 @@ import { UserModule } from "./user/user.module";
         "graphql-ws": true,
         "subscriptions-transport-ws": true,
       },
+
       playground: {
         settings: {
           "request.credentials": "include",

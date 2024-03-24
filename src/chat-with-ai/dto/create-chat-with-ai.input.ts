@@ -1,6 +1,6 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { MessageWIthAIFrom } from "@prisma/client";
+import { MessageWithAIFrom } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 @InputType()
@@ -48,7 +48,7 @@ export class ChatWithAiAnswerInput {
   }
 }
 
-registerEnumType(MessageWIthAIFrom, {
+registerEnumType(MessageWithAIFrom, {
   name: "MessageWIthAIFrom",
 });
 @ObjectType()
@@ -65,7 +65,7 @@ export class ChatWithAiAnswerResponse {
 
   @IsString()
   @IsNotEmpty()
-  @Field(() => MessageWIthAIFrom)
+  @Field(() => MessageWithAIFrom)
   from: string;
 
   @IsNumber()

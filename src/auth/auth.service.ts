@@ -54,7 +54,6 @@ export class AuthService {
       const existUserByEmail = await this.prisma.user.findUnique({
         where: { email: dto.email },
       });
-
       if (existUserByEmail) {
         throw new BadRequestException("Пользователь с таким email уже существует");
       }
@@ -68,8 +67,9 @@ export class AuthService {
       }
 
       const activationLink = crypto.randomUUID();
-
+      console.log(activationLink);
       await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
+
       const user = await this.prisma.user.create({
         data: {
           firstName: dto.firstName,
@@ -80,13 +80,16 @@ export class AuthService {
           activationLink: activationLink,
         },
       });
+      console.log(activationLink);
+
       const tokens = await this.issueTokens(user.id);
+
       return {
         user: this.returnUserFields(user),
         ...tokens,
       };
     } catch (error) {
-      throw new Error("Ошибка при регистрации пользователя");
+      throw new Error("Ошибка при регистрации пользователя", error);
     }
   }
 

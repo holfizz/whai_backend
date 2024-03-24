@@ -40,15 +40,15 @@ model ChatWithAI {
   title    String          @default("New chat with ai")
   userId   Int?            @map("user_id")
   user     User?           @relation(fields: [userId], references: [id])
-  messages MessageWIthAI[]
+  messages MessageWithAI[]
 }
 
-model MessageWIthAI {
+model MessageWithAI {
   id           Int               @id @default(autoincrement())
   text         String
   file         String?
   type         MessageType       @default(TEXT)
-  from         MessageWIthAIFrom @default(USER)
+  from         MessageWithAIFrom @default(USER)
   chatWithAI   ChatWithAI?       @relation(fields: [chatWithAIId], references: [id])
   chatWithAIId Int               @map("chat_with_ai_id")
 }
@@ -99,7 +99,7 @@ enum UserRole {
   CREATOR
 }
 
-enum MessageWIthAIFrom {
+enum MessageWithAIFrom {
   AI
   USER
 }
