@@ -53,6 +53,11 @@ registerEnumType(MessageWIthAIFrom, {
 });
 @ObjectType()
 export class ChatWithAiAnswerResponse {
+  @IsNumber()
+  @IsNotEmpty()
+  @Field(() => Number)
+  id: number;
+
   @IsString()
   @IsNotEmpty()
   @Field(() => String)

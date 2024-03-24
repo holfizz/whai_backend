@@ -29,6 +29,7 @@ type ChatWithAI {
 type ChatWithAiAnswerResponse {
   chatWithAIId: Int!
   from: MessageWIthAIFrom!
+  id: Float!
   text: String!
 }
 
@@ -98,6 +99,7 @@ type Mutation {
 
 type Query {
   getAllChats: [Chat!]!
+  getAllMessageInChatWithAI(chatWithAIId: Float!): [ChatWithAiAnswerResponse!]!
   getAllMessages(chatId: Float!): [Message!]!
   getProfile: User!
   isActivated(activationLink: ActivationLinkInput!): Boolean!

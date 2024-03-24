@@ -1,6 +1,6 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
-import { Args, Mutation, Resolver } from "@nestjs/graphql";
+import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import ChatWithAIService from "./chat-with-ai.service";
 import { ChatWithAI, ChatWithAiAnswerResponse, ChatWithAiRequestInput, CreateChatWithAIInput } from "./dto/create-chat-with-ai.input";
@@ -22,6 +22,11 @@ export class ChatWithAIResolver {
     @Args("file", { type: () => GraphQLUpload, nullable: true }) file?: Promise<FileUpload>,
   ) {
     return this.chatWithAI.createMessageWithAI(userId, chatWithAIRequestDto, file);
+  }
+  @Query(() => [ChatWithAiAnswerResponse])
+  @Auth("user")
+  async getAllMessageInChatWithAI(@CurrentUser("id") userId: number, @Args("chatWithAIId") chatWithAIId: number) {
+    return this.chatWithAI.getAllMessageInChatWithAI(userId, chatWithAIId);
   }
 
   // @Query(() => [])

@@ -116,10 +116,10 @@ export default class ChatWithAIService {
     }
   }
 
-  async getAllMessageInChatWithAI(chatId: number) {
+  async getAllMessageInChatWithAI(userId: number, chatId: number) {
     try {
       const chat = await this.prisma.chatWithAI.findUnique({
-        where: { id: chatId },
+        where: { id: chatId, userId },
         include: { messages: true },
       });
       if (!chat) {
