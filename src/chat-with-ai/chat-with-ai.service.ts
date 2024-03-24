@@ -59,14 +59,25 @@ export default class ChatWithAIService {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
-  async saveUserAIMessage(dto: ChatWithAiRequestInput, file) {
+  async saveUserAIMessage(dto: ChatWithAiRequestInput, file, userId: number) {
     const { text } = await this.fileToText(dto, file);
+    const chat = await this.prisma.chatWithAI.findFirst({
+      where: {
+        id: dto.chatWithAIId,
+        userId: userId,
+      },
+    });
+
+    if (!chat) {
+      throw new Error("Chat not found or does not belong to the user");
+    }
 
     return await this.prisma.messageWithAI.create({
       data: {
         ...dto,
-        text: text(),
+        text: text(), // Используйте полученный текст из файла
         chatWithAIId: +dto.chatWithAIId,
+        // Дополнительные поля, если необходимо
       },
     });
   }

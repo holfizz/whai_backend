@@ -20,20 +20,21 @@ export class ChatWithAIResolver {
   @Mutation(() => ChatWithAiAnswerResponse)
   @Auth("user")
   async createMessageWithAi(
+    @CurrentUser("id") userId: number,
     @Args("chatWithAIRequestDto") chatWithAIRequestDto: ChatWithAiRequestInput,
     @Args("file", { type: () => GraphQLUpload, nullable: true }) file?: Promise<FileUpload>,
   ) {
-    const userMessage = await this.chatWithAI.saveUserAIMessage(chatWithAIRequestDto, file);
+    const userMessage = await this.chatWithAI.saveUserAIMessage(chatWithAIRequestDto, file, userId);
     await pubSub.publish("chatWithAIAnswer", { messageWithAiCreate: userMessage });
-
-    const aiAnswer = await this.chatWithAI.createMessageWithAI(chatWithAIRequestDto, file);
-    await pubSub.publish("chatWithAIAnswer", { messageWithAiCreate: aiAnswer });
-
-    return aiAnswer;
+    if (userMessage) {
+      const aiAnswer = await this.chatWithAI.createMessageWithAI(chatWithAIRequestDto, file);
+      await pubSub.publish("chatWithAIAnswer", { messageWithAiCreate: aiAnswer });
+      return aiAnswer;
+    }
+    return "error";
   }
   @Subscription(() => ChatWithAiAnswerResponse, {
     filter: (payload, variables) => {
-      console.log(payload, variables);
       return true;
     },
   })
