@@ -1,6 +1,6 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
-import { Args, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
+import { Args, Int, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import ChatWithAIService from "./chat-with-ai.service";
@@ -33,12 +33,11 @@ export class ChatWithAIResolver {
     }
     return "error";
   }
+
   @Subscription(() => ChatWithAiAnswerResponse, {
-    filter: (payload, variables) => {
-      return true;
-    },
+    filter: (payload, variables) => payload.messageWithAiCreate.chatWithAIId === variables.chatWithAIId,
   })
-  messageWithAiCreate(): AsyncIterator<ChatWithAiAnswerResponse> {
+  messageWithAiCreate(@Args("chatWithAIId", { type: () => Int! }) chatWithAIId: number): AsyncIterator<ChatWithAiAnswerResponse> {
     return pubSub.asyncIterator<ChatWithAiAnswerResponse>("chatWithAIAnswer");
   }
   @Query(() => [ChatWithAiAnswerResponse])

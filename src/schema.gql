@@ -129,7 +129,7 @@ input SignUpInput {
 }
 
 type Subscription {
-  messageWithAiCreate: ChatWithAiAnswerResponse!
+  messageWithAiCreate(chatWithAIId: Int!): ChatWithAiAnswerResponse!
   newMessage: Message!
 }
 

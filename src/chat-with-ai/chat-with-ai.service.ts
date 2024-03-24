@@ -124,11 +124,11 @@ export default class ChatWithAIService {
         chatWithAIId: dto.chatWithAIId,
       };
 
-      await this.prisma.messageWithAI.create({
+      const aiAnswer = await this.prisma.messageWithAI.create({
         data,
       });
 
-      return data;
+      return aiAnswer;
     } catch (error) {
       throw new Error(`Error getting AI model answer: ${error.message}`);
     }
