@@ -12,6 +12,7 @@ import { ChatWIthAIModule } from "./chat-with-ai/chat-with-ai.module";
 import { ChatModule } from "./chat/chat.module";
 import { FileModule } from "./file/file.module";
 import { MessageModule } from "./message/message.module";
+import { PaginationModule } from "./pagination/pagination.module";
 import { PrismaService } from "./prisma.service";
 import { UserModule } from "./user/user.module";
 
@@ -51,6 +52,7 @@ import { UserModule } from "./user/user.module";
     MessageModule,
     ChatWIthAIModule,
     ChatMembersModule,
+    PaginationModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

@@ -4,7 +4,8 @@ import { Args, Int, Mutation, Query, Resolver, Subscription } from "@nestjs/grap
 import { PubSub } from "graphql-subscriptions";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import ChatWithAIService from "./chat-with-ai.service";
-import { ChatWithAI, ChatWithAiAnswerResponse, ChatWithAiRequestInput, CreateChatWithAIInput } from "./dto/create-chat-with-ai.input";
+import { ChatWithAI } from "./dto/create-chat-with-ai.input";
+import { ChatWithAiAnswerResponse, ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 const pubSub = new PubSub();
 
 @Resolver(ChatWithAI)
@@ -40,10 +41,11 @@ export class ChatWithAIResolver {
   messageWithAiCreate(@Args("chatWithAIId", { type: () => Int! }) chatWithAIId: number): AsyncIterator<ChatWithAiAnswerResponse> {
     return pubSub.asyncIterator<ChatWithAiAnswerResponse>("chatWithAIAnswer");
   }
+
   @Query(() => [ChatWithAiAnswerResponse])
   @Auth("user")
-  async getAllMessageInChatWithAI(@CurrentUser("id") userId: number, @Args("chatWithAIId") chatWithAIId: number) {
-    return this.chatWithAI.getAllMessageInChatWithAI(userId, chatWithAIId);
+  async getAllMessageInChatWithAI(@CurrentUser("id") userId: number, @Args("dto") dto: GetAllMessagesInput) {
+    return this.chatWithAI.getAllMessagesInChatWithAI(userId, dto);
   }
 
   // @Query(() => [])

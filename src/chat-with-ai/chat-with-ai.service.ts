@@ -1,11 +1,12 @@
 import { ChatHistoryManager } from "@/chat-with-ai/entities/chat-history-manager.entity";
 import { FileService, FileType } from "@/file/file.service";
+import { PaginationService } from "@/pagination/pagination.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { MessageWithAIFrom } from "@prisma/client";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import * as process from "process";
-import { ChatWithAiRequestInput, CreateChatWithAIInput } from "./dto/create-chat-with-ai.input";
+import { ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 
 const DEFAULT_TEMPERATURE = 1;
@@ -20,6 +21,7 @@ export default class ChatWithAIService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
+    private readonly paginationService: PaginationService,
   ) {
     this.chatHistory = new ChatHistoryManager();
     this.chat = new ChatOpenAI({
@@ -134,11 +136,17 @@ export default class ChatWithAIService {
     }
   }
 
-  async getAllMessageInChatWithAI(userId: number, chatId: number) {
+  async getAllMessagesInChatWithAI(userId: number, dto: GetAllMessagesInput) {
     try {
+      const { take, skip } = this.paginationService.getPagination(dto);
       const chat = await this.prisma.chatWithAI.findUnique({
-        where: { id: chatId, userId },
-        include: { messages: true },
+        where: { id: dto.chatId, userId },
+        include: {
+          messages: {
+            take,
+            skip,
+          },
+        },
       });
       if (!chat) {
         throw new Error(`Chat with ID ${chat} not found`);
