@@ -9,7 +9,7 @@ import * as process from "process";
 import { ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 
-const DEFAULT_TEMPERATURE = 2;
+const DEFAULT_TEMPERATURE = 1.6;
 const DEFAULT_MODEL = "gpt-3.5-turbo";
 
 @Injectable()
