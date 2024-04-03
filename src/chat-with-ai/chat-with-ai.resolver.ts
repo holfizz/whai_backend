@@ -14,13 +14,18 @@ export class ChatWithAIResolver {
 
   @Mutation(() => ChatWithAI)
   @Auth("user")
-  async createChatWithAi(@CurrentUser("id") userId: number, @Args("createChatInput", { nullable: true }) createChatInput: CreateChatWithAIInput) {
+  async createChatWithAI(@CurrentUser("id") userId: number, @Args("createChatInput", { nullable: true }) createChatInput: CreateChatWithAIInput) {
     return this.chatWithAI.createChatWithAI(userId, createChatInput);
+  }
+  @Query(() => [ChatWithAI])
+  @Auth("user")
+  async getAllChatsWithAI(@CurrentUser("id") userId: number) {
+    return this.chatWithAI.getAllChatsWithAi(userId);
   }
 
   @Mutation(() => ChatWithAiAnswerResponse)
   @Auth("user")
-  async createMessageWithAi(
+  async createMessageWithAI(
     @CurrentUser("id") userId: number,
     @Args("chatWithAIRequestDto") chatWithAIRequestDto: ChatWithAiRequestInput,
     @Args("file", { type: () => GraphQLUpload, nullable: true }) file?: Promise<FileUpload>,
@@ -47,10 +52,4 @@ export class ChatWithAIResolver {
   async getAllMessageInChatWithAI(@CurrentUser("id") userId: number, @Args("dto") dto: GetAllMessagesInput) {
     return this.chatWithAI.getAllMessagesInChatWithAI(userId, dto);
   }
-
-  // @Query(() => [])
-  // @Auth("user")
-  // async getUserChats(@Args("id") id: string) {
-  //   return this.chatWithAI.getAllMessageInChatWithAI(parseInt(id, 10));
-  // }
 }

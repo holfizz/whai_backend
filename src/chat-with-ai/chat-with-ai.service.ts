@@ -9,7 +9,7 @@ import * as process from "process";
 import { ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 
-const DEFAULT_TEMPERATURE = 1;
+const DEFAULT_TEMPERATURE = 2;
 const DEFAULT_MODEL = "gpt-3.5-turbo";
 
 @Injectable()
@@ -28,6 +28,9 @@ export default class ChatWithAIService {
       temperature: DEFAULT_TEMPERATURE,
       openAIApiKey: process.env.OPENAI_KEY, // Use your OpenAI Key here
       modelName: DEFAULT_MODEL,
+      maxTokens: 1000,
+      maxRetries: 5,
+      streaming: true,
     });
     this.documentReader = new DocumentReader();
   }
@@ -61,6 +64,16 @@ export default class ChatWithAIService {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
+  async getAllChatsWithAi(userId: number) {
+    try {
+      const createChat = await this.prisma.chatWithAI.findMany({
+        where: { userId },
+      });
+      return createChat;
+    } catch (error) {
+      throw new Error(`Error creating chat: ${error.message}`);
+    }
+  }
   async saveUserAIMessage(dto: ChatWithAiRequestInput, file, userId: number) {
     const { text } = await this.fileToText(dto, file);
     const chat = await this.prisma.chatWithAI.findFirst({
@@ -77,9 +90,8 @@ export default class ChatWithAIService {
     return await this.prisma.messageWithAI.create({
       data: {
         ...dto,
-        text: text(), // Используйте полученный текст из файла
+        text: text(),
         chatWithAIId: +dto.chatWithAIId,
-        // Дополнительные поля, если необходимо
       },
     });
   }
@@ -116,7 +128,16 @@ export default class ChatWithAIService {
         }
       });
 
-      const result = await this.chat.invoke(chatHistory.getChatMessages());
+      const result = await this.chat.invoke(chatHistory.getChatMessages(), {
+        callbacks: [
+          {
+            handleLLMNewToken(token: string) {
+              return token;
+            },
+          },
+        ],
+      });
+
       const aiMessage = String(result.content);
       chatHistory.addAiMessage(aiMessage);
 

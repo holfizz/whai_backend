@@ -8,7 +8,7 @@ const start = async () => {
   const PORT = process.env.PORT || 7700;
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: process.env.FRONTEND_URL,
+    origin: "*",
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   });
