@@ -31,7 +31,7 @@ export class AuthService {
 
       return { accessToken, refreshToken };
     } catch (error) {
-      throw new Error("Ошибка при генерации токенов");
+      throw error;
     }
   }
 
@@ -89,7 +89,7 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      throw new Error("Ошибка при регистрации пользователя", error);
+      throw error;
     }
   }
 
@@ -121,7 +121,7 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      throw new Error("Ошибка при получении новых токенов", error);
+      throw error;
     }
   }
 
@@ -172,7 +172,7 @@ export class AuthService {
 
       return true;
     } catch (error) {
-      throw new Error("Ошибка при активации пользователя", error);
+      throw error;
     }
   }
 
@@ -188,8 +188,7 @@ export class AuthService {
 
       const resetToken = crypto.randomUUID();
       const expirationDate = new Date();
-      expirationDate.setHours(expirationDate.getHours() + 1); // Токен будет действителен в течение 1 часа
-
+      expirationDate.setHours(expirationDate.getHours() + 1);
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
@@ -200,7 +199,7 @@ export class AuthService {
       await this.mailService.sendActivationMail(user.email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
       return "Сообщение отправлено";
     } catch (error) {
-      throw new Error("Ошибка при генерации токена для сброса пароля", error);
+      throw error;
     }
   }
 
@@ -209,7 +208,7 @@ export class AuthService {
       await this.generateResetPasswordToken(email.email);
       return true;
     } catch (error) {
-      throw new Error("Ошибка при забытом пароле", error);
+      throw error;
     }
   }
 
@@ -241,7 +240,7 @@ export class AuthService {
         },
       });
     } catch (error) {
-      throw new Error("Ошибка при сбросе пароля", error);
+      throw error;
     }
   }
 
@@ -258,7 +257,7 @@ export class AuthService {
         sameSite: "none",
       });
     } catch (error) {
-      throw new Error("Ошибка при добавлении токена обновления в ответ", error);
+      throw error;
     }
   }
 
@@ -275,7 +274,7 @@ export class AuthService {
         sameSite: "none",
       });
     } catch (error) {
-      throw new Error("Ошибка при удалении токена обновления из ответа", error);
+      throw error;
     }
   }
 }

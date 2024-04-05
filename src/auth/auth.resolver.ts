@@ -20,7 +20,6 @@ export class AuthResolver {
   @Mutation(() => SignResponse)
   async signUp(@Args("signUpInput") signUpInput: SignUpInput, @Context("res") res: Response) {
     const { refreshToken, ...response } = await this.authService.signUp(signUpInput);
-    console.log(refreshToken);
     this.authService.addRefreshTokenToResponse(res, refreshToken);
 
     return response;
