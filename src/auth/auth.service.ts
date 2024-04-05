@@ -103,7 +103,7 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      throw new Error("Ошибка при входе пользователя");
+      throw new Error("Ошибка при входе пользователя", error);
     }
   }
 
@@ -122,7 +122,7 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      throw new Error("Ошибка при получении новых токенов");
+      throw new Error("Ошибка при получении новых токенов", error);
     }
   }
 
@@ -143,7 +143,7 @@ export class AuthService {
       if (!isValid) throw new UnauthorizedException("Неверный пароль");
       return user;
     } catch (error) {
-      throw new Error("Ошибка при валидации пользователя");
+      throw new Error("Ошибка при валидации пользователя", error);
     }
   }
 
@@ -173,7 +173,7 @@ export class AuthService {
 
       return true;
     } catch (error) {
-      throw new Error("Ошибка при активации пользователя");
+      throw new Error("Ошибка при активации пользователя", error);
     }
   }
 
@@ -201,7 +201,7 @@ export class AuthService {
       await this.mailService.sendActivationMail(user.email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
       return "Сообщение отправлено";
     } catch (error) {
-      throw new Error("Ошибка при генерации токена для сброса пароля");
+      throw new Error("Ошибка при генерации токена для сброса пароля", error);
     }
   }
 
@@ -210,7 +210,7 @@ export class AuthService {
       await this.generateResetPasswordToken(email.email);
       return true;
     } catch (error) {
-      throw new Error("Ошибка при забытом пароле");
+      throw new Error("Ошибка при забытом пароле", error);
     }
   }
 
@@ -242,7 +242,7 @@ export class AuthService {
         },
       });
     } catch (error) {
-      throw new Error("Ошибка при сбросе пароля");
+      throw new Error("Ошибка при сбросе пароля", error);
     }
   }
 
@@ -259,7 +259,7 @@ export class AuthService {
         sameSite: "none",
       });
     } catch (error) {
-      throw new Error("Ошибка при добавлении токена обновления в ответ");
+      throw new Error("Ошибка при добавлении токена обновления в ответ", error);
     }
   }
 
@@ -276,7 +276,7 @@ export class AuthService {
         sameSite: "none",
       });
     } catch (error) {
-      throw new Error("Ошибка при удалении токена обновления из ответа");
+      throw new Error("Ошибка при удалении токена обновления из ответа", error);
     }
   }
 }
