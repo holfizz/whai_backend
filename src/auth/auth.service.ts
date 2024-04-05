@@ -78,9 +78,9 @@ export class AuthService {
           email: dto.email,
           password: await bcrypt.hash(dto.password, 5),
           activationLink: activationLink,
+          isVerified: true,
         },
       });
-      console.log(activationLink);
 
       const tokens = await this.issueTokens(user.id);
 
@@ -103,10 +103,9 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      throw new Error("Ошибка при входе пользователя", error);
+      throw error;
     }
   }
-
   async getNewTokens(refreshToken: string) {
     try {
       const result = await this.jwt.verifyAsync(refreshToken);
@@ -143,7 +142,7 @@ export class AuthService {
       if (!isValid) throw new UnauthorizedException("Неверный пароль");
       return user;
     } catch (error) {
-      throw new Error("Ошибка при валидации пользователя", error);
+      throw error;
     }
   }
 
