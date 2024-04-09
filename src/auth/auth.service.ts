@@ -250,11 +250,10 @@ export class AuthService {
       expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
       res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
         httpOnly: true,
-        domain: process.env.DOMAIN,
         expires: expiresIn,
         secure: true,
-        //PRODUCTION - нужно поставить lax
-        sameSite: "none",
+        domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.DOMAIN,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       });
     } catch (error) {
       throw error;

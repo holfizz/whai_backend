@@ -8,7 +8,7 @@ const start = async () => {
   const PORT = process.env.PORT || 7700;
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: ["http://localhost:3000", "http://194.116.215.109/api/graphql"],
+    origin: ["http://localhost:3000"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   });
