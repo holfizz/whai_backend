@@ -14,32 +14,32 @@ const pubSub = new PubSub();
 export class ChatResolver {
   constructor(private readonly chatService: ChatService) {}
 
-  @Mutation(() => Chat)
+  @Mutation(() => Chat, { description: "Create a new chat associated with the current user." })
   @Auth("user")
   async createChat(@CurrentUser("id") userId: number, @Args("createChatDto") @Body() createChatDto: CreateChatInput) {
     const chat = await this.chatService.createChat(userId, createChatDto);
     return chat;
   }
 
+  @Query(() => [Chat], { description: "Retrieve all chats for the current user." })
   @Auth("user")
-  @Query(() => [Chat])
   async getAllChats(@CurrentUser("id") userId: number) {
     return await this.chatService.getAllChats(userId);
   }
 
-  @Mutation(() => Chat)
+  @Mutation(() => Chat, { description: "Update the details of an existing chat for the current user." })
   @Auth("user")
   async updateChat(@CurrentUser("id") userId: number, @Args("id") id: number, @Args("updateChatDto") @Body() updateChatDto: UpdateChatInput) {
     return await this.chatService.updateChat(userId, id, updateChatDto);
   }
 
-  @Mutation(() => Chat)
+  @Mutation(() => Chat, { description: "Delete an existing chat for the current user." })
   @Auth("user")
   async deleteChat(@CurrentUser("id") userId: number, @Args("id") id: number) {
     return await this.chatService.deleteChat(userId, id);
   }
 
-  @Query(() => [Message])
+  @Query(() => [Message], { description: "Retrieve all messages from a specific chat for the current user." })
   @Auth("user")
   async getAllMessages(@CurrentUser("id") userId: number, @Args("chatId") chatId: number) {
     return await this.chatService.getAllMessages(userId, chatId);

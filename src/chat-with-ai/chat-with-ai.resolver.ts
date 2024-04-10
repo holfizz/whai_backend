@@ -12,18 +12,19 @@ const pubSub = new PubSub();
 export class ChatWithAIResolver {
   constructor(private readonly chatWithAI: ChatWithAIService) {}
 
-  @Mutation(() => ChatWithAI)
+  @Mutation(() => ChatWithAI, { description: "Creates a new AI chat session for the current user." })
   @Auth("user")
   async createChatWithAI(@CurrentUser("id") userId: number, @Args("createChatInput", { nullable: true }) createChatInput: CreateChatWithAIInput) {
     return this.chatWithAI.createChatWithAI(userId, createChatInput);
   }
-  @Query(() => [ChatWithAI])
+
+  @Query(() => [ChatWithAI], { description: "Retrieves all AI chat sessions that the current user is part of." })
   @Auth("user")
   async getAllChatsWithAI(@CurrentUser("id") userId: number) {
     return this.chatWithAI.getAllChatsWithAi(userId);
   }
 
-  @Mutation(() => ChatWithAiAnswerResponse)
+  @Mutation(() => ChatWithAiAnswerResponse, { description: "Sends a message from the user to the AI chat session and receives a reply from the AI." })
   @Auth("user")
   async createMessageWithAI(
     @CurrentUser("id") userId: number,
@@ -41,13 +42,14 @@ export class ChatWithAIResolver {
   }
 
   @Subscription(() => ChatWithAiAnswerResponse, {
+    description: "Subscribes to messages exchanged between the user and the AI in a specific chat session.",
     filter: (payload, variables) => payload.messageWithAiCreate.chatWithAIId === variables.chatWithAIId,
   })
-  messageWithAiCreate(@Args("chatWithAIId", { type: () => Int! }) chatWithAIId: number): AsyncIterator<ChatWithAiAnswerResponse> {
+  messageWithAiCreate(@Args("chatWithAIId", { type: () => Int }) chatWithAIId: number): AsyncIterator<ChatWithAiAnswerResponse> {
     return pubSub.asyncIterator<ChatWithAiAnswerResponse>("chatWithAIAnswer");
   }
 
-  @Query(() => [ChatWithAiAnswerResponse])
+  @Query(() => [ChatWithAiAnswerResponse], { description: "Retrieves all messages within a specific AI chat session for the current user." })
   @Auth("user")
   async getAllMessageInChatWithAI(@CurrentUser("id") userId: number, @Args("dto") dto: GetAllMessagesInput) {
     return this.chatWithAI.getAllMessagesInChatWithAI(userId, dto);

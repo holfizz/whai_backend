@@ -8,13 +8,13 @@ import { ChatMember } from "./entities/chat-member.entity";
 export class ChatMembersResolver {
   constructor(private readonly chatMembersService: ChatMembersService) {}
 
-  @Mutation(() => ChatMember)
+  @Mutation(() => ChatMember, { description: "Allows a user to enter a chat room, adding them to the chat's members list." })
   @Auth("user")
   enterChat(@CurrentUser("id") userId: number, @Args("chatId") chatId: number) {
     return this.chatMembersService.enterChat(userId, chatId);
   }
 
-  @Mutation(() => ChatMember)
+  @Mutation(() => ChatMember, { description: "Allows a user to leave a chat room, removing them from the chat's members list." })
   @Auth("user")
   leaveChat(@CurrentUser("id") userId: number, @Args("chatId") chatId: number) {
     return this.chatMembersService.leaveChat(userId, chatId);

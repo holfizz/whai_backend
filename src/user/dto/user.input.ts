@@ -1,5 +1,4 @@
 import { Field, InputType, registerEnumType } from "@nestjs/graphql";
-import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsEnum, IsString, MinLength } from "class-validator";
 export enum UserMode {
   "STUDENT" = "STUDENT",
@@ -10,7 +9,6 @@ registerEnumType(UserMode, {
 });
 @InputType()
 export class UserInput {
-  @ApiProperty({ example: "exaple@mail.com", description: "user email" })
   @IsEmail(
     {},
     {
@@ -20,7 +18,6 @@ export class UserInput {
   @Field(type => String)
   email: string;
 
-  @ApiProperty({ example: "password123", description: "user password" })
   @MinLength(6, {
     message: "Password must be at least 6 characters long",
   })

@@ -10,13 +10,13 @@ import { UserService } from "./user.service";
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(() => User)
+  @Query(() => User, { description: "Retrieves the profile of the currently authenticated user based on their unique identifier." })
   @Auth("user")
   async getProfile(@CurrentUser("id") id: number) {
     return this.userService.byId(id);
   }
 
-  @Mutation(() => User)
+  @Mutation(() => User, { description: "Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture." })
   @Auth("user")
   async updateProfile(
     @CurrentUser("id") id: number,

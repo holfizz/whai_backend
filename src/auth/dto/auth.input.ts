@@ -1,10 +1,8 @@
 import { Field, InputType } from "@nestjs/graphql";
-import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
 
 @InputType()
 export class SignUpInput {
-  @ApiProperty({ example: "exaple@mail.com", description: "user email" })
   @IsEmail(
     {},
     {
@@ -14,7 +12,6 @@ export class SignUpInput {
   @IsNotEmpty()
   @Field(() => String)
   email: string;
-  @ApiProperty({ example: "password123", description: "user password" })
   @MinLength(6, {
     message: "Password must be at least 6 characters long",
   })

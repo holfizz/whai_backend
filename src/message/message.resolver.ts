@@ -12,7 +12,7 @@ const pubSub = new PubSub();
 export class MessageResolver {
   constructor(private readonly messageService: MessageService) {}
 
-  @Mutation(() => Message)
+  @Mutation(() => Message, { description: "Create a new message with the given content and associate it with the current user." })
   @Auth("user")
   createMessage(@CurrentUser("id") userId: number, @Args("createMessageInput") createMessageInput: CreateMessageInput) {
     const message = this.messageService.createMessage(userId, createMessageInput);
@@ -20,7 +20,7 @@ export class MessageResolver {
     return message;
   }
 
-  @Mutation(() => Message)
+  @Mutation(() => Message, { description: "Update an existing message with new content. Only the author of the message can update it." })
   @Auth("user")
   updateMessage(@CurrentUser("id") userId: number, @Args("messageId") messageId: number, @Args("updateMessageInput") updateMessageInput: UpdateMessageInput) {
     const updatedMessage = this.messageService.updateMessage(userId, messageId, updateMessageInput);
@@ -28,7 +28,7 @@ export class MessageResolver {
     return updatedMessage;
   }
 
-  @Mutation(() => Message)
+  @Mutation(() => Message, { description: "Delete a message. This can only be done by the author of the message or an admin." })
   @Auth("user")
   deleteMessage(@CurrentUser("id") userId: number, @Args("id") id: number) {
     const deletedMessage = this.messageService.deleteMessage(userId, id);
@@ -37,6 +37,7 @@ export class MessageResolver {
   }
 
   @Subscription(() => Message, {
+    description: "Subscribe to new messages targeted to the user. The user will receive notifications of new messages.",
     filter: (payload, variables) => payload.newMessage.recipientId === variables.userId,
   })
   newMessage() {

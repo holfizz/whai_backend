@@ -1,5 +1,4 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { ApiProperty } from "@nestjs/swagger";
 import { MessageWithAIFrom } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 @InputType()
@@ -15,10 +14,6 @@ export class ChatWithAiRequestInput {
   @Field(() => Int)
   chatWithAIId: number;
 
-  @ApiProperty({
-    example: "what is 1 + 1",
-    description: "Your request ChatGpt",
-  })
   @IsOptional()
   @IsString()
   @Field(() => String, { nullable: true })
@@ -32,10 +27,6 @@ export class ChatWithAiRequestInput {
 
 @ObjectType()
 export class ChatWithAiAnswerInput {
-  @ApiProperty({
-    example: "2",
-    description: "ChatGpt answer",
-  })
   @IsString()
   @IsNotEmpty()
   @Field(() => String)

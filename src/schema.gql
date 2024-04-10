@@ -85,31 +85,101 @@ enum MessageWIthAIFrom {
 }
 
 type Mutation {
+  """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
+
+  """Creates a new AI chat session for the current user."""
   createChatWithAI(createChatInput: CreateChatWithAIInput): ChatWithAI!
+
+  """
+  Create a new message with the given content and associate it with the current user.
+  """
   createMessage(createMessageInput: CreateMessageInput!): Message!
+
+  """
+  Sends a message from the user to the AI chat session and receives a reply from the AI.
+  """
   createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): ChatWithAiAnswerResponse!
+
+  """Delete an existing chat for the current user."""
   deleteChat(id: Float!): Chat!
+
+  """
+  Delete a message. This can only be done by the author of the message or an admin.
+  """
   deleteMessage(id: Float!): Message!
+
+  """
+  Allows a user to enter a chat room, adding them to the chat's members list.
+  """
   enterChat(chatId: Float!): ChatMember!
+
+  """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
+
+  """
+  Refresh the access and refresh tokens for a user based on a valid refresh token.
+  """
   getNewToken: RefreshTokenResponse!
+
+  """
+  Allows a user to leave a chat room, removing them from the chat's members list.
+  """
   leaveChat(chatId: Float!): ChatMember!
+
+  """
+  Authenticate the user and return the user's fields and access and refresh tokens.
+  """
   login(loginInput: loginInput!): SignResponse!
+
+  """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
+
+  """
+  Register a new user and return the user's fields and access and refresh tokens
+  """
   signUp(signUpInput: SignUpInput!): SignResponse!
+
+  """Update the details of an existing chat for the current user."""
   updateChat(id: Float!, updateChatDto: UpdateChatInput!): Chat!
+
+  """
+  Update an existing message with new content. Only the author of the message can update it.
+  """
   updateMessage(messageId: Float!, updateMessageInput: UpdateMessageInput!): Message!
+
+  """
+  Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
+  """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
 }
 
 type Query {
+  """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
+
+  """Retrieves all AI chat sessions that the current user is part of."""
   getAllChatsWithAI: [ChatWithAI!]!
+
+  """
+  Retrieves all messages within a specific AI chat session for the current user.
+  """
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [ChatWithAiAnswerResponse!]!
+
+  """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: Float!): [Message!]!
+
+  """
+  Retrieves the profile of the currently authenticated user based on their unique identifier.
+  """
   getProfile: User!
+
+  """
+  Check if a given activation link is valid and the user's email is activated.
+  """
   isActivated(activationLink: ActivationLinkInput!): Boolean!
+
+  """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
 }
 
@@ -136,7 +206,14 @@ input SignUpInput {
 }
 
 type Subscription {
+  """
+  Subscribes to messages exchanged between the user and the AI in a specific chat session.
+  """
   messageWithAiCreate(chatWithAIId: Int!): ChatWithAiAnswerResponse!
+
+  """
+  Subscribe to new messages targeted to the user. The user will receive notifications of new messages.
+  """
   newMessage: Message!
 }
 

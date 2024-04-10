@@ -3,9 +3,9 @@ import { Field, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 export class SignResponse {
-  @Field()
+  @Field(type => String)
   accessToken: string;
 
-  @Field()
+  @Field(() => User)
   user: User;
 }
