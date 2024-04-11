@@ -34,11 +34,14 @@ import { UserModule } from "./user/user.module";
         "subscriptions-transport-ws": true,
       },
 
-      playground: {
-        settings: {
-          "request.credentials": "include",
-        },
-      },
+      playground:
+        process.env.NODE_ENV !== "production"
+          ? {
+              settings: {
+                "request.credentials": "include",
+              },
+            }
+          : false,
       context: ({ req, res }) => ({ req, res }),
     }),
 
