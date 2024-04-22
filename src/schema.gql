@@ -27,10 +27,11 @@ type ChatWithAI {
 }
 
 type ChatWithAiAnswerResponse {
-  chatWithAIId: ID!
-  content: String!
+  conversation_id: String!
   id: ID!
-  role: MessageWIthAIFrom!
+  index: String
+  is_finish: Boolean!
+  message: MessageWithAI!
 }
 
 input ChatWithAiRequestInput {
@@ -78,7 +79,15 @@ enum MessageType {
   VOICE
 }
 
-enum MessageWIthAIFrom {
+type MessageWithAI {
+  content: String!
+  content_type: String
+  extra_info: String
+  role: MessageWithAIRole!
+  type: String!
+}
+
+enum MessageWithAIRole {
   ASSISTANT
   USER
 }
@@ -94,10 +103,6 @@ type Mutation {
   Create a new message with the given content and associate it with the current user.
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
-
-  """
-  Sends a message from the user to the AI chat session and receives a reply from the AI.
-  """
   createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): ChatWithAiAnswerResponse!
 
   """Delete an existing chat for the current user."""
@@ -205,21 +210,13 @@ input SignUpInput {
 }
 
 type Subscription {
-  """Subscribes to AI responses in an AI chat session."""
-  aiMessageResponse(chatWithAIId: String!): ChatWithAiAnswerResponse!
-
-  """
-  Subscribes to messages exchanged between the user and the AI in a specific chat session.
-  """
-  messageWithAiCreate(chatWithAIId: String!): ChatWithAiAnswerResponse!
+  """Subscribes to the AI's answers in real-time."""
+  chatWithAIAnswer: ChatWithAiAnswerResponse!
 
   """
   Subscribe to new messages targeted to the user. The user will receive notifications of new messages.
   """
   newMessage: Message!
-
-  """Start a chat session with AI."""
-  startChatSessionWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!): ChatWithAiAnswerResponse!
 }
 
 input UpdateChatInput {

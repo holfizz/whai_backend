@@ -27,30 +27,43 @@ export class ChatWithAiAnswerInput {
   @Field(() => String)
   aiMessage: string;
 }
-
 registerEnumType(MessageWithAIRole, {
-  name: "MessageWIthAIFrom",
+  name: "MessageWithAIRole",
 });
 @ObjectType()
-export class ChatWithAiAnswerResponse {
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => ID)
-  id: string;
+export class MessageWithAI {
+  @Field(() => MessageWithAIRole)
+  role: MessageWithAIRole;
 
-  @IsString()
-  @IsNotEmpty()
+  @Field(() => String)
+  type: string;
+
   @Field(() => String)
   content: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => MessageWithAIRole)
-  role: string;
+  @Field(() => String, { nullable: true })
+  content_type?: string;
 
-  @IsString()
+  @Field(() => String, { nullable: true })
+  extra_info?: string;
+}
+
+@ObjectType()
+export class ChatWithAiAnswerResponse {
   @Field(() => ID)
-  chatWithAIId: string;
+  id: string;
+
+  @Field(() => MessageWithAI)
+  message: MessageWithAI;
+
+  @Field(() => String)
+  conversation_id: string;
+
+  @Field(() => Boolean)
+  is_finish: boolean;
+
+  @Field(() => String, { nullable: true })
+  index?: number;
 }
 @InputType()
 export class GetAllMessagesInput {

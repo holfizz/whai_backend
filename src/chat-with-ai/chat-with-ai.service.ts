@@ -3,8 +3,10 @@ import { PaginationService } from "@/pagination/pagination.service";
 import { PrismaService } from "@/prisma.service";
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
-import { AxiosResponse } from "axios";
+import { randomUUID } from "crypto";
 import { PubSub } from "graphql-subscriptions";
+import { throwError } from "rxjs";
+import { catchError, tap } from "rxjs/operators";
 import { ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 const pubSub = new PubSub();
@@ -60,18 +62,7 @@ export default class ChatWithAIService {
     }
   }
   async saveUserAIMessage(dto: ChatWithAiRequestInput, file, userId: string) {}
-  async createMessageWithAI(dto: ChatWithAiRequestInput, userId: string) {
-    try {
-      // const { fileData } = await this.fileToText(dto, file);
 
-      const aiResponse = await this.getAiModelAnswer(userId, dto);
-      pubSub.publish("aiMessageResponse", {
-        aiMessageResponse: aiResponse,
-      });
-    } catch (error) {
-      throw new Error(`Error creating chat: ${error.message}`);
-    }
-  }
   async deleteContext() {
     try {
       // this.chatHistory.deleteContext();
@@ -80,11 +71,18 @@ export default class ChatWithAIService {
       throw new Error(`Error deleting chat context: ${error.message}`);
     }
   }
-
-  async getAiModelAnswer(userId: string, dto: ChatWithAiRequestInput): Promise<AxiosResponse<any>> {
+  async createMessageWithAI(userId: string, dto: ChatWithAiRequestInput) {
     try {
-      const response = this.httpService.post(
-        process.env.AI_API_URL,
+      return await this.getAiModelAnswer(userId, dto);
+    } catch (error) {
+      throw new Error(`Error creating chat: ${error.message}`);
+    }
+  }
+  async getAiModelAnswer(userId: string, dto: ChatWithAiRequestInput): Promise<void> {
+    let dataBuffer = "";
+    this.httpService
+      .post(
+        `${process.env.AI_API_URL}`,
         {
           conversation_id: dto.chatWithAIId,
           bot_id: process.env.CHATGPT_ID,
@@ -100,14 +98,72 @@ export default class ChatWithAIService {
             Host: "api.coze.com",
             Connection: "keep-alive",
           },
+          responseType: "stream",
         },
-      ) as any;
+      )
+      .pipe(
+        tap(response => {
+          response.data.on("data", chunk => {
+            dataBuffer += chunk.toString();
 
-      console.log(response.data);
-      return response;
-    } catch (error) {
-      throw new Error(`Error getting AI model answer: ${error.message}`);
-    }
+            let boundaryIndex;
+            while ((boundaryIndex = dataBuffer.indexOf("\n\n")) !== -1) {
+              const completeMessage = dataBuffer.substring(0, boundaryIndex);
+              dataBuffer = dataBuffer.substring(boundaryIndex + 2);
+
+              const eventData = completeMessage.replace(/^data:/, "").trim();
+              try {
+                const parsedData = JSON.parse(eventData);
+                // console.log(parsedData);
+
+                pubSub.publish("chatWithAIAnswer", {
+                  chatWithAIAnswer: {
+                    id: randomUUID(),
+                    event: parsedData.event,
+                    message: parsedData.message,
+                    conversation_id: dto.chatWithAIId,
+                    is_finish: parsedData.is_finish,
+                    index: parsedData.index,
+                    seq_id: parsedData.seq_id,
+                  },
+                });
+              } catch (error) {
+                console.error("Error parsing JSON:", error);
+              }
+            }
+          });
+
+          response.data.on("end", () => {
+            if (dataBuffer.length > 0) {
+              try {
+                const parsedData = JSON.parse(dataBuffer);
+                pubSub.publish("chatWithAIAnswer", {
+                  chatWithAIAnswer: {
+                    id: randomUUID(),
+                    event: parsedData.event,
+                    message: parsedData.message,
+                    conversation_id: dto.chatWithAIId,
+                    is_finish: parsedData.is_finish,
+                    index: parsedData.index,
+                    seq_id: parsedData.seq_id,
+                  },
+                });
+              } catch (error) {
+                console.error("Error parsing JSON in the end of the stream:", error);
+              }
+            }
+          });
+
+          response.data.on("error", error => {
+            console.error("Error with the stream:", error);
+          });
+        }),
+        catchError(error => throwError(() => new Error(`HTTP error: ${error}`))),
+      )
+      .subscribe();
+    pubSub.publish("chatWithAIAnswer", {
+      index: 1312312312,
+    });
   }
 
   async getAllMessagesInChatWithAI(userId: string, dto: GetAllMessagesInput) {
