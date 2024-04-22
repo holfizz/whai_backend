@@ -1,6 +1,6 @@
-import { Field, InputType, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { MessageWithAIFrom } from "@prisma/client";
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Field, ID, InputType, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { MessageWithAIRole } from "@prisma/client";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 @InputType()
 export class CreateChatWithAIInput {
   @IsString()
@@ -10,19 +10,14 @@ export class CreateChatWithAIInput {
 
 @InputType()
 export class ChatWithAiRequestInput {
-  @IsNumber()
-  @Field(() => Int)
-  chatWithAIId: number;
-
-  @IsOptional()
   @IsString()
-  @Field(() => String, { nullable: true })
-  file?: string;
+  @Field(() => ID)
+  chatWithAIId: string;
 
   @IsString()
   @IsNotEmpty()
   @Field(() => String)
-  text: string;
+  content: string;
 }
 
 @ObjectType()
@@ -31,42 +26,37 @@ export class ChatWithAiAnswerInput {
   @IsNotEmpty()
   @Field(() => String)
   aiMessage: string;
-  static getInstance(aiMessage: string) {
-    const result = new ChatWithAiAnswerInput();
-    result.aiMessage = aiMessage;
-    return result;
-  }
 }
 
-registerEnumType(MessageWithAIFrom, {
+registerEnumType(MessageWithAIRole, {
   name: "MessageWIthAIFrom",
 });
 @ObjectType()
 export class ChatWithAiAnswerResponse {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  @Field(() => Number)
-  id: number;
+  @Field(() => ID)
+  id: string;
 
   @IsString()
   @IsNotEmpty()
   @Field(() => String)
-  text: string;
+  content: string;
 
   @IsString()
   @IsNotEmpty()
-  @Field(() => MessageWithAIFrom)
-  from: string;
+  @Field(() => MessageWithAIRole)
+  role: string;
 
-  @IsNumber()
-  @Field(() => Int)
-  chatWithAIId: number;
+  @IsString()
+  @Field(() => ID)
+  chatWithAIId: string;
 }
 @InputType()
 export class GetAllMessagesInput {
-  @IsNumber()
-  @Field(() => Int)
-  chatId: number;
+  @IsString()
+  @Field(() => ID)
+  chatId: string;
 
   @IsOptional()
   @IsString()

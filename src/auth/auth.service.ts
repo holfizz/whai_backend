@@ -17,7 +17,7 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  private async issueTokens(userId: number) {
+  private async issueTokens(userId: string) {
     try {
       const data = { id: userId };
 

@@ -1,18 +1,18 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { MessageType } from "@prisma/client";
-import { IsDate, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
 registerEnumType(MessageType, {
   name: "MessageType",
 });
 @ObjectType()
 export class Message {
   @Field(() => ID)
-  @IsNumber()
-  id: number;
+  @IsString()
+  id: string;
 
   @Field(() => ID)
-  @IsNumber()
-  userId: number;
+  @IsString()
+  userId: string;
 
   @Field(() => MessageType)
   type: MessageType;
@@ -39,9 +39,8 @@ export class Message {
 
   @Field(() => ID)
   @IsOptional()
-  @IsInt()
-  @IsNumber()
-  chatId: number;
+  @IsString()
+  chatId: string;
 
   // @Field(() => [ChatMembers])
   // @IsNotEmpty()

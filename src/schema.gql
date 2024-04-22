@@ -14,29 +14,28 @@ type Chat {
 }
 
 type ChatMember {
-  chatId: Int!
+  chatId: ID!
   createdAt: DateTime!
-  id: Int!
-  userId: Int!
+  id: ID!
+  userId: ID!
 }
 
 type ChatWithAI {
-  id: Int!
+  id: ID!
   title: String!
   userId: String!
 }
 
 type ChatWithAiAnswerResponse {
-  chatWithAIId: Int!
-  from: MessageWIthAIFrom!
-  id: Float!
-  text: String!
+  chatWithAIId: ID!
+  content: String!
+  id: ID!
+  role: MessageWIthAIFrom!
 }
 
 input ChatWithAiRequestInput {
-  chatWithAIId: Int!
-  file: String
-  text: String!
+  chatWithAIId: ID!
+  content: String!
 }
 
 input CreateChatInput {
@@ -48,7 +47,7 @@ input CreateChatWithAIInput {
 }
 
 input CreateMessageInput {
-  chatId: Int!
+  chatId: String!
   text: String!
 }
 
@@ -58,7 +57,7 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 input GetAllMessagesInput {
-  chatId: Int!
+  chatId: ID!
   page: String
   perPage: String
 }
@@ -80,7 +79,7 @@ enum MessageType {
 }
 
 enum MessageWIthAIFrom {
-  AI
+  ASSISTANT
   USER
 }
 
@@ -102,17 +101,17 @@ type Mutation {
   createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): ChatWithAiAnswerResponse!
 
   """Delete an existing chat for the current user."""
-  deleteChat(id: Float!): Chat!
+  deleteChat(id: String!): Chat!
 
   """
   Delete a message. This can only be done by the author of the message or an admin.
   """
-  deleteMessage(id: Float!): Message!
+  deleteMessage(id: String!): Message!
 
   """
   Allows a user to enter a chat room, adding them to the chat's members list.
   """
-  enterChat(chatId: Float!): ChatMember!
+  enterChat(chatId: String!): ChatMember!
 
   """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
@@ -125,7 +124,7 @@ type Mutation {
   """
   Allows a user to leave a chat room, removing them from the chat's members list.
   """
-  leaveChat(chatId: Float!): ChatMember!
+  leaveChat(chatId: String!): ChatMember!
 
   """
   Authenticate the user and return the user's fields and access and refresh tokens.
@@ -141,12 +140,12 @@ type Mutation {
   signUp(signUpInput: SignUpInput!): SignResponse!
 
   """Update the details of an existing chat for the current user."""
-  updateChat(id: Float!, updateChatDto: UpdateChatInput!): Chat!
+  updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
 
   """
   Update an existing message with new content. Only the author of the message can update it.
   """
-  updateMessage(messageId: Float!, updateMessageInput: UpdateMessageInput!): Message!
+  updateMessage(messageId: String!, updateMessageInput: UpdateMessageInput!): Message!
 
   """
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
@@ -167,7 +166,7 @@ type Query {
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [ChatWithAiAnswerResponse!]!
 
   """Retrieve all messages from a specific chat for the current user."""
-  getAllMessages(chatId: Float!): [Message!]!
+  getAllMessages(chatId: String!): [Message!]!
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.
@@ -206,15 +205,21 @@ input SignUpInput {
 }
 
 type Subscription {
+  """Subscribes to AI responses in an AI chat session."""
+  aiMessageResponse(chatWithAIId: String!): ChatWithAiAnswerResponse!
+
   """
   Subscribes to messages exchanged between the user and the AI in a specific chat session.
   """
-  messageWithAiCreate(chatWithAIId: Int!): ChatWithAiAnswerResponse!
+  messageWithAiCreate(chatWithAIId: String!): ChatWithAiAnswerResponse!
 
   """
   Subscribe to new messages targeted to the user. The user will receive notifications of new messages.
   """
   newMessage: Message!
+
+  """Start a chat session with AI."""
+  startChatSessionWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!): ChatWithAiAnswerResponse!
 }
 
 input UpdateChatInput {
@@ -224,7 +229,7 @@ input UpdateChatInput {
 }
 
 input UpdateMessageInput {
-  chatId: Int
+  chatId: String
   text: String
 }
 

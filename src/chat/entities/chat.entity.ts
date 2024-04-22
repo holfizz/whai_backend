@@ -4,7 +4,7 @@ import { IsOptional, IsString } from "class-validator";
 export class Chat {
   @Field(() => ID)
   @IsString()
-  id: number;
+  id: string;
 
   @Field(() => String)
   @IsString()
@@ -13,7 +13,7 @@ export class Chat {
   @IsOptional()
   @IsString()
   @Field(() => ID)
-  ownerId: number;
+  ownerId: string;
 
   @Field(() => String, { nullable: true })
   @IsString()

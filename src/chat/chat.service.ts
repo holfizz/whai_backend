@@ -6,7 +6,7 @@ import { UpdateChatInput } from "./dto/update-chat.input";
 @Injectable()
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
-  async createChat(userId: number, dto: CreateChatInput) {
+  async createChat(userId: string, dto: CreateChatInput) {
     try {
       const chat = await this.prisma.chat.create({
         data: {
@@ -27,7 +27,7 @@ export class ChatService {
       throw new Error(`Error creating chat: ${error.message}`);
     }
   }
-  async getAllChats(userId: number) {
+  async getAllChats(userId: string) {
     try {
       const chats = await this.prisma.chat.findMany({
         where: { ownerId: userId },
@@ -38,7 +38,7 @@ export class ChatService {
     }
   }
 
-  async updateChat(userId: number, id: number, dto: UpdateChatInput) {
+  async updateChat(userId: string, id: string, dto: UpdateChatInput) {
     return this.prisma.chat.update({
       where: {
         id,
@@ -48,7 +48,7 @@ export class ChatService {
     });
   }
 
-  async deleteChat(userId: number, id: number) {
+  async deleteChat(userId: string, id: string) {
     return await this.prisma.chat.delete({
       where: {
         id,
@@ -57,7 +57,7 @@ export class ChatService {
     });
   }
 
-  async getAllMessages(userId: number, chatId: number) {
+  async getAllMessages(userId: string, chatId: string) {
     const chat = await this.prisma.chat.findUnique({
       where: { id: chatId },
       select: {

@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class ChatMembersService {
   constructor(private readonly prismaService: PrismaService) {}
-  async enterChat(userId: number, chatId: number) {
+  async enterChat(userId: string, chatId: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
     });
@@ -36,7 +36,7 @@ export class ChatMembersService {
     });
   }
 
-  async leaveChat(userId: number, chatId: number) {
+  async leaveChat(userId: string, chatId: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
     });

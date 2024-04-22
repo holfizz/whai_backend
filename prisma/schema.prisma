@@ -26,6 +26,8 @@ model User {
   message                 Message[]
   chat                    Chat[]
   ChatMembers             ChatMembers[]
+  Course                  Course?       @relation(fields: [courseId], references: [id])
+  courseId                String?
 }
 
 model ChatWithAI {
@@ -37,13 +39,13 @@ model ChatWithAI {
 }
 
 model MessageWithAI {
-  id           String            @id @default(uuid())
-  text         String
+  id           String             @id @default(uuid())
+  content      String
   file         String?
-  type         MessageType       @default(TEXT)
-  from         MessageWithAIFrom @default(USER)
-  chatWithAI   ChatWithAI?       @relation(fields: [chatWithAIId], references: [id])
-  chatWithAIId String            @map("chat_with_ai_id")
+  type         MessageTypeWithAI?
+  role         MessageWithAIRole  @default(USER)
+  chatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
+  chatWithAIId String             @map("chat_with_ai_id")
 }
 
 model Chat {
@@ -83,6 +85,90 @@ model Message {
   chatMembers ChatMembers[]
 }
 
+model LessonBlock {
+  id       String          @id @default(uuid())
+  type     LessonBlockEnum
+  code     String? // Code content for CODE type blocks
+  text     String? // Text content for TEXT type blocks
+  videoUrl String? // URL for VIDEO type blocks
+  imageUrl String? // URL for IMAGE type blocks
+  document String? // Path or identifier for DOCUMENT type blocks
+  lesson   Lesson          @relation(fields: [lessonId], references: [id])
+  duration Int?
+  caption  String
+  language String?
+  lessonId String
+  quizId   String?
+  quiz     Quiz?           @relation(fields: [quizId], references: [id])
+}
+
+model Quiz {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  questions   Json
+  lessonBlock LessonBlock[]
+}
+
+model LessonTask {
+  id        String  @id @default(uuid())
+  name      String
+  isChecked Boolean
+  lesson    Lesson? @relation(fields: [lessonId], references: [id])
+  lessonId  String?
+}
+
+model Lesson {
+  id           String           @id @default(uuid())
+  name         String
+  description  String?
+  types        LessonTypeEnum[]
+  tasks        LessonTask[]
+  lessonBlocks LessonBlock[]
+  folder       Folder           @relation(fields: [folderId], references: [id])
+  folderId     String
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  lessons     Lesson[]
+  course      Course   @relation(fields: [courseId], references: [id])
+  courseId    String
+}
+
+model ProgressPercents {
+  id               String   @id @default(uuid())
+  completedLessons Int
+  courseId         String   @unique
+  progressPercents Float
+  totalLessons     Int
+  Course           Course[]
+}
+
+model Course {
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  ownerID     String
+  students    User[]
+  imageUrl    String?
+  publicUrl   String?
+  tags        String[]
+  level       CourseLevelEnum?
+
+  folders            Folder[]
+  progressPercents   ProgressPercents? @relation(fields: [progressPercentsId], references: [id])
+  progressPercentsId String?
+}
+
+enum CourseLevelEnum {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
 enum UserRole {
   ADMIN
   USER
@@ -90,14 +176,37 @@ enum UserRole {
   CREATOR
 }
 
-enum MessageWithAIFrom {
-  AI
+enum MessageWithAIRole {
+  ASSISTANT
   USER
 }
 
 enum MessageType {
   VOICE
   TEXT
+}
+
+enum MessageTypeWithAI {
+  answer
+  function_cal
+  tool_response
+  follow_up
+}
+
+enum LessonTypeEnum {
+  TEXT
+  VIDEO
+  QUIZ
+  DOCUMENT
+}
+
+enum LessonBlockEnum {
+  TEXT
+  VIDEO
+  QUIZ
+  DOCUMENT
+  IMAGE
+  CODE
 }
 
 // model Course {

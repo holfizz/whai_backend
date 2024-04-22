@@ -6,7 +6,7 @@ registerEnumType(UserRole, {
 @ObjectType()
 export class User {
   @Field(type => ID)
-  id: number;
+  id: string;
 
   @Field(type => String)
   createdAt: Date;

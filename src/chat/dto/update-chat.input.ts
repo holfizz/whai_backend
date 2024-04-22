@@ -7,7 +7,7 @@ export class UpdateChatInput extends PartialType(CreateChatInput) {
   @IsString()
   @Field(() => ID, { nullable: true })
   @IsOptional()
-  ownerId?: number;
+  ownerId?: string;
 
   @Field(() => String, { nullable: true })
   @IsString()

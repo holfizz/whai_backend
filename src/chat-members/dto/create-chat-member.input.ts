@@ -1,15 +1,13 @@
-import { Field, InputType, Int } from "@nestjs/graphql";
-import { IsNumber } from "class-validator";
+import { Field, ID, InputType } from "@nestjs/graphql";
+import { IsString } from "class-validator";
 
 @InputType()
 export class CreateChatMemberInput {
-  // @Field(() => Int, { description: 'Example field (placeholder)' })
-  // id:number
-  @Field(() => Int)
-  @IsNumber()
-  userId: number;
+  @Field(() => ID)
+  @IsString()
+  userId: string;
 
-  @Field(() => Int)
-  @IsNumber()
-  chatId: number;
+  @Field(() => ID)
+  @IsString()
+  chatId: string;
 }

@@ -11,7 +11,7 @@ export class UserService {
     private readonly fileService: FileService,
   ) {}
 
-  async byId(id: number) {
+  async byId(id: string) {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
@@ -25,7 +25,7 @@ export class UserService {
     }
   }
 
-  async updateProfile(id: number, updateUserDto: UpdateUserInput, picture: Promise<FileUpload>) {
+  async updateProfile(id: string, updateUserDto: UpdateUserInput, picture: Promise<FileUpload>) {
     try {
       let avatarPath: string | undefined = undefined;
 

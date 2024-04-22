@@ -10,13 +10,13 @@ export class ChatMembersResolver {
 
   @Mutation(() => ChatMember, { description: "Allows a user to enter a chat room, adding them to the chat's members list." })
   @Auth("user")
-  enterChat(@CurrentUser("id") userId: number, @Args("chatId") chatId: number) {
+  enterChat(@CurrentUser("id") userId: string, @Args("chatId") chatId: string) {
     return this.chatMembersService.enterChat(userId, chatId);
   }
 
   @Mutation(() => ChatMember, { description: "Allows a user to leave a chat room, removing them from the chat's members list." })
   @Auth("user")
-  leaveChat(@CurrentUser("id") userId: number, @Args("chatId") chatId: number) {
+  leaveChat(@CurrentUser("id") userId: string, @Args("chatId") chatId: string) {
     return this.chatMembersService.leaveChat(userId, chatId);
   }
 }

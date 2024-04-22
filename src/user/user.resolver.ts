@@ -12,14 +12,14 @@ export class UserResolver {
 
   @Query(() => User, { description: "Retrieves the profile of the currently authenticated user based on their unique identifier." })
   @Auth("user")
-  async getProfile(@CurrentUser("id") id: number) {
+  async getProfile(@CurrentUser("id") id: string) {
     return this.userService.byId(id);
   }
 
   @Mutation(() => User, { description: "Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture." })
   @Auth("user")
   async updateProfile(
-    @CurrentUser("id") id: number,
+    @CurrentUser("id") id: string,
     @Args("dto") dto: UpdateUserInput,
     @Args("picture", { type: () => GraphQLUpload, nullable: true }) picture: Promise<FileUpload>,
   ): Promise<User> {

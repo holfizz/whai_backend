@@ -14,7 +14,7 @@ export class MessageResolver {
 
   @Mutation(() => Message, { description: "Create a new message with the given content and associate it with the current user." })
   @Auth("user")
-  createMessage(@CurrentUser("id") userId: number, @Args("createMessageInput") createMessageInput: CreateMessageInput) {
+  createMessage(@CurrentUser("id") userId: string, @Args("createMessageInput") createMessageInput: CreateMessageInput) {
     const message = this.messageService.createMessage(userId, createMessageInput);
     pubSub.publish("newMessage", { newMessage: message });
     return message;
@@ -22,7 +22,7 @@ export class MessageResolver {
 
   @Mutation(() => Message, { description: "Update an existing message with new content. Only the author of the message can update it." })
   @Auth("user")
-  updateMessage(@CurrentUser("id") userId: number, @Args("messageId") messageId: number, @Args("updateMessageInput") updateMessageInput: UpdateMessageInput) {
+  updateMessage(@CurrentUser("id") userId: string, @Args("messageId") messageId: string, @Args("updateMessageInput") updateMessageInput: UpdateMessageInput) {
     const updatedMessage = this.messageService.updateMessage(userId, messageId, updateMessageInput);
     pubSub.publish("updatedMessage", { updatedMessage });
     return updatedMessage;
@@ -30,7 +30,7 @@ export class MessageResolver {
 
   @Mutation(() => Message, { description: "Delete a message. This can only be done by the author of the message or an admin." })
   @Auth("user")
-  deleteMessage(@CurrentUser("id") userId: number, @Args("id") id: number) {
+  deleteMessage(@CurrentUser("id") userId: string, @Args("id") id: string) {
     const deletedMessage = this.messageService.deleteMessage(userId, id);
     pubSub.publish("deletedMessage", { deletedMessage });
     return deletedMessage;

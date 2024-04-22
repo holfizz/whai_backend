@@ -7,7 +7,7 @@ import { UpdateMessageInput } from "./dto/update-message.input";
 export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createMessage(userId: number, dto: CreateMessageInput) {
+  async createMessage(userId: string, dto: CreateMessageInput) {
     try {
       const createMessage = await this.prisma.message.create({
         data: {
@@ -24,7 +24,7 @@ export class MessageService {
     }
   }
 
-  async updateMessage(userId: number, id: number, dto: UpdateMessageInput) {
+  async updateMessage(userId: string, id: string, dto: UpdateMessageInput) {
     try {
       const updateMessage = await this.prisma.message.update({
         where: {
@@ -42,7 +42,7 @@ export class MessageService {
     }
   }
 
-  async deleteMessage(userId: number, id: number) {
+  async deleteMessage(userId: string, id: string) {
     try {
       const deleteMessage = await this.prisma.message.delete({
         where: {
