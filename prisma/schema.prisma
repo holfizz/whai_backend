@@ -22,16 +22,16 @@ model User {
   activationLink          String?       @unique @map("activation_link")
   resetPasswordToken      String?       @map("reset_password_token")
   resetPasswordExpiration DateTime?     @map("reset_password_expiration")
-  chatsWithAI             ChatWithAI[]
-  message                 Message[]
+  courseId                String?
   chat                    Chat[]
   ChatMembers             ChatMembers[]
+  chatsWithAI             ChatWithAI[]
+  message                 Message[]
   Course                  Course?       @relation(fields: [courseId], references: [id])
-  courseId                String?
 }
 
 model ChatWithAI {
-  id       String          @id @default(uuid())
+  id       String          @id @unique() @default(uuid())
   title    String          @default("New chat with ai")
   userId   String?         @map("user_id")
   user     User?           @relation(fields: [userId], references: [id])
@@ -40,12 +40,12 @@ model ChatWithAI {
 
 model MessageWithAI {
   id           String             @id @default(uuid())
-  content      String
   file         String?
-  type         MessageTypeWithAI?
+  type         MessageTypeWithAI? @default(answer)
+  content      String
   role         MessageWithAIRole  @default(USER)
-  chatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
-  chatWithAIId String             @map("chat_with_ai_id")
+  ChatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
+  chatWithAIId String?            @map("chat_with_ai_id")
 }
 
 model Chat {
@@ -53,11 +53,11 @@ model Chat {
   title       String        @default("New chat")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  owner       User?         @relation(fields: [ownerId], references: [id])
   ownerId     String
-  messages    Message[]
-  chatMembers ChatMembers[]
   inviteLink  String?       @unique
+  owner       User          @relation(fields: [ownerId], references: [id])
+  chatMembers ChatMembers[]
+  messages    Message[]
 }
 
 model ChatMembers {
@@ -65,40 +65,39 @@ model ChatMembers {
   createdAt DateTime  @default(now()) @map("created_at")
   userId    String    @map("user_id")
   chatId    String    @map("chat_id")
-  message   Message[]
-
-  chat Chat @relation(fields: [chatId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  chat      Chat      @relation(fields: [chatId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  message   Message[] @relation("ChatMembersToMessage")
 }
 
 model Message {
   id          String        @id @default(uuid())
-  user        User?         @relation(fields: [userId], references: [id])
   userId      String        @map("user_id")
   type        MessageType   @default(TEXT)
   text        String
   file        String?
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  chat        Chat?         @relation(fields: [chatId], references: [id])
   chatId      String?       @map("chat_id")
-  chatMembers ChatMembers[]
+  chat        Chat?         @relation(fields: [chatId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  chatMembers ChatMembers[] @relation("ChatMembersToMessage")
 }
 
 model LessonBlock {
   id       String          @id @default(uuid())
   type     LessonBlockEnum
-  code     String? // Code content for CODE type blocks
-  text     String? // Text content for TEXT type blocks
-  videoUrl String? // URL for VIDEO type blocks
-  imageUrl String? // URL for IMAGE type blocks
-  document String? // Path or identifier for DOCUMENT type blocks
-  lesson   Lesson          @relation(fields: [lessonId], references: [id])
+  code     String?
+  text     String?
+  videoUrl String?
+  imageUrl String?
+  document String?
   duration Int?
   caption  String
   language String?
   lessonId String
   quizId   String?
+  lesson   Lesson          @relation(fields: [lessonId], references: [id])
   quiz     Quiz?           @relation(fields: [quizId], references: [id])
 }
 
@@ -114,8 +113,8 @@ model LessonTask {
   id        String  @id @default(uuid())
   name      String
   isChecked Boolean
-  lesson    Lesson? @relation(fields: [lessonId], references: [id])
   lessonId  String?
+  lesson    Lesson? @relation(fields: [lessonId], references: [id])
 }
 
 model Lesson {
@@ -123,19 +122,19 @@ model Lesson {
   name         String
   description  String?
   types        LessonTypeEnum[]
-  tasks        LessonTask[]
-  lessonBlocks LessonBlock[]
-  folder       Folder           @relation(fields: [folderId], references: [id])
   folderId     String
+  folder       Folder           @relation(fields: [folderId], references: [id])
+  lessonBlocks LessonBlock[]
+  tasks        LessonTask[]
 }
 
 model Folder {
   id          String   @id @default(uuid())
   name        String
   description String?
-  lessons     Lesson[]
-  course      Course   @relation(fields: [courseId], references: [id])
   courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  lessons     Lesson[]
 }
 
 model ProgressPercents {
@@ -148,19 +147,18 @@ model ProgressPercents {
 }
 
 model Course {
-  id          String           @id @default(uuid())
-  name        String
-  description String?
-  ownerID     String
-  students    User[]
-  imageUrl    String?
-  publicUrl   String?
-  tags        String[]
-  level       CourseLevelEnum?
-
-  folders            Folder[]
-  progressPercents   ProgressPercents? @relation(fields: [progressPercentsId], references: [id])
+  id                 String            @id @default(uuid())
+  name               String
+  description        String?
+  ownerID            String
+  imageUrl           String?
+  publicUrl          String?
+  tags               String[]
+  level              CourseLevelEnum?
   progressPercentsId String?
+  progressPercents   ProgressPercents? @relation(fields: [progressPercentsId], references: [id])
+  folders            Folder[]
+  students           User[]
 }
 
 enum CourseLevelEnum {
@@ -208,60 +206,3 @@ enum LessonBlockEnum {
   IMAGE
   CODE
 }
-
-// model Course {
-//   id                Int          @id @default(autoincrement())
-//   title             String
-//   description       String?
-//   businessProfileId Int?
-//   lessons           Lesson[]
-//   creatorMode       CreatorMode? @relation(fields: [creatorModeId], references: [id])
-//   creatorModeId     Int?
-// }
-
-// model Lesson {
-//   id            Int          @id @default(autoincrement())
-//   title         String
-//   content       String
-//   courseId      Int          @map("course_id")
-//   course        Course       @relation(fields: [courseId], references: [id])
-//   quizzes       Quiz[]
-//   creatorMode   CreatorMode? @relation(fields: [creatorModeId], references: [id])
-//   creatorModeId Int?
-// }
-
-// model Quiz {
-//   id        Int        @id @default(autoincrement())
-//   title     String
-//   lessonId  Int        @map("lesson_id")
-//   questions Question[]
-//   lesson    Lesson     @relation(fields: [lessonId], references: [id])
-// }
-
-// model Question {
-//   id            Int      @id @default(autoincrement())
-//   content       String
-//   options       String[]
-//   correctOption Int
-//   quizId        Int      @map("quiz_id")
-//   quiz          Quiz     @relation(fields: [quizId], references: [id])
-// }
-
-// model Chats {
-//   id       Int       @id @default(autoincrement())
-//   title    String    @default("New chat")
-//   userId   Int
-//   user     User      @relation(fields: [userId], references: [id])
-//   messages Message[]
-// }
-
-// model Message {
-//   id        Int      @id @default(autoincrement())
-//   content   String
-//   userId    Int
-//   createdAt DateTime @default(now())
-//   chatsId   Int
-//   chats     Chats?   @relation(fields: [chatsId], references: [id])
-//   text      String
-//   from      String?
-// }

@@ -3,13 +3,13 @@ import { PaginationService } from "@/pagination/pagination.service";
 import { PrismaService } from "@/prisma.service";
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
+import { MessageWithAIRole } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { PubSub } from "graphql-subscriptions";
 import { throwError } from "rxjs";
 import { catchError, tap } from "rxjs/operators";
 import { ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 import { DocumentReader } from "./entities/document_reader.entity";
-const pubSub = new PubSub();
 @Injectable()
 export default class ChatWithAIService {
   private readonly documentReader: DocumentReader;
@@ -71,98 +71,111 @@ export default class ChatWithAIService {
       throw new Error(`Error deleting chat context: ${error.message}`);
     }
   }
-  async createMessageWithAI(userId: string, dto: ChatWithAiRequestInput) {
-    try {
-      return await this.getAiModelAnswer(userId, dto);
-    } catch (error) {
-      throw new Error(`Error creating chat: ${error.message}`);
-    }
-  }
-  async getAiModelAnswer(userId: string, dto: ChatWithAiRequestInput): Promise<void> {
-    let dataBuffer = "";
-    this.httpService
-      .post(
-        `${process.env.AI_API_URL}`,
-        {
-          conversation_id: dto.chatWithAIId,
-          bot_id: process.env.CHATGPT_ID,
-          user: userId,
-          query: dto.content,
-          stream: true,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.CHATGPT_AI_KEY}`,
-            "Content-Type": "application/json",
-            Accept: "*/*",
-            Host: "api.coze.com",
-            Connection: "keep-alive",
+
+  async getAIModelAnswer(userId: string, dto: ChatWithAiRequestInput, pubSub: PubSub): Promise<any> {
+    const chatWithAI = await this.prisma.chatWithAI.findUnique({
+      where: { id: dto.chatWithAIId },
+    });
+
+    return new Promise((resolve, reject) => {
+      let dataBuffer = "";
+      let messages = [];
+      return this.httpService
+        .post(
+          `${process.env.AI_API_URL}`,
+          {
+            conversation_id: chatWithAI.id,
+            bot_id: process.env.CHATGPT_ID,
+            user: userId,
+            query: dto.content,
+            stream: true,
           },
-          responseType: "stream",
-        },
-      )
-      .pipe(
-        tap(response => {
-          response.data.on("data", chunk => {
-            dataBuffer += chunk.toString();
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.CHATGPT_AI_KEY}`,
+              "Content-Type": "application/json",
+              Accept: "*/*",
+              Host: "api.coze.com",
+              Connection: "keep-alive",
+            },
+            responseType: "stream",
+          },
+        )
+        .pipe(
+          tap(response => {
+            response.data.on("data", chunk => {
+              dataBuffer += chunk.toString();
 
-            let boundaryIndex;
-            while ((boundaryIndex = dataBuffer.indexOf("\n\n")) !== -1) {
-              const completeMessage = dataBuffer.substring(0, boundaryIndex);
-              dataBuffer = dataBuffer.substring(boundaryIndex + 2);
+              let boundaryIndex;
+              while ((boundaryIndex = dataBuffer.indexOf("\n\n")) !== -1) {
+                const completeMessage = dataBuffer.substring(0, boundaryIndex);
+                dataBuffer = dataBuffer.substring(boundaryIndex + 2);
 
-              const eventData = completeMessage.replace(/^data:/, "").trim();
-              try {
-                const parsedData = JSON.parse(eventData);
-                // console.log(parsedData);
-
-                pubSub.publish("chatWithAIAnswer", {
-                  chatWithAIAnswer: {
+                const eventData = completeMessage.replace(/^data:/, "").trim();
+                try {
+                  const parsedData = JSON.parse(eventData);
+                  messages.push({
                     id: randomUUID(),
                     event: parsedData.event,
                     message: parsedData.message,
-                    conversation_id: dto.chatWithAIId,
+                    conversation_id: chatWithAI.id,
                     is_finish: parsedData.is_finish,
-                    index: parsedData.index,
-                    seq_id: parsedData.seq_id,
-                  },
-                });
-              } catch (error) {
-                console.error("Error parsing JSON:", error);
+                  });
+                  pubSub.publish("chatWithAIAnswer", {
+                    chatWithAIAnswer: {
+                      id: randomUUID(),
+                      event: parsedData.event,
+                      message: parsedData.message,
+                      conversation_id: chatWithAI.id,
+                      is_finish: parsedData.is_finish,
+                    },
+                  });
+                } catch (error) {
+                  console.error("Error parsing JSON:", error);
+                }
               }
-            }
-          });
+            });
 
-          response.data.on("end", () => {
-            if (dataBuffer.length > 0) {
-              try {
-                const parsedData = JSON.parse(dataBuffer);
-                pubSub.publish("chatWithAIAnswer", {
-                  chatWithAIAnswer: {
-                    id: randomUUID(),
-                    event: parsedData.event,
-                    message: parsedData.message,
-                    conversation_id: dto.chatWithAIId,
-                    is_finish: parsedData.is_finish,
-                    index: parsedData.index,
-                    seq_id: parsedData.seq_id,
-                  },
-                });
-              } catch (error) {
-                console.error("Error parsing JSON in the end of the stream:", error);
+            response.data.on("end", async () => {
+              const filteredMessages = messages.filter(m => m.message && m.message.type === "answer");
+
+              if (filteredMessages.length > 0) {
+                const fullContent = filteredMessages.map(m => m.message.content).join("");
+
+                try {
+                  await this.prisma.messageWithAI.create({
+                    data: {
+                      chatWithAIId: chatWithAI.id,
+                      content: dto.content,
+                      role: MessageWithAIRole.USER,
+                    },
+                  });
+                  return await this.prisma.messageWithAI.create({
+                    data: {
+                      content: fullContent,
+                      chatWithAIId: chatWithAI.id,
+                      role: MessageWithAIRole.ASSISTANT,
+                    },
+                  });
+                } catch (prismaError) {
+                  reject(prismaError);
+                }
+              } else {
+                resolve([]);
               }
-            }
-          });
+            });
 
-          response.data.on("error", error => {
-            console.error("Error with the stream:", error);
-          });
-        }),
-        catchError(error => throwError(() => new Error(`HTTP error: ${error}`))),
-      )
-      .subscribe();
-    pubSub.publish("chatWithAIAnswer", {
-      index: 1312312312,
+            response.data.on("error", error => {
+              console.error("Error with the stream:", error);
+              reject(error); // Отклоняем промис при ошибке в потоке
+            });
+            response.data.on("error", error => {
+              console.error("Error with the stream:", error);
+            });
+          }),
+          catchError(error => throwError(() => new Error(`HTTP error: ${error}`))),
+        )
+        .subscribe();
     });
   }
 

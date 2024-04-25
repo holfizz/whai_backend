@@ -29,7 +29,6 @@ type ChatWithAI {
 type ChatWithAiAnswerResponse {
   conversation_id: String!
   id: ID!
-  index: String
   is_finish: Boolean!
   message: MessageWithAI!
 }
@@ -103,7 +102,7 @@ type Mutation {
   Create a new message with the given content and associate it with the current user.
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
-  createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): ChatWithAiAnswerResponse!
+  createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): [ChatWithAiAnswerResponse!]!
 
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
@@ -211,7 +210,7 @@ input SignUpInput {
 
 type Subscription {
   """Subscribes to the AI's answers in real-time."""
-  chatWithAIAnswer: ChatWithAiAnswerResponse!
+  chatWithAIAnswer(chatWithAIId: String!): ChatWithAiAnswerResponse!
 
   """
   Subscribe to new messages targeted to the user. The user will receive notifications of new messages.

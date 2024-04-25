@@ -61,9 +61,6 @@ export class ChatWithAiAnswerResponse {
 
   @Field(() => Boolean)
   is_finish: boolean;
-
-  @Field(() => String, { nullable: true })
-  index?: number;
 }
 @InputType()
 export class GetAllMessagesInput {
