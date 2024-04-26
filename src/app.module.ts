@@ -15,6 +15,9 @@ import { MessageModule } from "./message/message.module";
 import { PaginationModule } from "./pagination/pagination.module";
 import { PrismaService } from "./prisma.service";
 import { UserModule } from "./user/user.module";
+import { CourseModule } from './course/course.module';
+import { LessonModule } from './lesson/lesson.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [
@@ -55,6 +58,9 @@ import { UserModule } from "./user/user.module";
     ChatWIthAIModule,
     ChatMembersModule,
     PaginationModule,
+    CourseModule,
+    LessonModule,
+    QuizModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

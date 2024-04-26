@@ -38,6 +38,11 @@ input ChatWithAiRequestInput {
   content: String!
 }
 
+type Course {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 input CreateChatInput {
   title: String
 }
@@ -46,9 +51,24 @@ input CreateChatWithAIInput {
   title: String
 }
 
+input CreateCourseInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input CreateLessonInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 input CreateMessageInput {
   chatId: String!
   text: String!
+}
+
+input CreateQuizInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
 }
 
 """
@@ -60,6 +80,11 @@ input GetAllMessagesInput {
   chatId: ID!
   page: String
   perPage: String
+}
+
+type Lesson {
+  """Example field (placeholder)"""
+  exampleField: Int!
 }
 
 type Message {
@@ -97,12 +122,15 @@ type Mutation {
 
   """Creates a new AI chat session for the current user."""
   createChatWithAI(createChatInput: CreateChatWithAIInput): ChatWithAI!
+  createCourse(createCourseInput: CreateCourseInput!): Course!
+  createLesson(createLessonInput: CreateLessonInput!): Lesson!
 
   """
   Create a new message with the given content and associate it with the current user.
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
-  createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): [ChatWithAiAnswerResponse!]!
+  createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): MessageWithAI!
+  createQuiz(createQuizInput: CreateQuizInput!): Quiz!
 
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
@@ -134,6 +162,8 @@ type Mutation {
   Authenticate the user and return the user's fields and access and refresh tokens.
   """
   login(loginInput: loginInput!): SignResponse!
+  removeCourse(id: Int!): Course!
+  removeLesson(id: Int!): Lesson!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -145,6 +175,8 @@ type Mutation {
 
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
+  updateCourse(updateCourseInput: UpdateCourseInput!): Course!
+  updateLesson(updateLessonInput: UpdateLessonInput!): Lesson!
 
   """
   Update an existing message with new content. Only the author of the message can update it.
@@ -158,6 +190,8 @@ type Mutation {
 }
 
 type Query {
+  course(id: Int!): Course!
+
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
 
@@ -181,9 +215,15 @@ type Query {
   Check if a given activation link is valid and the user's email is activated.
   """
   isActivated(activationLink: ActivationLinkInput!): Boolean!
+  lesson(id: Int!): Lesson!
 
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
+}
+
+type Quiz {
+  """Example field (placeholder)"""
+  exampleField: Int!
 }
 
 type RefreshTokenResponse {
@@ -222,6 +262,18 @@ input UpdateChatInput {
   inviteLink: String
   ownerId: ID
   title: String
+}
+
+input UpdateCourseInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input UpdateLessonInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
 }
 
 input UpdateMessageInput {

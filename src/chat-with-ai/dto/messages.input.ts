@@ -1,6 +1,6 @@
 import { Field, ID, InputType, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { MessageWithAIRole } from "@prisma/client";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 @InputType()
 export class CreateChatWithAIInput {
   @IsString()
@@ -12,6 +12,7 @@ export class CreateChatWithAIInput {
 export class ChatWithAiRequestInput {
   @IsString()
   @Field(() => ID)
+  @IsUUID()
   chatWithAIId: string;
 
   @IsString()
@@ -51,6 +52,7 @@ export class MessageWithAI {
 @ObjectType()
 export class ChatWithAiAnswerResponse {
   @Field(() => ID)
+  @IsUUID()
   id: string;
 
   @Field(() => MessageWithAI)
@@ -66,6 +68,7 @@ export class ChatWithAiAnswerResponse {
 export class GetAllMessagesInput {
   @IsString()
   @Field(() => ID)
+  @IsUUID()
   chatId: string;
 
   @IsOptional()

@@ -96,17 +96,26 @@ model LessonBlock {
   caption  String
   language String?
   lessonId String
-  quizId   String?
   lesson   Lesson          @relation(fields: [lessonId], references: [id])
-  quiz     Quiz?           @relation(fields: [quizId], references: [id])
+  quiz     Quiz[]
 }
 
 model Quiz {
-  id          String        @id @default(uuid())
-  name        String
-  description String?
-  questions   Json
-  lessonBlock LessonBlock[]
+  id            String           @id @default(uuid())
+  name          String
+  description   String?
+  questions     Json
+  lessonBlockId String?
+  folderId      String?
+  LessonBlock   LessonBlock?     @relation(fields: [lessonBlockId], references: [id])
+  Folder        Folder?          @relation(fields: [folderId], references: [id])
+  questionType  QuizQuestionType @default(SINGLE_CHOICE)
+  answer        String
+  options       Json?
+  template      String?
+  instructions  String?
+  pairs         Json?
+  correctIndex  Int?
 }
 
 model LessonTask {
@@ -118,14 +127,15 @@ model LessonTask {
 }
 
 model Lesson {
-  id           String           @id @default(uuid())
-  name         String
-  description  String?
-  types        LessonTypeEnum[]
-  folderId     String
-  folder       Folder           @relation(fields: [folderId], references: [id])
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  types       LessonTypeEnum[]
+
   lessonBlocks LessonBlock[]
   tasks        LessonTask[]
+  Folder       Folder?       @relation(fields: [folderId], references: [id])
+  folderId     String?
 }
 
 model Folder {
@@ -134,7 +144,8 @@ model Folder {
   description String?
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id])
-  lessons     Lesson[]
+  Quiz        Quiz[]
+  Lessons     Lesson[]
 }
 
 model ProgressPercents {
@@ -159,6 +170,8 @@ model Course {
   progressPercents   ProgressPercents? @relation(fields: [progressPercentsId], references: [id])
   folders            Folder[]
   students           User[]
+  teacherIds         String[]
+  studentsId         String[]
 }
 
 enum CourseLevelEnum {
@@ -172,6 +185,16 @@ enum UserRole {
   USER
   STUDENT
   CREATOR
+}
+
+enum QuizQuestionType {
+  MULTIPLE_CHOICE
+  SINGLE_CHOICE
+  FILL_IN_THE_BLANK
+  DRAG_AND_DROP
+  MATCHING
+  TRUE_FALSE
+  OPEN_ENDED
 }
 
 enum MessageWithAIRole {

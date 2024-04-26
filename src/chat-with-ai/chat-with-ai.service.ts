@@ -8,7 +8,8 @@ import { randomUUID } from "crypto";
 import { PubSub } from "graphql-subscriptions";
 import { throwError } from "rxjs";
 import { catchError, tap } from "rxjs/operators";
-import { ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
+import { ChatWithAiRequestInput } from "./dto/ChatWithAiRequestInput";
+import { CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
 import { DocumentReader } from "./entities/document_reader.entity";
 @Injectable()
 export default class ChatWithAIService {
@@ -76,6 +77,9 @@ export default class ChatWithAIService {
     const chatWithAI = await this.prisma.chatWithAI.findUnique({
       where: { id: dto.chatWithAIId },
     });
+    const messagesHistory = await this.prisma.messageWithAI.findMany({
+      where: { chatWithAIId: dto.chatWithAIId },
+    });
 
     return new Promise((resolve, reject) => {
       let dataBuffer = "";
@@ -88,13 +92,15 @@ export default class ChatWithAIService {
             bot_id: process.env.CHATGPT_ID,
             user: userId,
             query: dto.content,
+            content_type: "answer",
             stream: true,
+            chat_history: messagesHistory,
           },
           {
             headers: {
               Authorization: `Bearer ${process.env.CHATGPT_AI_KEY}`,
               "Content-Type": "application/json",
-              Accept: "*/*",
+              Accept: "text/markdown",
               Host: "api.coze.com",
               Connection: "keep-alive",
             },
@@ -114,21 +120,11 @@ export default class ChatWithAIService {
                 const eventData = completeMessage.replace(/^data:/, "").trim();
                 try {
                   const parsedData = JSON.parse(eventData);
-                  messages.push({
-                    id: randomUUID(),
-                    event: parsedData.event,
-                    message: parsedData.message,
-                    conversation_id: chatWithAI.id,
-                    is_finish: parsedData.is_finish,
-                  });
+                  console.log(parsedData);
+                  const messageData = { id: randomUUID(), event: parsedData.event, message: parsedData.message, conversation_id: chatWithAI.id, is_finish: parsedData.is_finish };
+                  messages.push(messageData);
                   pubSub.publish("chatWithAIAnswer", {
-                    chatWithAIAnswer: {
-                      id: randomUUID(),
-                      event: parsedData.event,
-                      message: parsedData.message,
-                      conversation_id: chatWithAI.id,
-                      is_finish: parsedData.is_finish,
-                    },
+                    chatWithAIAnswer: messageData,
                   });
                 } catch (error) {
                   console.error("Error parsing JSON:", error);
@@ -141,7 +137,6 @@ export default class ChatWithAIService {
 
               if (filteredMessages.length > 0) {
                 const fullContent = filteredMessages.map(m => m.message.content).join("");
-
                 try {
                   await this.prisma.messageWithAI.create({
                     data: {
@@ -150,13 +145,15 @@ export default class ChatWithAIService {
                       role: MessageWithAIRole.USER,
                     },
                   });
-                  return await this.prisma.messageWithAI.create({
+                  const messageWithAI = await this.prisma.messageWithAI.create({
                     data: {
                       content: fullContent,
                       chatWithAIId: chatWithAI.id,
                       role: MessageWithAIRole.ASSISTANT,
                     },
                   });
+                  console.log(messageWithAI);
+                  return messageWithAI;
                 } catch (prismaError) {
                   reject(prismaError);
                 }
@@ -167,10 +164,7 @@ export default class ChatWithAIService {
 
             response.data.on("error", error => {
               console.error("Error with the stream:", error);
-              reject(error); // Отклоняем промис при ошибке в потоке
-            });
-            response.data.on("error", error => {
-              console.error("Error with the stream:", error);
+              reject(error);
             });
           }),
           catchError(error => throwError(() => new Error(`HTTP error: ${error}`))),

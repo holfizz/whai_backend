@@ -1,10 +1,11 @@
 import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { IsString } from "class-validator";
+import { IsString, IsUUID } from "class-validator";
 
 @ObjectType()
 export class ChatWithAI {
   @Field(() => ID)
   @IsString()
+  @IsUUID()
   id: string;
 
   @Field(() => String)
@@ -13,5 +14,6 @@ export class ChatWithAI {
 
   @Field(() => String)
   @IsString()
+  @IsUUID()
   userId: string;
 }

@@ -1,11 +1,13 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { UserRole } from "@prisma/client";
+import { IsUUID } from "class-validator";
 registerEnumType(UserRole, {
   name: "UserRole",
 });
 @ObjectType()
 export class User {
   @Field(type => ID)
+  @IsUUID()
   id: string;
 
   @Field(type => String)

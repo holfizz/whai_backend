@@ -4,8 +4,9 @@ import { Args, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import ChatWithAIService from "./chat-with-ai.service";
+import { ChatWithAiRequestInput } from "./dto/ChatWithAiRequestInput";
 import { ChatWithAI } from "./dto/create-chat-with-ai.input";
-import { ChatWithAiAnswerResponse, ChatWithAiRequestInput, CreateChatWithAIInput, GetAllMessagesInput } from "./dto/messages.input";
+import { ChatWithAiAnswerResponse, CreateChatWithAIInput, GetAllMessagesInput, MessageWithAI } from "./dto/messages.input";
 const pubSub = new PubSub();
 
 @Resolver(ChatWithAI)
@@ -33,7 +34,7 @@ export class ChatWithAIResolver {
   chatWithAIAnswer(@Args("chatWithAIId") chatWithAIId: string) {
     return pubSub.asyncIterator("chatWithAIAnswer");
   }
-  @Mutation(() => [ChatWithAiAnswerResponse])
+  @Mutation(() => MessageWithAI)
   @Auth("user")
   async createMessageWithAI(
     @CurrentUser("id") userId: string,
@@ -43,7 +44,7 @@ export class ChatWithAIResolver {
     try {
       const result = await this.chatWithAI.getAIModelAnswer(userId, dto, pubSub);
 
-      return result[0];
+      return result;
     } catch (error) {
       throw new Error(`Error processing chat message: ${error.message}`);
     }
