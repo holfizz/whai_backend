@@ -1,9 +1,8 @@
 import { Field, InputType } from "@nestjs/graphql";
-import { Type } from "class-transformer";
 import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
 
 @InputType()
-class QuestionInput {
+class QuestionType {
   @Field()
   @IsNotEmpty()
   @IsString()
@@ -27,9 +26,8 @@ export class QuizInput {
   @IsString()
   description?: string;
 
-  @Field(() => [QuestionInput])
+  @Field(() => String)
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => QuestionInput)
-  questions: QuestionInput[];
+  question: string;
 }

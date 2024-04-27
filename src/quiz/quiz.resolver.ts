@@ -1,5 +1,5 @@
 import { Args, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { CreateQuizInput } from "./dto/quiz.input";
+import { QuizInput } from "./dto/quiz.input";
 import { Quiz } from "./entities/quiz.entity";
 import { QuizService } from "./quiz.service";
 
@@ -8,7 +8,7 @@ export class QuizResolver {
   constructor(private readonly quizService: QuizService) {}
 
   @Mutation(() => Quiz)
-  createQuiz(@Args("createQuizInput") createQuizInput: CreateQuizInput) {
+  createQuiz(@Args("createQuizInput") createQuizInput: QuizInput) {
     return this.quizService.createQuiz(createQuizInput);
   }
 
@@ -28,7 +28,7 @@ export class QuizResolver {
   }
 
   @Mutation(() => Quiz)
-  updateQuiz(@Args("id", { type: () => Int }) id: number, @Args("updateQuizData") updateQuizData: CreateQuizInput) {
+  updateQuiz(@Args("id", { type: () => Int }) id: number, @Args("updateQuizData") updateQuizData: QuizInput) {
     return this.quizService.updateQuiz(id, updateQuizData);
   }
 }

@@ -104,18 +104,18 @@ model Quiz {
   id            String           @id @default(uuid())
   name          String
   description   String?
-  questions     Json
   lessonBlockId String?
   folderId      String?
   LessonBlock   LessonBlock?     @relation(fields: [lessonBlockId], references: [id])
   Folder        Folder?          @relation(fields: [folderId], references: [id])
-  questionType  QuizQuestionType @default(SINGLE_CHOICE)
-  answer        String
+  questionType  QuizQuestionType @default(MCQ)
   options       Json?
   template      String?
   instructions  String?
+  question      String
+  answer        Json
+  quizId        String?
   pairs         Json?
-  correctIndex  Int?
 }
 
 model LessonTask {
@@ -188,12 +188,12 @@ enum UserRole {
 }
 
 enum QuizQuestionType {
-  MULTIPLE_CHOICE
-  SINGLE_CHOICE
-  FILL_IN_THE_BLANK
-  DRAG_AND_DROP
-  MATCHING
-  TRUE_FALSE
+  MCQ
+  MRQ
+  OEQ
+  NRQ
+  CLOZE
+  MATCH
   OPEN_ENDED
 }
 

@@ -39,8 +39,27 @@ input ChatWithAiRequestInput {
 }
 
 type Course {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  description: String
+  id: ID!
+  imageUrl: String
+  level: CourseLevelEnum
+  name: String!
+  publicUrl: String
+  studentIds: [String!]
+  tags: [String]
+  teacherIds: [String!]
+}
+
+input CourseInput {
+  description: String
+  ownerId: ID!
+  title: String!
+}
+
+enum CourseLevelEnum {
+  ADVANCED
+  BEGINNER
+  INTERMEDIATE
 }
 
 input CreateChatInput {
@@ -51,24 +70,9 @@ input CreateChatWithAIInput {
   title: String
 }
 
-input CreateCourseInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input CreateLessonInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
 input CreateMessageInput {
   chatId: String!
   text: String!
-}
-
-input CreateQuizInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
 }
 
 """
@@ -82,9 +86,57 @@ input GetAllMessagesInput {
   perPage: String
 }
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type Lesson {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  description: String
+  id: ID!
+  lessonBlocks: [LessonBlock]
+  name: String!
+  tasks: [LessonTaskInput]
+  types: [LessonTypeEnum!]!
+}
+
+type LessonBlock {
+  caption: String
+  code: String
+  document: String
+  duration: Int
+  imageUrl: String
+  language: String
+  lessonId: ID!
+  text: String
+  type: LessonBlockEnum!
+  videoUrl: String
+}
+
+enum LessonBlockEnum {
+  CODE
+  DOCUMENT
+  IMAGE
+  QUIZ
+  TEXT
+  VIDEO
+}
+
+input LessonInput {
+  description: String
+  name: String!
+}
+
+type LessonTaskInput {
+  isChecked: Boolean!
+  name: String!
+}
+
+enum LessonTypeEnum {
+  DOCUMENT
+  QUIZ
+  TEXT
+  VIDEO
 }
 
 type Message {
@@ -122,23 +174,26 @@ type Mutation {
 
   """Creates a new AI chat session for the current user."""
   createChatWithAI(createChatInput: CreateChatWithAIInput): ChatWithAI!
-  createCourse(createCourseInput: CreateCourseInput!): Course!
-  createLesson(createLessonInput: CreateLessonInput!): Lesson!
+  createCourse(createCourseData: CourseInput!): Course!
+  createLesson(createLessonInput: LessonInput!): Lesson!
 
   """
   Create a new message with the given content and associate it with the current user.
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): MessageWithAI!
-  createQuiz(createQuizInput: CreateQuizInput!): Quiz!
+  createQuiz(createQuizInput: QuizInput!): Quiz!
 
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
+  deleteCourse(id: String!): Course!
+  deleteLesson(id: ID!): Lesson!
 
   """
   Delete a message. This can only be done by the author of the message or an admin.
   """
   deleteMessage(id: String!): Message!
+  deleteQuiz(id: Int!): Quiz!
 
   """
   Allows a user to enter a chat room, adding them to the chat's members list.
@@ -162,8 +217,6 @@ type Mutation {
   Authenticate the user and return the user's fields and access and refresh tokens.
   """
   login(loginInput: loginInput!): SignResponse!
-  removeCourse(id: Int!): Course!
-  removeLesson(id: Int!): Lesson!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -175,8 +228,8 @@ type Mutation {
 
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
-  updateCourse(updateCourseInput: UpdateCourseInput!): Course!
-  updateLesson(updateLessonInput: UpdateLessonInput!): Lesson!
+  updateCourse(id: String!, updateCourseData: UpdateCourse!): Course!
+  updateLesson(id: ID!, updateLessonInput: UpdateLesson!): Lesson!
 
   """
   Update an existing message with new content. Only the author of the message can update it.
@@ -187,10 +240,13 @@ type Mutation {
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
+  updateQuiz(id: Int!, updateQuizData: QuizInput!): Quiz!
 }
 
 type Query {
-  course(id: Int!): Course!
+  course(id: String!): Course!
+  findAllQuizzes: [Quiz!]!
+  findQuizById(id: Int!): Quiz!
 
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
@@ -215,15 +271,44 @@ type Query {
   Check if a given activation link is valid and the user's email is activated.
   """
   isActivated(activationLink: ActivationLinkInput!): Boolean!
-  lesson(id: Int!): Lesson!
 
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
 }
 
+type QuestionType {
+  correctAnswer: String
+  options: [String!]
+  question: String!
+}
+
 type Quiz {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  correctIndex: Int
+  description: String
+  folderId: ID
+  id: ID!
+  instructions: String
+  lessonBlockId: ID
+  name: String!
+  pairs: JSON
+  questionType: QuizQuestionType!
+  questions: [QuestionType!]!
+}
+
+input QuizInput {
+  description: String
+  question: String!
+  title: String!
+}
+
+enum QuizQuestionType {
+  CLOZE
+  MATCH
+  MCQ
+  MRQ
+  NRQ
+  OEQ
+  OPEN_ENDED
 }
 
 type RefreshTokenResponse {
@@ -264,16 +349,17 @@ input UpdateChatInput {
   title: String
 }
 
-input UpdateCourseInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+input UpdateCourse {
+  description: String
+  id: ID!
+  ownerId: ID
+  title: String
 }
 
-input UpdateLessonInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+input UpdateLesson {
+  description: String
+  id: ID!
+  name: String
 }
 
 input UpdateMessageInput {

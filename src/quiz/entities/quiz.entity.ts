@@ -1,7 +1,25 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
-import { IsEnum, IsInt, IsJSON, IsOptional, IsString, IsUUID, Min } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsJSON, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from "class-validator";
+import GraphQLJSON from "graphql-type-json";
+@ObjectType()
+class QuestionType {
+  @Field()
+  @IsNotEmpty()
+  @IsString()
+  question: string;
 
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  options?: string[];
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  correctAnswer?: string;
+}
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
 });
@@ -15,13 +33,12 @@ export class Quiz {
   @IsString()
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
+  @Field(() => [QuestionType])
   @IsJSON()
   questions: object;
 
@@ -39,26 +56,12 @@ export class Quiz {
   @IsEnum(QuizQuestionType)
   questionType: QuizQuestionType;
 
-  @Field()
-  @IsString()
-  answer: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsJSON()
-  options?: object;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  template?: string;
-
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
   instructions?: string;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
   @IsJSON()
   pairs?: object;

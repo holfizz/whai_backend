@@ -1,4 +1,5 @@
 import { Field, ID, InputType, Int, registerEnumType } from "@nestjs/graphql";
+import { LessonBlockEnum } from "@prisma/client";
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
@@ -15,24 +16,9 @@ export class LessonTaskInput {
 registerEnumType(LessonBlockEnum, {
   name: "LessonBlockEnum",
 });
-@InputType()
-export class LessonInput {
-  @Field()
-  @IsString()
-  name: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  description?: string;
-}
-
-registerEnumType(LessonBlockEnum, {
-  name: "LessonBlockEnum",
-});
 
 @InputType()
-export class LessonBlockInput {
+export class LessonBlock {
   @Field(() => LessonBlockEnum)
   @IsEnum(LessonBlockEnum)
   type: LessonBlockEnum;
@@ -78,4 +64,16 @@ export class LessonBlockInput {
   @Field(() => ID)
   @IsUUID()
   lessonId: string;
+}
+
+@InputType()
+export class LessonInput {
+  @Field()
+  @IsString()
+  name: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

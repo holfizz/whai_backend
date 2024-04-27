@@ -1,6 +1,10 @@
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { CourseLevelEnum } from "@prisma/client";
 import { IsArray, IsEnum, IsOptional, IsString, IsUUID, IsUrl } from "class-validator";
 
+registerEnumType(CourseLevelEnum, {
+  name: "CourseLevelEnum",
+});
 @ObjectType()
 export class Course {
   @Field(() => ID)

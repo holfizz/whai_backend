@@ -1,12 +1,12 @@
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { CreateQuizInput } from "./dto/quiz.input";
+import { QuizInput } from "./dto/quiz.input";
 
 @Injectable()
 export class QuizService {
   constructor(private prisma: PrismaService) {}
 
-  async createQuiz(data: CreateQuizInput) {
+  async createQuiz(data: QuizInput) {
     // return this.prisma.quiz.create({});
   }
 
@@ -26,7 +26,7 @@ export class QuizService {
     // });
   }
 
-  async updateQuiz(id: number, data: CreateQuizInput) {
+  async updateQuiz(id: number, data: QuizInput) {
     // return this.prisma.quiz.update({
     // where: { id },
     // data,
