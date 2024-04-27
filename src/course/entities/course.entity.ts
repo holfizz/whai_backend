@@ -1,16 +1,13 @@
-import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { BaseEntity } from "@/helpers/base.entity";
+import { Field, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { CourseLevelEnum } from "@prisma/client";
-import { IsArray, IsEnum, IsOptional, IsString, IsUUID, IsUrl } from "class-validator";
+import { IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
 
 registerEnumType(CourseLevelEnum, {
   name: "CourseLevelEnum",
 });
 @ObjectType()
-export class Course {
-  @Field(() => ID)
-  @IsUUID()
-  id: string;
-
+export class Course extends BaseEntity {
   @Field()
   @IsString()
   name: string;
@@ -39,13 +36,11 @@ export class Course {
   level?: CourseLevelEnum;
 
   @Field(() => [String], { nullable: true })
-  @IsArray()
   @IsString({ each: true })
   @IsOptional()
   teacherIds?: string[];
 
   @Field(() => [String], { nullable: true })
-  @IsArray()
   @IsString({ each: true })
   @IsOptional()
   studentIds?: string[];

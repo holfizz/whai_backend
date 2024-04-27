@@ -5,8 +5,8 @@ import { PubSub } from "graphql-subscriptions";
 import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import ChatWithAIService from "./chat-with-ai.service";
 import { ChatWithAiRequestInput } from "./dto/ChatWithAiRequestInput";
-import { ChatWithAI } from "./dto/create-chat-with-ai.input";
 import { ChatWithAiAnswerResponse, CreateChatWithAIInput, GetAllMessagesInput, MessageWithAI } from "./dto/messages.input";
+import { ChatWithAI } from "./entities/chat-with-ai.entity";
 const pubSub = new PubSub();
 
 @Resolver(ChatWithAI)

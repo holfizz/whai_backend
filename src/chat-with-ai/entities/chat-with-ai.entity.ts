@@ -1,13 +1,9 @@
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { BaseEntity } from "@/helpers/base.entity";
+import { Field, ObjectType } from "@nestjs/graphql";
 import { IsString, IsUUID } from "class-validator";
 
 @ObjectType()
-export class ChatWithAI {
-  @Field(() => ID)
-  @IsString()
-  @IsUUID()
-  id: string;
-
+export class ChatWithAI extends BaseEntity {
   @Field(() => String)
   @IsString()
   title: string;

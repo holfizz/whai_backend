@@ -1,15 +1,12 @@
+import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { MessageType } from "@prisma/client";
-import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 registerEnumType(MessageType, {
   name: "MessageType",
 });
 @ObjectType()
-export class Message {
-  @Field(() => ID)
-  @IsString()
-  id: string;
-
+export class Message extends BaseEntity {
   @Field(() => ID)
   @IsString()
   userId: string;
@@ -26,16 +23,6 @@ export class Message {
   @IsOptional()
   @IsString()
   file?: string;
-
-  @Field()
-  @IsNotEmpty()
-  @IsDate()
-  createdAt: Date;
-
-  @Field(() => String)
-  @IsNotEmpty()
-  @IsDate()
-  updatedAt: Date;
 
   @Field(() => ID)
   @IsOptional()

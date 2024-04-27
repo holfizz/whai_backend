@@ -1,5 +1,5 @@
 import { Field, InputType } from "@nestjs/graphql";
-import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
 
 @InputType()
 class QuestionType {
@@ -27,7 +27,6 @@ export class QuizInput {
   description?: string;
 
   @Field(() => String)
-  @IsArray()
   @ValidateNested({ each: true })
   question: string;
 }

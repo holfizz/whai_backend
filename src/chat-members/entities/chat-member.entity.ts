@@ -1,10 +1,9 @@
+import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 import { IsString, IsUUID } from "class-validator";
 
 @ObjectType()
-export class ChatMember {
-  @Field(() => ID)
-  id: string;
+export class ChatMember extends BaseEntity {
   @IsUUID()
   @Field(() => ID)
   @IsString()
@@ -13,7 +12,4 @@ export class ChatMember {
   @Field(() => ID)
   @IsString()
   chatId: string;
-  @IsUUID()
-  @Field(() => Date)
-  createdAt: Date;
 }

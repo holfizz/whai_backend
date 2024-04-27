@@ -1,34 +1,14 @@
+import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
-import { IsArray, IsEnum, IsInt, IsJSON, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from "class-validator";
+import { IsEnum, IsInt, IsJSON, IsOptional, IsString, IsUUID, Min } from "class-validator";
 import GraphQLJSON from "graphql-type-json";
-@ObjectType()
-class QuestionType {
-  @Field()
-  @IsNotEmpty()
-  @IsString()
-  question: string;
-
-  @Field(() => [String], { nullable: true })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  options?: string[];
-
-  @Field(() => String, { nullable: true })
-  @IsOptional()
-  @IsString()
-  correctAnswer?: string;
-}
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
 });
-@ObjectType()
-export class Quiz {
-  @Field(() => ID)
-  @IsUUID()
-  id: string;
 
+@ObjectType()
+export class Quiz extends BaseEntity {
   @Field(() => String)
   @IsString()
   name: string;
@@ -38,7 +18,8 @@ export class Quiz {
   @IsString()
   description?: string;
 
-  @Field(() => [QuestionType])
+  @Field(() => [QuizQuestionType])
+  @IsEnum(QuizQuestionType)
   @IsJSON()
   questions: object;
 

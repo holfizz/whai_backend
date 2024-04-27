@@ -10,14 +10,16 @@ import { JwtStrategy } from "./auth/jwt.strategy";
 import { ChatMembersModule } from "./chat-members/chat-members.module";
 import { ChatWIthAIModule } from "./chat-with-ai/chat-with-ai.module";
 import { ChatModule } from "./chat/chat.module";
+import { CourseModule } from "./course/course.module";
 import { FileModule } from "./file/file.module";
+import { LessonBlockModule } from "./lesson-block/lesson-block.module";
+import { LessonTasksModule } from "./lesson-tasks/lesson-tasks.module";
+import { LessonModule } from "./lesson/lesson.module";
 import { MessageModule } from "./message/message.module";
 import { PaginationModule } from "./pagination/pagination.module";
 import { PrismaService } from "./prisma.service";
+import { QuizModule } from "./quiz/quiz.module";
 import { UserModule } from "./user/user.module";
-import { CourseModule } from './course/course.module';
-import { LessonModule } from './lesson/lesson.module';
-import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [
@@ -61,6 +63,8 @@ import { QuizModule } from './quiz/quiz.module';
     CourseModule,
     LessonModule,
     QuizModule,
+    LessonBlockModule,
+    LessonTasksModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

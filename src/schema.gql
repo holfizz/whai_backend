@@ -7,22 +7,27 @@ input ActivationLinkInput {
 }
 
 type Chat {
+  createdAt: DateTime!
   id: ID!
   inviteLink: String
   ownerId: ID!
   title: String!
+  updatedAt: DateTime!
 }
 
 type ChatMember {
   chatId: ID!
   createdAt: DateTime!
   id: ID!
+  updatedAt: DateTime!
   userId: ID!
 }
 
 type ChatWithAI {
+  createdAt: DateTime!
   id: ID!
   title: String!
+  updatedAt: DateTime!
   userId: String!
 }
 
@@ -39,6 +44,7 @@ input ChatWithAiRequestInput {
 }
 
 type Course {
+  createdAt: DateTime!
   description: String
   id: ID!
   imageUrl: String
@@ -48,6 +54,7 @@ type Course {
   studentIds: [String!]
   tags: [String]
   teacherIds: [String!]
+  updatedAt: DateTime!
 }
 
 input CourseInput {
@@ -92,24 +99,29 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type Lesson {
+  createdAt: DateTime!
   description: String
   id: ID!
   lessonBlocks: [LessonBlock]
   name: String!
-  tasks: [LessonTaskInput]
+  tasks: [LessonTasks]
   types: [LessonTypeEnum!]!
+  updatedAt: DateTime!
 }
 
 type LessonBlock {
   caption: String
   code: String
+  createdAt: DateTime!
   document: String
   duration: Int
+  id: ID!
   imageUrl: String
   language: String
   lessonId: ID!
   text: String
   type: LessonBlockEnum!
+  updatedAt: DateTime!
   videoUrl: String
 }
 
@@ -122,13 +134,36 @@ enum LessonBlockEnum {
   VIDEO
 }
 
+input LessonBlockInput {
+  caption: String
+  code: String
+  document: String
+  duration: Int
+  imageUrl: String
+  language: String
+  lessonId: ID
+  text: String
+  type: LessonBlockEnum!
+  videoUrl: String
+}
+
 input LessonInput {
   description: String
   name: String!
+  types: [LessonTypeEnum!]!
 }
 
-type LessonTaskInput {
+type LessonTasks {
+  createdAt: DateTime!
+  id: ID!
   isChecked: Boolean!
+  lessonId: ID!
+  name: String!
+  updatedAt: DateTime!
+}
+
+input LessonTasksInput {
+  lessonId: ID!
   name: String!
 }
 
@@ -146,7 +181,7 @@ type Message {
   id: ID!
   text: String!
   type: MessageType!
-  updatedAt: String!
+  updatedAt: DateTime!
   userId: ID!
 }
 
@@ -176,6 +211,8 @@ type Mutation {
   createChatWithAI(createChatInput: CreateChatWithAIInput): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
   createLesson(createLessonInput: LessonInput!): Lesson!
+  createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
+  createLessonTask(createLessonTaskInput: LessonTasksInput!): LessonTasks!
 
   """
   Create a new message with the given content and associate it with the current user.
@@ -188,6 +225,8 @@ type Mutation {
   deleteChat(id: String!): Chat!
   deleteCourse(id: String!): Course!
   deleteLesson(id: ID!): Lesson!
+  deleteLessonBlock(id: ID!): LessonBlock!
+  deleteLessonTask(id: ID!): LessonTasks!
 
   """
   Delete a message. This can only be done by the author of the message or an admin.
@@ -229,7 +268,9 @@ type Mutation {
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
   updateCourse(id: String!, updateCourseData: UpdateCourse!): Course!
-  updateLesson(id: ID!, updateLessonInput: UpdateLesson!): Lesson!
+  updateLesson(id: String!, updateLessonInput: UpdateLesson!): Lesson!
+  updateLessonBlock(id: String!, updateLessonBlock: UpdateLessonBlock!): LessonBlock!
+  updateLessonTask(id: String!, updateLessonTask: UpdateLessonTasks!): LessonTasks!
 
   """
   Update an existing message with new content. Only the author of the message can update it.
@@ -276,14 +317,9 @@ type Query {
   logout: Boolean!
 }
 
-type QuestionType {
-  correctAnswer: String
-  options: [String!]
-  question: String!
-}
-
 type Quiz {
   correctIndex: Int
+  createdAt: DateTime!
   description: String
   folderId: ID
   id: ID!
@@ -292,7 +328,8 @@ type Quiz {
   name: String!
   pairs: JSON
   questionType: QuizQuestionType!
-  questions: [QuestionType!]!
+  questions: [QuizQuestionType!]!
+  updatedAt: DateTime!
 }
 
 input QuizInput {
@@ -358,7 +395,28 @@ input UpdateCourse {
 
 input UpdateLesson {
   description: String
-  id: ID!
+  id: ID
+  name: String
+  types: [LessonTypeEnum!]
+}
+
+input UpdateLessonBlock {
+  caption: String
+  code: String
+  document: String
+  duration: Int
+  id: ID
+  imageUrl: String
+  language: String
+  lessonId: ID
+  text: String
+  type: LessonBlockEnum
+  videoUrl: String
+}
+
+input UpdateLessonTasks {
+  id: ID
+  lessonId: ID
   name: String
 }
 

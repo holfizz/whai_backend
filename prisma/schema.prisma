@@ -8,34 +8,37 @@ datasource db {
 }
 
 model User {
-  id                      String        @id @default(uuid())
-  createdAt               DateTime      @default(now()) @map("created_at")
-  updatedAt               DateTime      @updatedAt @map("updated_at")
+  id                      String               @id @default(uuid())
+  createdAt               DateTime             @default(now()) @map("created_at")
+  updatedAt               DateTime             @updatedAt @map("updated_at")
   firstName               String
   lastName                String
-  phoneNumber             String        @unique
+  phoneNumber             String               @unique
   avatarPath              String?
-  email                   String        @unique
+  email                   String               @unique
   password                String
-  roles                   UserRole[]    @default([USER, STUDENT])
-  isVerified              Boolean       @default(false) @map("is_verified")
-  activationLink          String?       @unique @map("activation_link")
-  resetPasswordToken      String?       @map("reset_password_token")
-  resetPasswordExpiration DateTime?     @map("reset_password_expiration")
+  roles                   UserRole[]           @default([USER, STUDENT])
+  isVerified              Boolean              @default(false) @map("is_verified")
+  activationLink          String?              @unique @map("activation_link")
+  resetPasswordToken      String?              @map("reset_password_token")
+  resetPasswordExpiration DateTime?            @map("reset_password_expiration")
   courseId                String?
   chat                    Chat[]
   ChatMembers             ChatMembers[]
   chatsWithAI             ChatWithAI[]
   message                 Message[]
-  Course                  Course?       @relation(fields: [courseId], references: [id])
+  Course                  Course?              @relation(fields: [courseId], references: [id])
+  UserCourseProgress      UserCourseProgress[]
 }
 
 model ChatWithAI {
-  id       String          @id @unique() @default(uuid())
-  title    String          @default("New chat with ai")
-  userId   String?         @map("user_id")
-  user     User?           @relation(fields: [userId], references: [id])
-  messages MessageWithAI[]
+  id        String          @id @unique() @default(uuid())
+  title     String          @default("New chat with ai")
+  userId    String?         @map("user_id")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  user      User?           @relation(fields: [userId], references: [id])
+  messages  MessageWithAI[]
 }
 
 model MessageWithAI {
@@ -43,17 +46,20 @@ model MessageWithAI {
   file         String?
   type         MessageTypeWithAI? @default(answer)
   content      String
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
   role         MessageWithAIRole  @default(USER)
   ChatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
   chatWithAIId String?            @map("chat_with_ai_id")
 }
 
 model Chat {
-  id          String        @id @default(uuid())
-  title       String        @default("New chat")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  ownerId     String
+  id        String   @id @default(uuid())
+  title     String   @default("New chat")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ownerId   String
+
   inviteLink  String?       @unique
   owner       User          @relation(fields: [ownerId], references: [id])
   chatMembers ChatMembers[]
@@ -71,7 +77,8 @@ model ChatMembers {
 }
 
 model Message {
-  id          String        @id @default(uuid())
+  id String @id @default(uuid())
+
   userId      String        @map("user_id")
   type        MessageType   @default(TEXT)
   text        String
@@ -85,23 +92,27 @@ model Message {
 }
 
 model LessonBlock {
-  id       String          @id @default(uuid())
-  type     LessonBlockEnum
-  code     String?
-  text     String?
-  videoUrl String?
-  imageUrl String?
-  document String?
-  duration Int?
-  caption  String
-  language String?
-  lessonId String
-  lesson   Lesson          @relation(fields: [lessonId], references: [id])
-  quiz     Quiz[]
+  id        String          @id @default(uuid())
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  type      LessonBlockEnum @default(DOCUMENT)
+  code      String?
+  text      String?
+  videoUrl  String?
+  imageUrl  String?
+  document  String?
+  duration  Int?
+  caption   String?
+  language  String?
+  lessonId  String
+  lesson    Lesson?         @relation(fields: [lessonId], references: [id])
+  quiz      Quiz[]
 }
 
 model Quiz {
   id            String           @id @default(uuid())
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
   name          String
   description   String?
   lessonBlockId String?
@@ -119,15 +130,19 @@ model Quiz {
 }
 
 model LessonTask {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   name      String
-  isChecked Boolean
-  lessonId  String?
-  lesson    Lesson? @relation(fields: [lessonId], references: [id])
+  isChecked Boolean  @default(false)
+  lessonId  String
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id])
 }
 
 model Lesson {
   id          String           @id @default(uuid())
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
   name        String
   description String?
   types       LessonTypeEnum[]
@@ -140,6 +155,8 @@ model Lesson {
 
 model Folder {
   id          String   @id @default(uuid())
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
   name        String
   description String?
   courseId    String
@@ -148,17 +165,21 @@ model Folder {
   Lessons     Lesson[]
 }
 
-model ProgressPercents {
-  id               String   @id @default(uuid())
-  completedLessons Int
-  courseId         String   @unique
-  progressPercents Float
-  totalLessons     Int
-  Course           Course[]
+model UserCourseProgress {
+  id              String   @id @default(uuid())
+  userId          String
+  courseId        String
+  progressPercent Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  User            User     @relation(fields: [userId], references: [id])
+  Course          Course   @relation(fields: [courseId], references: [id])
 }
 
 model Course {
-  id                 String            @id @default(uuid())
+  id                 String               @id @default(uuid())
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
   name               String
   description        String?
   ownerID            String
@@ -166,12 +187,11 @@ model Course {
   publicUrl          String?
   tags               String[]
   level              CourseLevelEnum?
-  progressPercentsId String?
-  progressPercents   ProgressPercents? @relation(fields: [progressPercentsId], references: [id])
   folders            Folder[]
   students           User[]
   teacherIds         String[]
   studentsId         String[]
+  UserCourseProgress UserCourseProgress[]
 }
 
 enum CourseLevelEnum {
