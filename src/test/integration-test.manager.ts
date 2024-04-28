@@ -1,29 +1,57 @@
-import { AppModule } from "@/app.module";
+import { PrismaService } from "@/prisma.service";
+import { testUser } from "@/user/test/stub/user.stub";
 import { INestApplication } from "@nestjs/common";
-import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 import { Test } from "@nestjs/testing";
 import * as cookieParser from "cookie-parser";
-import { graphqlUploadExpress } from "graphql-upload-ts";
+import { AppModule } from "../app.module";
+import { AuthService } from "../auth/auth.service";
 
 export class IntegrationTestManager {
-  private httpServer: any;
+  public httpServer: any;
+
   private app: INestApplication;
-  private readonly corsOptions: CorsOptions = {
-    origin: ["http://localhost:3000"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-  };
+  private accessToken: string;
+  private prismaService: PrismaService;
 
   async beforeAll(): Promise<void> {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
+
     this.app = moduleRef.createNestApplication();
     this.app.use(cookieParser());
-    this.app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }) as any);
-    this.app.enableCors(this.corsOptions);
-
     await this.app.init();
     this.httpServer = this.app.getHttpServer();
+
+    const authService = this.app.get<AuthService>(AuthService);
+    this.prismaService = this.app.get<PrismaService>(PrismaService);
+
+    await this.prismaService.user.create({
+      data: {
+        ...testUser,
+        isVerified: true,
+      },
+    });
+
+    const user = await this.prismaService.user.findUnique({
+      where: { email: testUser.email },
+    });
+
+    if (user) {
+      this.accessToken = (await authService.login({ password: "yourStrong(!)Password", email: user.email })).accessToken;
+    }
+    this.accessToken = (
+      await authService.login({
+        ...testUser,
+      })
+    ).accessToken;
+  }
+
+  async afterAll() {
+    await this.app.close();
+  }
+
+  getAccessToken(): string {
+    return this.accessToken;
   }
 }

@@ -8,7 +8,11 @@ export class LessonTasksInput {
   name: string;
 
   @Field(() => ID)
-  @IsBoolean()
+  @IsString()
   @IsUUID()
   lessonId: string;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isChecked: boolean;
 }

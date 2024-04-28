@@ -150,7 +150,7 @@ model Lesson {
   lessonBlocks LessonBlock[]
   tasks        LessonTask[]
   Folder       Folder?       @relation(fields: [folderId], references: [id])
-  folderId     String?
+  folderId     String
 }
 
 model Folder {

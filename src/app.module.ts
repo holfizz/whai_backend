@@ -20,6 +20,7 @@ import { PaginationModule } from "./pagination/pagination.module";
 import { PrismaService } from "./prisma.service";
 import { QuizModule } from "./quiz/quiz.module";
 import { UserModule } from "./user/user.module";
+import { FolderModule } from './folder/folder.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { UserModule } from "./user/user.module";
     QuizModule,
     LessonBlockModule,
     LessonTasksModule,
+    FolderModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

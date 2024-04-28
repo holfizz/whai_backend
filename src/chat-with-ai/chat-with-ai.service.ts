@@ -79,8 +79,10 @@ export default class ChatWithAIService {
     });
     const messagesHistory = await this.prisma.messageWithAI.findMany({
       where: { chatWithAIId: dto.chatWithAIId },
+      orderBy: {
+        createdAt: "asc",
+      },
     });
-
     return new Promise((resolve, reject) => {
       let dataBuffer = "";
       let messages = [];
@@ -153,6 +155,7 @@ export default class ChatWithAIService {
                     },
                   });
                   console.log(messageWithAI);
+                  resolve(messageWithAI);
                   return messageWithAI;
                 } catch (prismaError) {
                   reject(prismaError);
