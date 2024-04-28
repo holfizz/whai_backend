@@ -6,16 +6,12 @@ export class CourseInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
-
-  @Field(() => ID)
-  @IsString()
-  ownerId: string;
 }
 
 @InputType()
@@ -27,8 +23,8 @@ export class AddVideoToCourseInput {
   @Field(() => String)
   videoUrl: string;
 
-  @Field()
+  @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 }

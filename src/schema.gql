@@ -59,8 +59,7 @@ type Course {
 
 input CourseInput {
   description: String
-  ownerId: ID!
-  title: String!
+  name: String!
 }
 
 enum CourseLevelEnum {
@@ -410,8 +409,7 @@ input UpdateChatInput {
 input UpdateCourse {
   description: String
   id: ID!
-  ownerId: ID
-  title: String
+  name: String
 }
 
 input UpdateFolderInput {

@@ -1,3 +1,5 @@
+import { Auth } from "@/auth/decorators/auth.decorator";
+import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { CourseService } from "./course.service";
 import { CourseInput } from "./dto/course.input";
@@ -9,22 +11,26 @@ export class CourseResolver {
   constructor(private readonly courseService: CourseService) {}
 
   @Mutation(() => Course)
-  async createCourse(@Args("createCourseData") createCourseData: CourseInput) {
-    return this.courseService.createCourse(createCourseData);
+  @Auth("user")
+  async createCourse(@CurrentUser("id") userId: string, @Args("createCourseData") createCourseData: CourseInput) {
+    return this.courseService.createCourse(userId, createCourseData);
   }
 
   @Query(() => Course)
-  async course(@Args("id") id: string) {
-    return this.courseService.getCourse(id);
+  @Auth("user")
+  async course(@CurrentUser("id") userId: string, @Args("id") id: string) {
+    return this.courseService.getCourse(userId, id);
   }
 
   @Mutation(() => Course)
-  async updateCourse(@Args("id") id: string, @Args("updateCourseData") updateCourseData: UpdateCourse) {
-    return this.courseService.updateCourse(id, updateCourseData);
+  @Auth("user")
+  async updateCourse(@CurrentUser("id") userId: string, @Args("id") id: string, @Args("updateCourseData") updateCourseData: UpdateCourse) {
+    return this.courseService.updateCourse(userId, id, updateCourseData);
   }
 
   @Mutation(() => Course)
-  async deleteCourse(@Args("id") id: string) {
-    return this.courseService.deleteCourse(id);
+  @Auth("user")
+  async deleteCourse(@CurrentUser("id") userId: string, @Args("id") id: string) {
+    return this.courseService.deleteCourse(userId, id);
   }
 }
