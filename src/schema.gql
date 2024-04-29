@@ -31,16 +31,8 @@ type ChatWithAI {
   userId: String!
 }
 
-type ChatWithAiAnswerResponse {
-  conversation_id: String!
-  id: ID!
-  is_finish: Boolean!
-  message: MessageWithAI!
-}
-
-input ChatWithAiRequestInput {
-  chatWithAIId: ID!
-  content: String!
+input ChatWithAIInput {
+  title: String
 }
 
 type Course {
@@ -69,10 +61,6 @@ enum CourseLevelEnum {
 }
 
 input CreateChatInput {
-  title: String
-}
-
-input CreateChatWithAIInput {
   title: String
 }
 
@@ -208,11 +196,23 @@ enum MessageType {
 }
 
 type MessageWithAI {
+  conversation_id: String!
+  id: ID!
+  is_finish: Boolean!
+  message: MessageWithAIData!
+}
+
+type MessageWithAIData {
   content: String!
   content_type: String
   extra_info: String
   role: MessageWithAIRole!
   type: String!
+}
+
+input MessageWithAIInput {
+  chatWithAIId: ID!
+  content: String!
 }
 
 enum MessageWithAIRole {
@@ -223,9 +223,7 @@ enum MessageWithAIRole {
 type Mutation {
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
-
-  """Creates a new AI chat session for the current user."""
-  createChatWithAI(createChatInput: CreateChatWithAIInput): ChatWithAI!
+  createChatWithAI(createChatInput: ChatWithAIInput): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
   createFolder(createFolderInput: FolderInput!): Folder!
   createLesson(createLessonInput: LessonInput!): Lesson!
@@ -236,7 +234,7 @@ type Mutation {
   Create a new message with the given content and associate it with the current user.
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
-  createMessageWithAI(chatWithAIRequestDto: ChatWithAiRequestInput!, file: Upload): MessageWithAI!
+  createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
   createQuiz(createQuizInput: QuizInput!): Quiz!
 
   """Delete an existing chat for the current user."""
@@ -275,6 +273,7 @@ type Mutation {
   Authenticate the user and return the user's fields and access and refresh tokens.
   """
   login(loginInput: loginInput!): SignResponse!
+  removeMessageWithAi(id: Int!): MessageWithAIData!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -296,6 +295,7 @@ type Mutation {
   Update an existing message with new content. Only the author of the message can update it.
   """
   updateMessage(messageId: String!, updateMessageInput: UpdateMessageInput!): Message!
+  updateMessageWithAi(updateMessageWithAiInput: UpdateMessageWithAiInput!): MessageWithAIData!
 
   """
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
@@ -311,14 +311,8 @@ type Query {
 
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
-
-  """Retrieves all AI chat sessions that the current user is part of."""
   getAllChatsWithAI: [ChatWithAI!]!
-
-  """
-  Retrieves all messages within a specific AI chat session for the current user.
-  """
-  getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [ChatWithAiAnswerResponse!]!
+  getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
@@ -335,6 +329,7 @@ type Query {
 
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
+  messageWithAi(id: Int!): MessageWithAIData!
 }
 
 type Quiz {
@@ -391,8 +386,7 @@ input SignUpInput {
 }
 
 type Subscription {
-  """Subscribes to the AI's answers in real-time."""
-  chatWithAIAnswer(chatWithAIId: String!): ChatWithAiAnswerResponse!
+  chatWithAIAnswer(chatWithAIId: String!): MessageWithAI!
 
   """
   Subscribe to new messages targeted to the user. The user will receive notifications of new messages.
@@ -448,6 +442,12 @@ input UpdateLessonTasks {
 input UpdateMessageInput {
   chatId: String
   text: String
+}
+
+input UpdateMessageWithAiInput {
+  chatWithAIId: ID
+  content: String
+  id: Int!
 }
 
 input UpdateUserInput {

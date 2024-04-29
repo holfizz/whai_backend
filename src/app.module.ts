@@ -21,6 +21,7 @@ import { PrismaService } from "./prisma.service";
 import { QuizModule } from "./quiz/quiz.module";
 import { UserModule } from "./user/user.module";
 import { FolderModule } from './folder/folder.module';
+import { MessageWithAiModule } from './message-with-ai/message-with-ai.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { FolderModule } from './folder/folder.module';
     LessonBlockModule,
     LessonTasksModule,
     FolderModule,
+    MessageWithAiModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })
