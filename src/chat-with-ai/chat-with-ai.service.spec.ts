@@ -7,6 +7,7 @@ import { ChatWithAIInput } from "./dto/chat-with-ai.Input";
 describe("ChatWithAIService", () => {
   let service: ChatWithAIService;
   let prisma: PrismaService;
+  let user;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -16,26 +17,28 @@ describe("ChatWithAIService", () => {
     service = module.get<ChatWithAIService>(ChatWithAIService);
     prisma = module.get<PrismaService>(PrismaService);
 
-    // Assuming that user and chatWithAI are created here for testing
-    // await prisma.user.create({
-    //   data: {
-    //     id: "testUserId",
-    //     email: "exam",
-    //   },
+    user = await prisma.user.create({
+      data: {
+        email: "example@example.com",
+        password: "password",
+        firstName: "Test First Name",
+        lastName: "Test First Name",
+        phoneNumber: "+123345678900",
+      },
+    });
+    // await prisma.user.update({
+    //   where: { id: user.id },
+    //   data: { isVerified: true },
     // });
   });
 
   afterAll(async () => {
-    await prisma.messageWithAI.deleteMany({
-      where: { chatWithAIId: "testChatId" },
-    });
-
     await prisma.chatWithAI.deleteMany({
-      where: { userId: "testUserId" },
+      where: { userId: user.id },
     });
 
     await prisma.user.delete({
-      where: { id: "testUserId" },
+      where: { phoneNumber: user.phoneNumber },
     });
   });
 
@@ -45,7 +48,7 @@ describe("ChatWithAIService", () => {
 
   describe("createChatWithAI", () => {
     it("should create a new chat with AI", async () => {
-      const userId = "testUserId";
+      const userId = user.id;
       const newChat: ChatWithAIInput = {
         title: "Hello AI",
       };
@@ -59,7 +62,7 @@ describe("ChatWithAIService", () => {
 
   describe("getAllChatsWithAi", () => {
     it("should get all chats with AI", async () => {
-      const userId = "testUserId";
+      const userId = user.id;
       const chats = await service.getAllChatsWithAi(userId);
       expect(chats).toBeDefined();
       expect(chats.length).toBeGreaterThan(0);

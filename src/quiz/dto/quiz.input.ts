@@ -1,32 +1,121 @@
-import { Field, InputType } from "@nestjs/graphql";
-import { IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
+import { QuizQuestionType } from "@prisma/client";
+import { Type } from "class-transformer";
+import { IsArray, IsEnum, IsJSON, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import GraphQLJSON from "graphql-type-json";
+
+registerEnumType(QuizQuestionType, {
+  name: "QuizQuestionType",
+});
 
 @InputType()
-class QuestionType {
-  @Field()
-  @IsNotEmpty()
-  @IsString()
-  question: string;
+export class ChoiceInput {
+  @Field(() => String)
+  content: string;
 
-  @Field()
-  @IsNotEmpty()
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  quizId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  interactionId?: string;
+}
+
+@InputType()
+export class InteractionInput {
+  @Field(() => [String])
+  answers: string[];
+
+  @Field(() => String, { nullable: true })
   @IsString()
-  answer: string;
+  @IsOptional()
+  quizId?: string;
+
+  @Field(() => String)
+  @IsString()
+  placeholder: string;
+
+  @Field(() => [ChoiceInput])
+  @ValidateNested({ each: true })
+  @Type(() => ChoiceInput)
+  choices: ChoiceInput[];
+}
+
+@InputType()
+export class MatchingInteractionInput {
+  @Field(() => GraphQLJSON)
+  @IsJSON()
+  left: object;
+
+  @Field(() => GraphQLJSON)
+  @IsJSON()
+  right: object;
+
+  @Field(() => [String])
+  answers: string[];
 }
 
 @InputType()
 export class QuizInput {
-  @Field()
-  @IsNotEmpty()
+  @Field(() => String)
   @IsString()
   title: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
-  description?: string;
+  stimulus?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  lessonBlockId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  folderId?: string;
+
+  @Field(() => QuizQuestionType)
+  @IsEnum(QuizQuestionType)
+  questionType: QuizQuestionType;
+
+  @Field(() => [ChoiceInput])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ChoiceInput)
+  choices: ChoiceInput[];
+
+  @Field(() => [InteractionInput])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => InteractionInput)
+  interactions: InteractionInput[];
+
+  @Field(() => MatchingInteractionInput, { nullable: true })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MatchingInteractionInput)
+  matchingInteraction?: MatchingInteractionInput;
 
   @Field(() => String)
-  @ValidateNested({ each: true })
-  question: string;
+  @IsString()
+  prompt: string;
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  answers?: string[];
+
+  @Field(() => [GraphQLJSON], { nullable: true })
+  @IsOptional()
+  @IsJSON()
+  pairs?: object[];
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  instructions?: string;
 }

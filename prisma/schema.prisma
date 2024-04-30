@@ -109,26 +109,6 @@ model LessonBlock {
   quiz      Quiz[]
 }
 
-model Quiz {
-  id            String           @id @default(uuid())
-  createdAt     DateTime         @default(now()) @map("created_at")
-  updatedAt     DateTime         @updatedAt @map("updated_at")
-  name          String
-  description   String?
-  lessonBlockId String?
-  folderId      String?
-  LessonBlock   LessonBlock?     @relation(fields: [lessonBlockId], references: [id])
-  Folder        Folder?          @relation(fields: [folderId], references: [id])
-  questionType  QuizQuestionType @default(MCQ)
-  options       Json?
-  template      String?
-  instructions  String?
-  question      String
-  answer        Json
-  quizId        String?
-  pairs         Json?
-}
-
 model LessonTask {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now()) @map("created_at")
@@ -194,6 +174,64 @@ model Course {
   UserCourseProgress UserCourseProgress[]
 }
 
+//===========================QUIZ==========================//
+model Quiz {
+  id                    String               @id @default(uuid())
+  title                 String
+  questionType          QuizQuestionType
+  stimulus              String?
+  prompt                String?
+  choices               Choice[]
+  interactions          Interaction[]
+  answers               String[]
+  LessonBlock           LessonBlock?         @relation(fields: [lessonBlockId], references: [id])
+  lessonBlockId         String?              @map("lesson_block_id")
+  Folder                Folder?              @relation(fields: [folderId], references: [id])
+  folderId              String?              @map("folder_id")
+  MatchingInteraction   MatchingInteraction? @relation(fields: [matchingInteractionId], references: [id])
+  matchingInteractionId String?              @map("matching_interaction_id")
+}
+
+model Choice {
+  id            String       @id @default(uuid())
+  content       String
+  quiz          Quiz         @relation(fields: [quizId], references: [id])
+  quizId        String       @map("quiz-id")
+  Interaction   Interaction? @relation(fields: [interactionId], references: [id])
+  interactionId String?      @map("interaction_id")
+}
+
+model Interaction {
+  id          String   @id @default(uuid())
+  placeholder String
+  choices     Choice[]
+  answers     String[]
+  quiz        Quiz?    @relation(fields: [quizId], references: [id])
+  quizId      String?  @map("quiz_id")
+}
+
+model MatchingInteraction {
+  id      String   @id @default(uuid())
+  left    Json
+  right   Json
+  answers String[]
+  Quiz    Quiz[]
+}
+
+enum QuizQuestionType {
+  MCQ
+  MRQ
+  OEQ
+  NRQ
+  CLOZE
+  MATCH
+}
+
+enum InteractionType {
+  MATCHING
+}
+
+//===========================QUIZ==========================//
 enum CourseLevelEnum {
   BEGINNER
   INTERMEDIATE
@@ -205,16 +243,6 @@ enum UserRole {
   USER
   STUDENT
   CREATOR
-}
-
-enum QuizQuestionType {
-  MCQ
-  MRQ
-  OEQ
-  NRQ
-  CLOZE
-  MATCH
-  OPEN_ENDED
 }
 
 enum MessageWithAIRole {

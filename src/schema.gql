@@ -35,6 +35,18 @@ input ChatWithAIInput {
   title: String
 }
 
+type Choice {
+  content: String!
+  interactionId: ID
+  quizId: ID
+}
+
+input ChoiceInput {
+  content: String!
+  interactionId: ID
+  quizId: ID
+}
+
 type Course {
   createdAt: DateTime!
   description: String
@@ -93,6 +105,20 @@ input GetAllMessagesInput {
   chatId: ID!
   page: String
   perPage: String
+}
+
+type Interaction {
+  answers: [String!]!
+  choices: [Choice!]!
+  placeholder: String!
+  quizId: String
+}
+
+input InteractionInput {
+  answers: [String!]!
+  choices: [ChoiceInput!]!
+  placeholder: String!
+  quizId: String
 }
 
 """
@@ -179,6 +205,18 @@ enum LessonTypeEnum {
   VIDEO
 }
 
+type MatchingInteraction {
+  answers: [String!]!
+  left: JSON!
+  right: JSON!
+}
+
+input MatchingInteractionInput {
+  answers: [String!]!
+  left: JSON!
+  right: JSON!
+}
+
 type Message {
   chatId: ID!
   createdAt: DateTime!
@@ -249,7 +287,6 @@ type Mutation {
   Delete a message. This can only be done by the author of the message or an admin.
   """
   deleteMessage(id: String!): Message!
-  deleteQuiz(id: Int!): Quiz!
 
   """
   Allows a user to enter a chat room, adding them to the chat's members list.
@@ -301,13 +338,10 @@ type Mutation {
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
-  updateQuiz(id: Int!, updateQuizData: QuizInput!): Quiz!
 }
 
 type Query {
   course(id: String!): Course!
-  findAllQuizzes: [Quiz!]!
-  findQuizById(id: Int!): Quiz!
 
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
@@ -333,23 +367,35 @@ type Query {
 }
 
 type Quiz {
-  correctIndex: Int
+  answers: [String!]
+  choices: [Choice!]!
   createdAt: DateTime!
-  description: String
   folderId: ID
   id: ID!
   instructions: String
+  interactions: [Interaction!]!
   lessonBlockId: ID
-  name: String!
-  pairs: JSON
+  matchingInteraction: MatchingInteraction
+  pairs: [JSON!]
+  prompt: String!
   questionType: QuizQuestionType!
-  questions: [QuizQuestionType!]!
+  stimulus: String
+  title: String!
   updatedAt: DateTime!
 }
 
 input QuizInput {
-  description: String
-  question: String!
+  answers: [String!]
+  choices: [ChoiceInput!]!
+  folderId: ID
+  instructions: String
+  interactions: [InteractionInput!]!
+  lessonBlockId: ID
+  matchingInteraction: MatchingInteractionInput
+  pairs: [JSON!]
+  prompt: String!
+  questionType: QuizQuestionType!
+  stimulus: String
   title: String!
 }
 
@@ -360,7 +406,6 @@ enum QuizQuestionType {
   MRQ
   NRQ
   OEQ
-  OPEN_ENDED
 }
 
 type RefreshTokenResponse {
