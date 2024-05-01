@@ -96,46 +96,112 @@ export class QuizService {
       return newQuiz;
     });
   }
+  async findAllQuizzes(): Promise<any> {
+    return await this.prisma.quiz.findMany({
+      include: {
+        choices: true,
+        interactions: true,
+        matchingInteraction: true,
+      },
+    });
+  }
 
-  // async findAllQuizzes() {
-  //   return this.prisma.quiz.findMany({
-  //     include: {
-  //       choices: true,
-  //       interactions: true,
-  //       matchingInteraction: true,
-  //     },
-  //   });
-  // }
+  async findQuizById(id: string): Promise<any> {
+    return await this.prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        choices: true,
+        interactions: true,
+        matchingInteraction: true,
+      },
+    });
+  }
 
-  // async findQuizById(id: string) {
-  //   return this.prisma.quiz.findUnique({
-  //     where: { id },
-  //     include: {
-  //       choices: true,
-  //       interactions: true,
-  //       matchingInteraction: true,
-  //     },
-  //   });
-  // }
+  async deleteQuiz(id: string): Promise<any> {
+    return await this.prisma
+      .$transaction(async prisma => {
+        await prisma.choice.deleteMany({
+          where: { quizId: id },
+        });
 
-  // async deleteQuiz(id: string) {
-  //   return this.prisma.quiz.delete({
-  //     where: { id },
-  //   });
-  // }
+        await prisma.interaction.deleteMany({
+          where: { quizId: id },
+        });
 
-  // async updateQuiz(id: string, data: QuizInput) {
-  //   return this.prisma.quiz.update({
-  //     where: { id },
-  //     data: {
-  //       title: data.title,
-  //       // Обновленные поля.
-  //     },
-  //     include: {
-  //       choices: true,
-  //       interactions: true,
-  //       matchingInteraction: true,
-  //     },
-  //   });
-  // }
+        await prisma.matchingInteraction.deleteMany({
+          where: { quizId: id },
+        });
+
+        return await prisma.quiz.delete({
+          where: { id },
+        });
+      })
+      .catch(error => {
+        throw new Error(`Failed to delete quiz and its related entities: ${error.message}`);
+      });
+  }
+  async updateQuiz(id: string, data: QuizInput): Promise<any> {
+    return await this.prisma.$transaction(async prisma => {
+      const existingQuiz = await prisma.quiz.findUnique({
+        where: { id },
+      });
+
+      if (!existingQuiz) {
+        throw new Error("Quiz not found.");
+      }
+
+      let updateData: any = {
+        title: data.title,
+        questionType: data.questionType,
+        stimulus: data.stimulus,
+        prompt: data.prompt,
+      };
+
+      const updatedQuiz = await prisma.quiz.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (data.questionType === "MATCH" && data.matchingInteraction) {
+        if (!Array.isArray(data.matchingInteraction.left) || !Array.isArray(data.matchingInteraction.right) || !Array.isArray(data.matchingInteraction.answers)) {
+          throw new Error("Incomplete matchingInteraction data for MATCH type.");
+        }
+
+        const existingMatchingInteraction = await prisma.matchingInteraction.findUnique({
+          where: { quizId: id },
+        });
+
+        if (existingMatchingInteraction) {
+          // Update the existing MatchingInteraction
+          await prisma.matchingInteraction.update({
+            where: { id: existingMatchingInteraction.id },
+            data: {
+              left: JSON.parse(JSON.stringify(data.matchingInteraction.left)),
+              right: JSON.parse(JSON.stringify(data.matchingInteraction.right)),
+              answers: data.matchingInteraction.answers,
+            },
+          });
+        } else {
+          // Create new MatchingInteraction if it doesn't exist
+          await prisma.matchingInteraction.create({
+            data: {
+              quizId: id,
+              left: JSON.parse(JSON.stringify(data.matchingInteraction.left)),
+              right: JSON.parse(JSON.stringify(data.matchingInteraction.right)),
+              answers: data.matchingInteraction.answers,
+            },
+          });
+        }
+      }
+
+      return await prisma.quiz.findUnique({
+        where: { id },
+        include: {
+          choices: true,
+          interactions: true,
+          matchingInteraction: true,
+        },
+      });
+    });
+  }
 }

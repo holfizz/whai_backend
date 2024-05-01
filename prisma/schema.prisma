@@ -176,20 +176,19 @@ model Course {
 
 //===========================QUIZ==========================//
 model Quiz {
-  id                    String               @id @default(uuid())
-  title                 String
-  questionType          QuizQuestionType
-  stimulus              String?
-  prompt                String?
-  choices               Choice[]
-  interactions          Interaction[]
-  answers               String[]
-  LessonBlock           LessonBlock?         @relation(fields: [lessonBlockId], references: [id])
-  lessonBlockId         String?              @map("lesson_block_id")
-  Folder                Folder?              @relation(fields: [folderId], references: [id])
-  folderId              String?              @map("folder_id")
-  matchingInteraction   MatchingInteraction? @relation(fields: [matchingInteractionId], references: [id])
-  matchingInteractionId String?              @map("matching_interaction_id")
+  id                  String               @id @default(uuid())
+  title               String
+  questionType        QuizQuestionType
+  stimulus            String?
+  prompt              String?
+  choices             Choice[]
+  answers             String[]
+  LessonBlock         LessonBlock?         @relation(fields: [lessonBlockId], references: [id])
+  lessonBlockId       String?              @map("lesson_block_id")
+  Folder              Folder?              @relation(fields: [folderId], references: [id])
+  folderId            String?              @map("folder_id")
+  matchingInteraction MatchingInteraction?
+  interactions        Interaction?
 }
 
 model Choice {
@@ -207,7 +206,7 @@ model Interaction {
   choices     Choice[]
   answers     String[]
   quiz        Quiz?    @relation(fields: [quizId], references: [id])
-  quizId      String?  @map("quiz_id")
+  quizId      String   @unique
 }
 
 model MatchingInteraction {
@@ -215,7 +214,8 @@ model MatchingInteraction {
   left    Json
   right   Json
   answers Json
-  Quiz    Quiz[]
+  quiz    Quiz   @relation(fields: [quizId], references: [id])
+  quizId  String @unique
 }
 
 enum QuizQuestionType {

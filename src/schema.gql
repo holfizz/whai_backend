@@ -284,6 +284,7 @@ type Mutation {
   Delete a message. This can only be done by the author of the message or an admin.
   """
   deleteMessage(id: String!): Message!
+  deleteQuiz(id: String!): Quiz!
 
   """
   Allows a user to enter a chat room, adding them to the chat's members list.
@@ -335,10 +336,12 @@ type Mutation {
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
+  updateQuiz(id: String!, updateQuizData: QuizInput!): Quiz!
 }
 
 type Query {
   course(id: String!): Course!
+  findQuizById(id: String!): Quiz!
 
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
