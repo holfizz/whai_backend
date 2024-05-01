@@ -98,11 +98,12 @@ export class Quiz extends BaseEntity {
   @IsEnum(QuizQuestionType)
   questionType: QuizQuestionType;
 
-  @Field(() => [Choice])
+  @Field(() => [Choice], { nullable: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Choice)
-  choices: Choice[];
+  @IsOptional()
+  choices?: Choice[];
 
   @Field(() => [Interaction])
   @IsArray()

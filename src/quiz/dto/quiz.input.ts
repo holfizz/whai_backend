@@ -91,11 +91,12 @@ export class QuizInput {
   @IsEnum(QuizQuestionType)
   questionType: QuizQuestionType;
 
-  @Field(() => [ChoiceInput])
+  @Field(() => [ChoiceInput], { nullable: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ChoiceInput)
-  choices: ChoiceInput[];
+  @IsOptional()
+  choices?: ChoiceInput[];
 
   @Field(() => [InteractionInput], { nullable: true })
   @IsArray()
