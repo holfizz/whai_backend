@@ -188,7 +188,7 @@ model Quiz {
   lessonBlockId         String?              @map("lesson_block_id")
   Folder                Folder?              @relation(fields: [folderId], references: [id])
   folderId              String?              @map("folder_id")
-  MatchingInteraction   MatchingInteraction? @relation(fields: [matchingInteractionId], references: [id])
+  matchingInteraction   MatchingInteraction? @relation(fields: [matchingInteractionId], references: [id])
   matchingInteractionId String?              @map("matching_interaction_id")
 }
 
@@ -211,10 +211,10 @@ model Interaction {
 }
 
 model MatchingInteraction {
-  id      String   @id @default(uuid())
+  id      String @id @default(uuid())
   left    Json
   right   Json
-  answers String[]
+  answers Json
   Quiz    Quiz[]
 }
 

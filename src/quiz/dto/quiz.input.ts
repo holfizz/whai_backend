@@ -2,7 +2,6 @@ import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, IsJSON, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
-import GraphQLJSON from "graphql-type-json";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -42,19 +41,29 @@ export class InteractionInput {
   @Type(() => ChoiceInput)
   choices: ChoiceInput[];
 }
-
+@InputType()
+export class SideTypeInput {
+  @Field(() => String)
+  @IsString()
+  content: string;
+}
 @InputType()
 export class MatchingInteractionInput {
-  @Field(() => GraphQLJSON)
-  @IsJSON()
-  left: object;
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  id?: string;
 
-  @Field(() => GraphQLJSON)
+  @Field(() => [SideTypeInput])
   @IsJSON()
-  right: object;
+  left: SideTypeInput[];
 
-  @Field(() => [String])
-  answers: string[];
+  @Field(() => [SideTypeInput])
+  @IsJSON()
+  right: SideTypeInput[];
+
+  @Field(() => [[String]])
+  answers: string[][] | string[];
 }
 
 @InputType()
@@ -88,15 +97,17 @@ export class QuizInput {
   @Type(() => ChoiceInput)
   choices: ChoiceInput[];
 
-  @Field(() => [InteractionInput])
+  @Field(() => [InteractionInput], { nullable: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => InteractionInput)
-  interactions: InteractionInput[];
+  @IsOptional()
+  interactions?: InteractionInput[];
 
   @Field(() => MatchingInteractionInput, { nullable: true })
   @IsOptional()
   @ValidateNested()
+  @IsOptional()
   @Type(() => MatchingInteractionInput)
   matchingInteraction?: MatchingInteractionInput;
 
@@ -108,11 +119,6 @@ export class QuizInput {
   @IsOptional()
   @IsArray()
   answers?: string[];
-
-  @Field(() => [GraphQLJSON], { nullable: true })
-  @IsOptional()
-  @IsJSON()
-  pairs?: object[];
 
   @Field(() => String, { nullable: true })
   @IsOptional()

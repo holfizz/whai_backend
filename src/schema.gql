@@ -121,11 +121,6 @@ input InteractionInput {
   quizId: String
 }
 
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON
-
 type Lesson {
   createdAt: DateTime!
   description: String
@@ -206,15 +201,17 @@ enum LessonTypeEnum {
 }
 
 type MatchingInteraction {
-  answers: [String!]!
-  left: JSON!
-  right: JSON!
+  answers: [[String!]!]!
+  id: ID
+  left: [SideType!]!
+  right: [SideType!]!
 }
 
 input MatchingInteractionInput {
-  answers: [String!]!
-  left: JSON!
-  right: JSON!
+  answers: [[String!]!]!
+  id: ID
+  left: [SideTypeInput!]!
+  right: [SideTypeInput!]!
 }
 
 type Message {
@@ -376,7 +373,6 @@ type Quiz {
   interactions: [Interaction!]!
   lessonBlockId: ID
   matchingInteraction: MatchingInteraction
-  pairs: [JSON!]
   prompt: String!
   questionType: QuizQuestionType!
   stimulus: String
@@ -389,10 +385,9 @@ input QuizInput {
   choices: [ChoiceInput!]!
   folderId: ID
   instructions: String
-  interactions: [InteractionInput!]!
+  interactions: [InteractionInput!]
   lessonBlockId: ID
   matchingInteraction: MatchingInteractionInput
-  pairs: [JSON!]
   prompt: String!
   questionType: QuizQuestionType!
   stimulus: String
@@ -415,6 +410,15 @@ type RefreshTokenResponse {
 input ResetPasswordInput {
   password: String!
   token: String!
+}
+
+type SideType {
+  content: String!
+  id: String!
+}
+
+input SideTypeInput {
+  content: String!
 }
 
 type SignResponse {

@@ -3,7 +3,6 @@ import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, IsJSON, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
-import GraphQLJSON from "graphql-type-json";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -45,17 +44,33 @@ export class Interaction {
 }
 
 @ObjectType()
+export class SideType {
+  @Field(() => String)
+  @IsString()
+  id: string;
+
+  @Field(() => String)
+  @IsString()
+  content: string;
+}
+
+@ObjectType()
 export class MatchingInteraction {
-  @Field(() => GraphQLJSON)
-  @IsJSON()
-  left: object;
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  id?: string;
 
-  @Field(() => GraphQLJSON)
+  @Field(() => [SideType])
   @IsJSON()
-  right: object;
+  left: SideType[];
 
-  @Field(() => [String])
-  answers: string[];
+  @Field(() => [SideType])
+  @IsJSON()
+  right: SideType[];
+
+  @Field(() => [[String]])
+  answers: string[][] | string[];
 }
 
 @ObjectType()
@@ -92,8 +107,9 @@ export class Quiz extends BaseEntity {
   @Field(() => [Interaction])
   @IsArray()
   @ValidateNested({ each: true })
+  @IsOptional()
   @Type(() => Interaction)
-  interactions: Interaction[];
+  interactions?: Interaction[];
 
   @Field(() => MatchingInteraction, { nullable: true })
   @IsOptional()
@@ -110,66 +126,8 @@ export class Quiz extends BaseEntity {
   @IsArray()
   answers?: string[];
 
-  @Field(() => [GraphQLJSON], { nullable: true })
-  @IsOptional()
-  @IsJSON()
-  pairs?: object[];
-
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   instructions?: string;
 }
-
-// export interface Question {
-//   id: string;
-//   title: string;
-//   category: string;
-//   stimulus?: string;
-//   prompt: string;
-//   answers: string[][];
-//   choices?: Choice[];
-//   points: number;
-//   metadata?: Metadata;
-//   interactions?: Interaction[];
-//   matching_interaction?: MatchingInteraction;
-// }
-
-// export interface Choice {
-//   id: string;
-//   content: string;
-// }
-
-// export interface Metadata {
-//   Type: string;
-//   Difficulty: string;
-//   category: string;
-// }
-
-// export interface Interaction {
-//   category: string;
-//   placeholder: string;
-//   choices?: Choice2[];
-//   answers: string[];
-// }
-
-// export interface Choice2 {
-//   id: string;
-//   content: string;
-// }
-
-// export interface MatchingInteraction {
-//   left: Left[];
-//   right: Right[];
-//   answers: string[][];
-// }
-
-// export interface Left {
-//   id: string;
-//   content: string;
-// }
-
-// export interface Right {
-//   id: string;
-//   content: string;
-// }
