@@ -12,7 +12,7 @@ export class TelegramService extends Telegraf<MessageContext> {
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
   ) {
-    super(configService.get("TELEGRAM_KEY"));
+    super(configService.get("TELEGRAM_API_KEY"));
   }
   @Start()
   async handleStartCommand(@Ctx() ctx) {
@@ -35,6 +35,23 @@ export class TelegramService extends Telegraf<MessageContext> {
       return ctx.reply(`Ваш аккаунт успешно привязан к Telegram! Электронная почта: ${String(authResult.userEmail)}`);
     } else {
       return ctx.reply("Не удалось привязать аккаунт. Пожалуйста, попробуйте еще раз.");
+    }
+  }
+  async isUserRegisteredInChat(telegramId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { telegramId },
+      select: { id: true },
+    });
+
+    return Boolean(user);
+  }
+  async sendMessage(chatId: string, text: string, description: string): Promise<void> {
+    const message = `<b>${text}</b>\n${description}`;
+    try {
+      await this.telegram.sendMessage(chatId, message, { parse_mode: "HTML" });
+    } catch (error) {
+      console.error("Ошибка при отправке сообщения:", error);
+      throw new Error("Не удалось отправить сообщение.");
     }
   }
 }

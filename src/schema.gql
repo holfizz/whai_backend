@@ -82,8 +82,10 @@ input CreateMessageInput {
 }
 
 input CreateNoticeInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  description: String
+  sendToTelegram: Boolean
+  senderId: String
+  title: String!
 }
 
 """
@@ -287,7 +289,7 @@ type Mutation {
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
-  createNotice(createNoticeInput: CreateNoticeInput!): Notice!
+  createNotice(noticeDto: CreateNoticeInput!): Notice!
   createQuiz(createQuizInput: QuizInput!): Quiz!
 
   """Delete an existing chat for the current user."""
@@ -360,8 +362,15 @@ type Mutation {
 }
 
 type Notice {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  readStatus: Boolean
+  senderId: String
+  telegramId: String
+  title: String!
+  updatedAt: DateTime!
+  userId: ID!
 }
 
 type Query {

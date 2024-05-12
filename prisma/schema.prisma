@@ -30,10 +30,11 @@ model User {
   Course                  Course?              @relation(fields: [courseId], references: [id])
   UserCourseProgress      UserCourseProgress[]
   LearningSession         LearningSession[]
-  Notice                  Notice[]
   TelegramLink            TelegramLink?
   isTelegramLinked        Boolean?             @default(false)
   telegramId              String?              @unique
+  Notice                  Notice[]
+  SentNotices             Notice[]             @relation(name: "NoticeSender")
 }
 
 model TelegramLink {
@@ -258,6 +259,7 @@ model LearningSession {
 }
 
 //===========================ANALYTICS==========================//
+//===========================NOTICE=============================//
 
 model Notice {
   id          String   @id @default(uuid())
@@ -269,7 +271,11 @@ model Notice {
   description String?
   readStatus  Boolean  @default(false) @map("read_status")
   User        User     @relation(fields: [userId], references: [id])
+  senderId    String?
+  Sender      User?    @relation(name: "NoticeSender", fields: [senderId], references: [id])
 }
+
+//===========================NOTICE=============================//
 
 enum CourseLevelEnum {
   BEGINNER

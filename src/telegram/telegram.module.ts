@@ -11,5 +11,6 @@ import { TelegramService } from "./telegram.service";
 @Module({
   imports: [TelegrafModule.forRootAsync(options()), AuthModule],
   providers: [TelegramService, PrismaService, AuthService, MailService, JwtService],
+  exports: [TelegramService],
 })
 export class TelegramModule {}
