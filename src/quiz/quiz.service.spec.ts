@@ -154,5 +154,58 @@ describe("QuizService with lesson, lessonBlock, and folder", () => {
     });
   });
 
-  // You can continue to expand these tests to cover other functionalities like `findAllQuizzes`, `findQuizById`, `updateQuiz`, and `deleteQuiz` as well.
+  it("should update a quiz", async () => {
+    const quizInput: QuizInput = {
+      title: "Updated Test MULTIPLE_CHOICE Quiz",
+      questionType: "MCQ",
+      stimulus: "Which one is correct?",
+      prompt: "Choose the correct answer",
+      choices: [{ content: "Option 3" }, { content: "Option 4" }],
+    };
+
+    const existingQuiz = await service.createQuiz(quizInput);
+    const updatedQuiz = await service.updateQuiz(existingQuiz.id, quizInput);
+
+    expect(updatedQuiz).toBeDefined();
+    expect(updatedQuiz.title).toEqual("Updated Test MULTIPLE_CHOICE Quiz");
+  });
+
+  it("should delete a quiz", async () => {
+    const quizInput: QuizInput = {
+      title: "Test MULTIPLE_CHOICE Quiz",
+      questionType: "MCQ",
+      stimulus: "Which one is correct?",
+      prompt: "Choose the correct answer",
+      choices: [{ content: "Option 1" }, { content: "Option 2" }],
+    };
+
+    const newQuiz = await service.createQuiz(quizInput);
+    const deletedQuiz = await service.deleteQuiz(newQuiz.id);
+
+    expect(deletedQuiz).toBeDefined();
+    expect(deletedQuiz.id).toEqual(newQuiz.id);
+  });
+
+  it("should find all quizzes", async () => {
+    const quizzes = await service.findAllQuizzes();
+
+    expect(quizzes).toBeDefined();
+    expect(quizzes.length).toBeGreaterThan(0);
+  });
+
+  it("should find a quiz by id", async () => {
+    const quizInput: QuizInput = {
+      title: "Test MULTIPLE_CHOICE Quiz",
+      questionType: "MCQ",
+      stimulus: "Which one is correct?",
+      prompt: "Choose the correct answer",
+      choices: [{ content: "Option 1" }, { content: "Option 2" }],
+    };
+
+    const newQuiz = await service.createQuiz(quizInput);
+    const foundQuiz = await service.findQuizById(newQuiz.id);
+
+    expect(foundQuiz).toBeDefined();
+    expect(foundQuiz.id).toEqual(newQuiz.id);
+  });
 });

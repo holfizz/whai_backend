@@ -81,6 +81,11 @@ input CreateMessageInput {
   text: String!
 }
 
+input CreateNoticeInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -119,6 +124,18 @@ input InteractionInput {
   choices: [ChoiceInput!]!
   placeholder: String!
   quizId: String
+}
+
+type LearningSession {
+  createdAt: DateTime!
+  id: ID!
+  sessionDetails: [SessionDetails!]!
+  updatedAt: DateTime!
+  userId: ID!
+}
+
+input LearningSessionInput {
+  sessionDetails: [SessionDetailsInput!]!
 }
 
 type Lesson {
@@ -270,6 +287,7 @@ type Mutation {
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
+  createNotice(createNoticeInput: CreateNoticeInput!): Notice!
   createQuiz(createQuizInput: QuizInput!): Quiz!
 
   """Delete an existing chat for the current user."""
@@ -293,6 +311,7 @@ type Mutation {
 
   """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
+  generateTelegramLink: TelegramLink!
 
   """
   Refresh the access and refresh tokens for a user based on a valid refresh token.
@@ -331,12 +350,18 @@ type Mutation {
   """
   updateMessage(messageId: String!, updateMessageInput: UpdateMessageInput!): Message!
   updateMessageWithAi(updateMessageWithAiInput: UpdateMessageWithAiInput!): MessageWithAIData!
+  updateOrCreateLearningSession(LearningSessionInput: LearningSessionInput!): LearningSession!
 
   """
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
   updateQuiz(id: String!, updateQuizData: QuizInput!): Quiz!
+}
+
+type Notice {
+  """Example field (placeholder)"""
+  exampleField: Int!
 }
 
 type Query {
@@ -415,6 +440,22 @@ input ResetPasswordInput {
   token: String!
 }
 
+type SessionDetails {
+  courseId: ID!
+  date: DateTime!
+  hoursSpent: Float!
+  progress: Float
+  topic: String
+}
+
+input SessionDetailsInput {
+  courseId: ID!
+  date: DateTime!
+  hoursSpent: Float!
+  progress: Float
+  topic: String
+}
+
 type SideType {
   content: String!
   id: String!
@@ -444,6 +485,11 @@ type Subscription {
   Subscribe to new messages targeted to the user. The user will receive notifications of new messages.
   """
   newMessage: Message!
+}
+
+type TelegramLink {
+  link: String!
+  message: String!
 }
 
 input UpdateChatInput {

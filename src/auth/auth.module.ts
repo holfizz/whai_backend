@@ -37,5 +37,6 @@ import { MailService } from "./mail.service";
     UserModule,
     FileModule,
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}

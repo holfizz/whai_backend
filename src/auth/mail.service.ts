@@ -1,5 +1,11 @@
+import { AuthTemplate } from "@/templates/auth.template";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
+import { render } from "@react-email/components";
+
+const emailHTML = (link: string) => {
+  return render(AuthTemplate({ link }));
+};
 
 @Injectable()
 export class MailService {
@@ -11,12 +17,7 @@ export class MailService {
       to,
       subject: "Активация аккаунта на " + process.env.API_URL,
       text: "",
-      html: `
-                    <div>
-                        <h1>Для активации перейдите по ссылке</h1>
-                        <a href="${link}">${link}</a>
-                    </div>
-                `,
+      html: emailHTML(link),
     });
   }
 }

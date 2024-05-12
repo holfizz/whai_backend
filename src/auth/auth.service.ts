@@ -3,6 +3,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
+import { randomUUID } from "crypto";
 import { Response } from "express";
 import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
 import { MailService } from "./mail.service";
@@ -275,5 +276,56 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async generateTelegramLink(userId: string): Promise<{ link: string; message: string }> {
+    let token;
+    let message = "Ссылка для подключения вашего Telegram аккаунта была сгенерирована.";
+
+    const existingLink = await this.prisma.telegramLink.findUnique({
+      where: { userId },
+    });
+
+    if (existingLink) {
+      token = existingLink.token; // Используем существующий токен
+      message = "Ссылка для подключения Telegram уже была отправлена. Пожалуйста, проверьте ваш Telegram.";
+    } else {
+      token = randomUUID();
+      await this.prisma.telegramLink.create({
+        data: {
+          userId: userId,
+          token: token,
+          createdAt: new Date(),
+        },
+      });
+    }
+
+    const link = `${process.env.TELEGRAM_BOT_URL}/?start=${token}`;
+
+    return {
+      link,
+      message,
+    };
+  }
+
+  async handleTelegramAuth(token: string, telegramId: string): Promise<{ message: string; userEmail?: string }> {
+    const telegramLink = await this.prisma.telegramLink.findUnique({
+      where: { token },
+    });
+
+    if (!telegramLink) {
+      throw new BadRequestException("Неверный или устаревший токен.");
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: telegramLink.userId },
+      data: { isTelegramLinked: true, telegramId },
+      select: { email: true },
+    });
+
+    return {
+      message: "Ваш аккаунт успешно подключен к Telegram!",
+      userEmail: user.email,
+    };
   }
 }

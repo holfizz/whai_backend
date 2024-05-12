@@ -1,0 +1,18 @@
+import { ConfigService } from "@nestjs/config";
+import { TelegrafModuleAsyncOptions, TelegrafModuleOptions } from "nestjs-telegraf";
+
+const telegrafModuleOptions = (config: ConfigService): TelegrafModuleOptions => {
+  return {
+    token: config.get("TELEGRAM_API_KEY"),
+  };
+};
+
+export const options = (): TelegrafModuleAsyncOptions => {
+  return {
+    imports: undefined,
+    inject: [ConfigService],
+    useFactory: (config: ConfigService) => {
+      return telegrafModuleOptions(config);
+    },
+  };
+};

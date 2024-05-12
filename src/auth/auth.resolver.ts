@@ -2,9 +2,12 @@ import { UnauthorizedException } from "@nestjs/common";
 import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
+import { Auth } from "./decorators/auth.decorator";
+import { CurrentUser } from "./decorators/user.decorator";
 import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
 import { RefreshTokenResponse } from "./dto/refreshToken.input";
 import { SignResponse } from "./dto/sign-response";
+import { TelegramLink } from "./entity/telegram-link.entity";
 
 @Resolver(SignResponse)
 export class AuthResolver {
@@ -60,5 +63,11 @@ export class AuthResolver {
   @Query(() => Boolean, { description: "Check if a given activation link is valid and the user's email is activated." })
   async isActivated(@Args("activationLink") activationLink: ActivationLinkInput) {
     return this.authService.isActivated(activationLink);
+  }
+
+  @Mutation(() => TelegramLink)
+  @Auth("user")
+  async generateTelegramLink(@CurrentUser("id") userId: string): Promise<TelegramLink> {
+    return await this.authService.generateTelegramLink(userId);
   }
 }

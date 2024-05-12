@@ -22,6 +22,9 @@ import { QuizModule } from "./quiz/quiz.module";
 import { UserModule } from "./user/user.module";
 import { FolderModule } from './folder/folder.module';
 import { MessageWithAiModule } from './message-with-ai/message-with-ai.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { NoticeModule } from './notice/notice.module';
+import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
   imports: [
@@ -69,6 +72,9 @@ import { MessageWithAiModule } from './message-with-ai/message-with-ai.module';
     LessonTasksModule,
     FolderModule,
     MessageWithAiModule,
+    AnalyticsModule,
+    NoticeModule,
+    TelegramModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })
