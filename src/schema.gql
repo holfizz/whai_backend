@@ -88,6 +88,11 @@ input CreateNoticeInput {
   title: String!
 }
 
+input CreatePlanInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -290,6 +295,7 @@ type Mutation {
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
   createNotice(noticeDto: CreateNoticeInput!): Notice!
+  createPlan(createPlanInput: CreatePlanInput!): Plan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
 
   """Delete an existing chat for the current user."""
@@ -330,6 +336,7 @@ type Mutation {
   """
   login(loginInput: loginInput!): SignResponse!
   removeMessageWithAi(id: Int!): MessageWithAIData!
+  removePlan(id: Int!): Plan!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -353,6 +360,7 @@ type Mutation {
   updateMessage(messageId: String!, updateMessageInput: UpdateMessageInput!): Message!
   updateMessageWithAi(updateMessageWithAiInput: UpdateMessageWithAiInput!): MessageWithAIData!
   updateOrCreateLearningSession(LearningSessionInput: LearningSessionInput!): LearningSession!
+  updatePlan(updatePlanInput: UpdatePlanInput!): Plan!
 
   """
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
@@ -371,6 +379,11 @@ type Notice {
   title: String!
   updatedAt: DateTime!
   userId: ID!
+}
+
+type Plan {
+  """Example field (placeholder)"""
+  exampleField: Int!
 }
 
 type Query {
@@ -398,6 +411,7 @@ type Query {
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
   messageWithAi(id: Int!): MessageWithAIData!
+  plan(id: Int!): Plan!
 }
 
 type Quiz {
@@ -554,6 +568,12 @@ input UpdateMessageInput {
 input UpdateMessageWithAiInput {
   chatWithAIId: ID
   content: String
+  id: Int!
+}
+
+input UpdatePlanInput {
+  """Example field (placeholder)"""
+  exampleField: Int
   id: Int!
 }
 

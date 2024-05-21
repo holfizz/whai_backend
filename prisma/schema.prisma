@@ -277,6 +277,64 @@ model Notice {
 
 //===========================NOTICE=============================//
 
+//===========================PLANS==============================//
+
+model CoursePlan {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  ModulePlans ModulePlan[]
+}
+
+model ModulePlan {
+  id            String         @id @default(uuid())
+  CoursePlanId  String         @map("course_plan_id")
+  title         String
+  description   String?
+  CoursePlan    CoursePlan     @relation(fields: [CoursePlanId], references: [id])
+  SubtopicPlans SubtopicPlan[]
+  QuizPlan      QuizPlan[]
+}
+
+model SubtopicPlan {
+  id           String       @id @default(uuid())
+  ModulePlanId String       @map("module_plan_id")
+  title        String
+  description  String?
+  ModulePlan   ModulePlan   @relation(fields: [ModulePlanId], references: [id])
+  LessonPlans  LessonPlan[]
+  QuizPlan     QuizPlan[]
+}
+
+model LessonPlan {
+  id             String       @id @default(uuid())
+  SubtopicPlanId String       @map("subtopic_plan_id")
+  title          String
+  description    String
+  SubtopicPlan   SubtopicPlan @relation(fields: [SubtopicPlanId], references: [id])
+  icons          IconType[]   @default([TEXT])
+}
+
+model QuizPlan {
+  id             String        @id @default(uuid())
+  SubtopicPlanId String?       @map("subtopic_plan_id")
+  ModulePlanId   String?       @map("module_plan_id")
+  title          String
+  description    String
+  SubtopicPlan   SubtopicPlan? @relation(fields: [SubtopicPlanId], references: [id])
+  ModulePlan     ModulePlan?   @relation(fields: [ModulePlanId], references: [id])
+  icon           IconType      @default(QUIZ)
+}
+
+//==============================================================//
+
+enum IconType {
+  VIDEO
+  QUIZ
+  EQUATIONS
+  TEXT
+}
+
 enum CourseLevelEnum {
   BEGINNER
   INTERMEDIATE
