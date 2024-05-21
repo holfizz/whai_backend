@@ -1,9 +1,9 @@
 import { Field, ID, InputType, PartialType } from "@nestjs/graphql";
 import { IsOptional, IsUUID } from "class-validator";
-import { CoursePlanInput } from "./create-coursePlan.input";
+import { CreateCoursePlanInput } from "./create-coursePlan.input";
 
 @InputType()
-export class UpdateCoursePlanInput extends PartialType(CoursePlanInput) {
+export class UpdateCoursePlanInput extends PartialType(CreateCoursePlanInput) {
   @Field(() => ID, { nullable: true })
   @IsUUID()
   @IsOptional()

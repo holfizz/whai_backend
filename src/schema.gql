@@ -72,13 +72,39 @@ enum CourseLevelEnum {
   INTERMEDIATE
 }
 
+type CoursePlan {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+}
+
 input CreateChatInput {
   title: String
+}
+
+input CreateCoursePlanInput {
+  description: String
+  title: String!
+}
+
+input CreateLessonPlanInput {
+  description: String
+  icons: [IconType!]!
+  subtopicPlanId: String!
+  title: String!
 }
 
 input CreateMessageInput {
   chatId: String!
   text: String!
+}
+
+input CreateModulePlanInput {
+  coursePlanId: String!
+  description: String
+  title: String!
 }
 
 input CreateNoticeInput {
@@ -88,9 +114,17 @@ input CreateNoticeInput {
   title: String!
 }
 
-input CreatePlanInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+input CreateQuizPlanInput {
+  description: String
+  icon: IconType!
+  modulePlanId: String
+  subtopicPlanId: String
+}
+
+input CreateSubtopicPlanInput {
+  description: String
+  modulePlanId: String!
+  title: String!
 }
 
 """
@@ -117,6 +151,13 @@ input GetAllMessagesInput {
   chatId: ID!
   page: String
   perPage: String
+}
+
+enum IconType {
+  EQUATIONS
+  QUIZ
+  TEXT
+  VIDEO
 }
 
 type Interaction {
@@ -202,6 +243,15 @@ input LessonInput {
   types: [LessonTypeEnum!]!
 }
 
+type LessonPlan {
+  createdAt: DateTime!
+  description: String
+  icons: [IconType!]!
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+}
+
 type LessonTasks {
   createdAt: DateTime!
   id: ID!
@@ -279,14 +329,24 @@ enum MessageWithAIRole {
   USER
 }
 
+type ModulePlan {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+}
+
 type Mutation {
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
+  createCoursePlan(createPlanInput: CreateCoursePlanInput!): CoursePlan!
   createFolder(createFolderInput: FolderInput!): Folder!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
+  createLessonPlan(createLessonPlanInput: CreateLessonPlanInput!): LessonPlan!
   createLessonTask(createLessonTaskInput: LessonTasksInput!): LessonTasks!
 
   """
@@ -294,9 +354,11 @@ type Mutation {
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
+  createModulePlan(createModulePlanInput: CreateModulePlanInput!): ModulePlan!
   createNotice(noticeDto: CreateNoticeInput!): Notice!
-  createPlan(createPlanInput: CreatePlanInput!): Plan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
+  createQuizPlan(createQuizPlanInput: CreateQuizPlanInput!): QuizPlan!
+  createSubtopicPlan(createSubtopicPlanInput: CreateSubtopicPlanInput!): SubtopicPlan!
 
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
@@ -335,8 +397,11 @@ type Mutation {
   Authenticate the user and return the user's fields and access and refresh tokens.
   """
   login(loginInput: loginInput!): SignResponse!
+  removeLessonPlan(id: Int!): LessonPlan!
   removeMessageWithAi(id: Int!): MessageWithAIData!
-  removePlan(id: Int!): Plan!
+  removeModulePlan(id: Int!): ModulePlan!
+  removeQuizPlan(id: Int!): QuizPlan!
+  removeSubtopicPlan(id: Int!): SubtopicPlan!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -360,7 +425,6 @@ type Mutation {
   updateMessage(messageId: String!, updateMessageInput: UpdateMessageInput!): Message!
   updateMessageWithAi(updateMessageWithAiInput: UpdateMessageWithAiInput!): MessageWithAIData!
   updateOrCreateLearningSession(LearningSessionInput: LearningSessionInput!): LearningSession!
-  updatePlan(updatePlanInput: UpdatePlanInput!): Plan!
 
   """
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
@@ -379,11 +443,6 @@ type Notice {
   title: String!
   updatedAt: DateTime!
   userId: ID!
-}
-
-type Plan {
-  """Example field (placeholder)"""
-  exampleField: Int!
 }
 
 type Query {
@@ -411,7 +470,9 @@ type Query {
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
   messageWithAi(id: Int!): MessageWithAIData!
-  plan(id: Int!): Plan!
+  modulePlan(id: Int!): ModulePlan!
+  quizPlan(id: Int!): QuizPlan!
+  subtopicPlan(id: Int!): SubtopicPlan!
 }
 
 type Quiz {
@@ -443,6 +504,14 @@ input QuizInput {
   questionType: QuizQuestionType!
   stimulus: String
   title: String!
+}
+
+type QuizPlan {
+  createdAt: DateTime!
+  description: String
+  icon: IconType!
+  id: ID!
+  updatedAt: DateTime!
 }
 
 enum QuizQuestionType {
@@ -510,6 +579,14 @@ type Subscription {
   newMessage: Message!
 }
 
+type SubtopicPlan {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+}
+
 type TelegramLink {
   link: String!
   message: String!
@@ -568,12 +645,6 @@ input UpdateMessageInput {
 input UpdateMessageWithAiInput {
   chatWithAIId: ID
   content: String
-  id: Int!
-}
-
-input UpdatePlanInput {
-  """Example field (placeholder)"""
-  exampleField: Int
   id: Int!
 }
 
