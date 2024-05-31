@@ -31,6 +31,7 @@ import { QuizModule } from "./quiz/quiz.module";
 import { SubtopicPlanModule } from "./subtopic-plan/subtopic-plan.module";
 import { TelegramModule } from "./telegram/telegram.module";
 import { UserModule } from "./user/user.module";
+import { EduAiModule } from './edu-ai/edu-ai.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { UserModule } from "./user/user.module";
     QuizPlanModule,
     ModulePlanModule,
     SubtopicPlanModule,
+    EduAiModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

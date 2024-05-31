@@ -1,10 +1,15 @@
+import { EduAiService } from "@/edu-ai/edu-ai.service";
+import { MessageWithAIInput } from "@/message-with-ai/dto/message-with-ai.input";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { PubSub } from "graphql-subscriptions";
 import { InteractionInput, QuizInput } from "./dto/quiz.input";
-
 @Injectable()
 export class QuizService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly eduAiService: EduAiService,
+  ) {}
 
   async createQuiz(data: QuizInput): Promise<any> {
     // Проверяем наличие interactions для типа MATCH и наоборот
@@ -203,5 +208,82 @@ export class QuizService {
         },
       });
     });
+  }
+  async createQuizWithAI(userId: string, dto: MessageWithAIInput, pubSub: PubSub) {
+    // Получаем историю сообщений
+    let response;
+    const { content, chatWithAIId } = dto;
+    const messagesHistory = await this.prisma.messageWithAI.findMany({
+      where: { chatWithAIId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const fullContent = (await this.eduAiService
+      .getAIModelAnswer(chatWithAIId, userId, { messagesHistory, content }, "EduAI", pubSub)
+      .then(async fullContent => {
+        if (fullContent.length > 0) {
+          try {
+            console.log(fullContent);
+          } catch (prismaError) {
+            throw prismaError;
+          }
+        } else {
+          return [];
+        }
+      })
+      .catch(error => {
+        console.error("Error: ", error);
+        throw error;
+      })) as any;
+    // const fullContent =
+    //   '```quiz\n{\n  "title": "Основы программирования на Python",\n  "quizzes": [\n    {\n      "title": "Основы программирования на Python",\n      "questionType": "MCQ",\n      "stimulus": "Введ��те название теста",\n      "prompt": "Укаж��те тип вопроса (MCQ, MRQ, OEQ, NRQ, CLOZE, MATCH)",\n      "questions": [\n        {\n          "questionType": "MCQ",\n          "stimulus": "Что такое переменная в Python?",\n          "choices": [\n            {\n              "content": "Место ��ля хранения информации",\n              "correctAnswerDescription": "Правильный ответ. Переменная используется для хранения данных."\n            },\n            {\n              "content": "Функц��я для выполнения кода",\n              "incorrectAnswerDescription": "Неправильный отв��т. Функция используется для выполнения определенного кода."\n            },\n            {\n              "content": "Модуль для ��мпорта библиотек",\n              "incorrectAnswerDescription": "Неправил��ный ответ. Модуль используется для организации кода и импорта библиотек."\n            }\n          ],\n          "answers": ["Место дл�� хранения информации"]\n        },\n        {\n          "questionType": "MCQ",\n          "stimulus": "Какая фун��ция используется для вывода информации на экран в Python?",\n          "choices": [\n            {\n              "content": "input()",\n              "incorrectAnswerDescription": "Неправил��ный ответ. Функци�� input() испол��зуется для получения данных от пользователя."\n            },\n            {\n              "content": "print()",\n              "correctAnswerDescription": "Правильный ответ. Функция print() используется для вывода данных на экран."\n            },\n            {\n              "content": "len()",\n              "incorrectAnswerDescription": "Неправил��ный ответ. Функци�� len() испол��зуется для определения длины объекта."\n            }\n          ],\n          "answers": ["print()"]\n        },\n        {\n          "questionType": "MCQ",\n          "stimulus": "��ак обозна��ается начало комментария в Python?",\n          "choices": [\n            {\n              "content": "//",\n              "incorrectAnswerDescription": "Неправильн��й ответ. В Python комментарии начинаются с #."\n            },\n            {\n              "content": "#",\n              "correctAnswerDescription": "Правильный ответ. Коммен��арии в Python нач��наются с #."\n            },\n            {\n              "content": "/*",\n              "incorrectAnswerDescription": "Неправил��ный ответ. Такой синтаксис исполь��уется в других языках програ��мирования, таких как C."\n            }\n          ],\n          "answers": ["#"]\n        },\n        {\n          "questionType": "MCQ",\n          "stimulus": "Како�� тип данных ��редстален в Python?",\n          "choices": [\n            {\n              "content": "int",\n              "correctAnswerDescription": "Прав��льный ответ. int - это целочисленный тип данных �� Python."\n            },\n            {\n              "content": "char",\n              "incorrectAnswerDescription": "Непр��вильный ответ. В Python нет отдельного типа char, вме��то него используются строки (str)."\n            },\n            {\n              "content": "byte",\n              "incorrectAnswerDescription": "Неправильн��й ответ. В Python есть тип данных bytes, но не byte."\n            }\n          ],\n          "answers": ["int"]\n        }\n      ]\n    }\n  ]\n}\n```';
+    if (fullContent.length > 0) {
+      try {
+        // Извлекаем текст внутри ```quiz {json}```
+        const match = fullContent.match(/```quiz\n(.*?)\n```/s);
+        console.log("quiz json: ", match);
+        if (!match || match.length < 2) {
+          throw new Error("Cannot find quiz JSON in the provided content.");
+        }
+        const quizJson = match[1];
+
+        // Парсим JSON
+        const parsedContent = JSON.parse(quizJson);
+
+        const quizzes = parsedContent.quizzes;
+
+        // Сохраняем каждый тест
+        for (const quiz of quizzes) {
+          const questions = quiz.questions.map(question => ({
+            questionType: question.questionType,
+            stimulus: question.stimulus,
+            choices: question.choices.map(choice => ({
+              content: choice.content,
+              correctAnswerDescription: choice.correctAnswerDescription,
+              incorrectAnswerDescription: choice.incorrectAnswerDescription,
+            })),
+            answers: question.answers,
+          }));
+
+          const quizInput: QuizInput = {
+            title: quiz.title,
+            questionType: quiz.questionType,
+            stimulus: quiz.stimulus,
+            prompt: quiz.prompt,
+            choices: questions.flatMap(q => q.choices),
+            answers: questions.flatMap(q => q.answers),
+          };
+
+          response = await this.createQuiz(quizInput);
+        }
+
+        return response;
+      } catch (error) {
+        console.error("Error: ", error);
+        throw error;
+      }
+    } else {
+      return [];
+    }
   }
 }

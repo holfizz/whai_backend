@@ -1,12 +1,9 @@
+import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { PaginationService } from "@/pagination/pagination.service";
 import { PrismaService } from "@/prisma.service";
-import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { MessageWithAIRole } from "@prisma/client";
-import { randomUUID } from "crypto";
 import { PubSub } from "graphql-subscriptions";
-import { throwError } from "rxjs";
-import { catchError, tap } from "rxjs/operators";
 import { GetAllMessagesInput, MessageWithAIInput } from "./dto/message-with-ai.input";
 import { UpdateMessageWithAiInput } from "./dto/update-message-with-ai.input";
 
@@ -15,7 +12,7 @@ export class MessageWithAiService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly paginationService: PaginationService,
-    private readonly httpService: HttpService,
+    private readonly eduAiService: EduAiService,
   ) {}
   async getAIModelAnswer(userId: string, dto: MessageWithAIInput, pubSub: PubSub): Promise<any> {
     const chatWithAI = await this.prisma.chatWithAI.findUnique({
@@ -27,97 +24,38 @@ export class MessageWithAiService {
         createdAt: "asc",
       },
     });
-    return new Promise((resolve, reject) => {
-      let dataBuffer = "";
-      let messages = [];
-      return this.httpService
-        .post(
-          `${process.env.AI_API_URL}`,
-          {
-            conversation_id: chatWithAI.id,
-            bot_id: process.env.CHATGPT_ID,
-            user: userId,
-            query: dto.content,
-            content_type: "answer",
-            stream: true,
-            chat_history: messagesHistory,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.CHATGPT_AI_KEY}`,
-              "Content-Type": "application/json",
-              Accept: "text/markdown",
-              Host: "api.coze.com",
-              Connection: "keep-alive",
-            },
-            responseType: "stream",
-          },
-        )
-        .pipe(
-          tap(response => {
-            response.data.on("data", chunk => {
-              dataBuffer += chunk.toString();
-
-              let boundaryIndex;
-              while ((boundaryIndex = dataBuffer.indexOf("\n\n")) !== -1) {
-                const completeMessage = dataBuffer.substring(0, boundaryIndex);
-                dataBuffer = dataBuffer.substring(boundaryIndex + 2);
-
-                const eventData = completeMessage.replace(/^data:/, "").trim();
-                try {
-                  const parsedData = JSON.parse(eventData);
-                  console.log(parsedData);
-                  const messageData = { id: randomUUID(), event: parsedData.event, message: parsedData.message, conversation_id: chatWithAI.id, is_finish: parsedData.is_finish };
-                  messages.push(messageData);
-                  pubSub.publish("chatWithAIAnswer", {
-                    chatWithAIAnswer: messageData,
-                  });
-                } catch (error) {
-                  console.error("Error parsing JSON:", error);
-                }
-              }
+    return this.eduAiService
+      .getAIModelAnswer(chatWithAI.id, userId, { messagesHistory: messagesHistory, content: dto.content }, "ChatGPT", pubSub)
+      .then(async fullContent => {
+        if (fullContent.length > 0) {
+          try {
+            await this.prisma.messageWithAI.create({
+              data: {
+                chatWithAIId: chatWithAI.id,
+                content: dto.content,
+                role: MessageWithAIRole.USER,
+              },
             });
-
-            response.data.on("end", async () => {
-              const filteredMessages = messages.filter(m => m.message && m.message.type === "answer");
-
-              if (filteredMessages.length > 0) {
-                const fullContent = filteredMessages.map(m => m.message.content).join("");
-                try {
-                  await this.prisma.messageWithAI.create({
-                    data: {
-                      chatWithAIId: chatWithAI.id,
-                      content: dto.content,
-                      role: MessageWithAIRole.USER,
-                    },
-                  });
-                  const messageWithAI = await this.prisma.messageWithAI.create({
-                    data: {
-                      content: fullContent,
-                      chatWithAIId: chatWithAI.id,
-                      role: MessageWithAIRole.ASSISTANT,
-                    },
-                  });
-                  console.log(messageWithAI);
-                  resolve(messageWithAI);
-                  return messageWithAI;
-                } catch (prismaError) {
-                  reject(prismaError);
-                }
-              } else {
-                resolve([]);
-              }
+            const messageWithAI = await this.prisma.messageWithAI.create({
+              data: {
+                content: fullContent,
+                chatWithAIId: chatWithAI.id,
+                role: MessageWithAIRole.ASSISTANT,
+              },
             });
-
-            response.data.on("error", error => {
-              console.error("Error with the stream:", error);
-              reject(error);
-            });
-          }),
-          catchError(async error => throwError(() => new Error(`HTTP error: ${error}`))),
-        )
-        .subscribe();
-    });
+            console.log(messageWithAI);
+            return messageWithAI;
+          } catch (prismaError) {
+            throw prismaError;
+          }
+        } else {
+          return [];
+        }
+      })
+      .catch(error => {
+        console.error("Error: ", error);
+        throw error;
+      });
   }
 
   async getAllMessagesInChatWithAI(userId: string, dto: GetAllMessagesInput) {

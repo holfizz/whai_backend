@@ -8,9 +8,7 @@ export class CoursePlanResolver {
   constructor(private readonly coursePlanService: CoursePlanService) {}
 
   @Mutation(() => CoursePlan)
-  createCoursePlan(
-    @Args("createPlanInput") createPlanInput: CreateCoursePlanInput, // Specify the type here
-  ) {
+  createCoursePlan(@Args("createPlanInput") createPlanInput: CreateCoursePlanInput) {
     return this.coursePlanService.create(createPlanInput);
   }
 }

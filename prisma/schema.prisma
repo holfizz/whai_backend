@@ -331,7 +331,6 @@ model QuizPlan {
 enum IconType {
   VIDEO
   QUIZ
-  EQUATIONS
   TEXT
 }
 
