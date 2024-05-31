@@ -31,18 +31,20 @@ export class EduAiService {
           {
             headers: {
               Authorization: `Bearer ${process.env.WHAI_AI_KEY}`,
-              "Content-Type": "application/json",
-              Accept: "text/markdown",
+              "Content-Type": "application/json; charset=utf-8",
+              Accept: "text/markdown; charset=utf-8",
               Host: "api.coze.com",
               Connection: "keep-alive",
             },
             responseType: "stream",
+            responseEncoding: "utf8",
           },
         )
         .pipe(
           tap(response => {
+            response.data.setEncoding("utf8");
             response.data.on("data", chunk => {
-              dataBuffer += chunk.toString();
+              dataBuffer += chunk;
 
               let boundaryIndex;
               while ((boundaryIndex = dataBuffer.indexOf("\n\n")) !== -1) {

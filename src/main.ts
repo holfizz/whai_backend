@@ -11,6 +11,7 @@ const start = async () => {
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   });
+
   app.use(cookieParser());
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }) as any);
   app.getHttpAdapter().getInstance().disable("x-powered-by");
