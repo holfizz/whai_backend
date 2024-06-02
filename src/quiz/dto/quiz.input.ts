@@ -12,10 +12,20 @@ export class ChoiceInput {
   @Field(() => String)
   content: string;
 
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  correctAnswerDescription?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  incorrectAnswerDescription?: string;
+
   @Field(() => ID, { nullable: true })
   @IsUUID()
   @IsOptional()
-  quizId?: string;
+  questionId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsUUID()
@@ -63,29 +73,19 @@ export class MatchingInteractionInput {
 }
 
 @InputType()
-export class QuizInput {
-  @Field(() => String)
-  @IsString()
-  title: string;
+export class QuestionInput {
+  @Field(() => QuizQuestionType)
+  @IsEnum(QuizQuestionType)
+  questionType: QuizQuestionType;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   stimulus?: string;
 
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  lessonBlockId?: string;
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  folderId?: string;
-
-  @Field(() => QuizQuestionType)
-  @IsEnum(QuizQuestionType)
-  questionType: QuizQuestionType;
+  @Field(() => String)
+  @IsString()
+  prompt: string;
 
   @Field(() => [ChoiceInput], { nullable: true })
   @IsArray()
@@ -107,20 +107,34 @@ export class QuizInput {
   @Type(() => MatchingInteractionInput)
   matchingInteraction?: MatchingInteractionInput;
 
-  @Field(() => String)
-  @IsString()
-  prompt: string;
-
   @Field(() => [String], { nullable: true })
   @IsOptional()
   @IsArray()
   answers?: string[];
-
-  @Field(() => String, { nullable: true })
-  @IsOptional()
-  @IsString()
-  instructions?: string;
 }
+
+@InputType()
+export class QuizInput {
+  @Field(() => String)
+  @IsString()
+  title: string;
+
+  @Field(() => [QuestionInput])
+  @ValidateNested({ each: true })
+  @Type(() => QuestionInput)
+  questions: QuestionInput[];
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  lessonBlockId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  folderId?: string;
+}
+
 @InputType()
 export class QuizWithAIInput {
   @IsString()

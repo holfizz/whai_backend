@@ -37,14 +37,18 @@ input ChatWithAIInput {
 
 type Choice {
   content: String!
+  correctAnswerDescription: String
+  incorrectAnswerDescription: String
   interactionId: ID
-  quizId: ID
+  questionId: ID
 }
 
 input ChoiceInput {
   content: String!
+  correctAnswerDescription: String
+  incorrectAnswerDescription: String
   interactionId: ID
-  quizId: ID
+  questionId: ID
 }
 
 type Course {
@@ -162,7 +166,6 @@ enum IconType {
 type Interaction {
   answers: [String!]!
   choices: [Choice!]!
-  quizId: String
 }
 
 input InteractionInput {
@@ -473,34 +476,41 @@ type Query {
   subtopicPlan(id: Int!): SubtopicPlan!
 }
 
-type Quiz {
+type Question {
   answers: [String!]
   choices: [Choice!]
-  createdAt: DateTime!
-  folderId: ID
   id: ID!
-  instructions: String
   interactions: [Interaction!]
-  lessonBlockId: ID
   matchingInteraction: MatchingInteraction
   prompt: String!
   questionType: QuizQuestionType!
   stimulus: String
+}
+
+input QuestionInput {
+  answers: [String!]
+  choices: [ChoiceInput!]
+  interactions: [InteractionInput!]
+  matchingInteraction: MatchingInteractionInput
+  prompt: String!
+  questionType: QuizQuestionType!
+  stimulus: String
+}
+
+type Quiz {
+  createdAt: DateTime!
+  folderId: ID
+  id: ID!
+  lessonBlockId: ID
+  questions: [Question!]!
   title: String!
   updatedAt: DateTime!
 }
 
 input QuizInput {
-  answers: [String!]
-  choices: [ChoiceInput!]
   folderId: ID
-  instructions: String
-  interactions: [InteractionInput!]
   lessonBlockId: ID
-  matchingInteraction: MatchingInteractionInput
-  prompt: String!
-  questionType: QuizQuestionType!
-  stimulus: String
+  questions: [QuestionInput!]!
   title: String!
 }
 

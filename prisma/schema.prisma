@@ -190,17 +190,24 @@ model Course {
 
 //===========================QUIZ==========================//
 model Quiz {
+  id            String       @id @default(uuid())
+  title         String
+  questions     Question[] // Связь с вопросами
+  lessonBlockId String?      @map("lesson_block_id")
+  folderId      String?      @map("folder_id")
+  LessonBlock   LessonBlock? @relation(fields: [lessonBlockId], references: [id])
+  Folder        Folder?      @relation(fields: [folderId], references: [id])
+}
+
+model Question {
   id                  String               @id @default(uuid())
-  title               String
   questionType        QuizQuestionType
   stimulus            String?
   prompt              String?
   choices             Choice[]
   answers             String[]
-  LessonBlock         LessonBlock?         @relation(fields: [lessonBlockId], references: [id])
-  lessonBlockId       String?              @map("lesson_block_id")
-  Folder              Folder?              @relation(fields: [folderId], references: [id])
-  folderId            String?              @map("folder_id")
+  quiz                Quiz                 @relation(fields: [quizId], references: [id])
+  quizId              String               @map("quiz_id")
   matchingInteraction MatchingInteraction?
   interactions        Interaction[]
 }
@@ -210,27 +217,27 @@ model Choice {
   content                    String
   correctAnswerDescription   String?
   incorrectAnswerDescription String?
-  quiz                       Quiz?        @relation(fields: [quizId], references: [id])
-  quizId                     String?      @map("quiz_id")
+  question                   Question     @relation(fields: [questionId], references: [id])
+  questionId                 String       @map("question_id")
   interaction                Interaction? @relation(fields: [interactionId], references: [id])
   interactionId              String?      @map("interaction_id")
 }
 
 model Interaction {
-  id      String   @id @default(uuid())
-  choices Choice[]
-  answers String[]
-  quiz    Quiz?    @relation(fields: [quizId], references: [id])
-  quizId  String?
+  id         String    @id @default(uuid())
+  choices    Choice[]
+  answers    String[]
+  question   Question? @relation(fields: [questionId], references: [id])
+  questionId String?
 }
 
 model MatchingInteraction {
-  id      String @id @default(uuid())
-  left    Json
-  right   Json
-  answers Json
-  quiz    Quiz   @relation(fields: [quizId], references: [id])
-  quizId  String @unique
+  id         String   @id @default(uuid())
+  left       Json
+  right      Json
+  answers    Json
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String   @unique
 }
 
 enum QuizQuestionType {

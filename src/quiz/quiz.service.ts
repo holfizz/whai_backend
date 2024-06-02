@@ -13,117 +13,133 @@ export class QuizService {
   ) {}
 
   async createQuiz(data: QuizInput): Promise<any> {
-    if (data.questionType === "MATCH" && (data.interactions?.length || !data.matchingInteraction)) {
-      throw new Error("For MATCH type, only matchingInteraction is allowed and required, but other interactions are not allowed.");
-    }
-
-    if (data.questionType === "MATCH" && (!data.matchingInteraction.left.length || !data.matchingInteraction.right.length || !data.matchingInteraction.answers.length)) {
-      throw new Error("Incomplete matchingInteraction data. Ensure left, right, and answers arrays are provided.");
-    }
-
     return await this.prisma.$transaction(async prisma => {
-      let createData: any = {
-        title: data.title,
-        questionType: data.questionType,
-        stimulus: data.stimulus,
-        prompt: data.prompt,
-      };
-
-      if (data.questionType === "MATCH") {
-        const matchingInteraction = data.matchingInteraction;
-
-        if (!Array.isArray(matchingInteraction.answers)) {
-          throw new Error("Answers data is missing or not in the correct format.");
+      // Убедимся, что folderId существует, если он передан
+      if (data.folderId) {
+        const folder = await prisma.folder.findUnique({
+          where: { id: data.folderId },
+        });
+        if (!folder) {
+          throw new Error(`Folder with id ${data.folderId} does not exist.`);
         }
+      }
 
-        const leftWithIds = matchingInteraction.left.map((item, index) => ({
-          content: item.content,
-          id: (index + 1).toString(),
-        }));
+      // Убедимся, что lessonBlockId существует, если он передан
+      if (data.lessonBlockId) {
+        const lessonBlock = await prisma.lessonBlock.findUnique({
+          where: { id: data.lessonBlockId },
+        });
+        if (!lessonBlock) {
+          throw new Error(`LessonBlock with id ${data.lessonBlockId} does not exist.`);
+        }
+      }
 
-        const rightWithIds = matchingInteraction.right.map((item, index) => ({
-          content: item.content,
-          id: String.fromCharCode(97 + index),
-        }));
+      // Создаем новую запись викторины
+      const newQuiz = await prisma.quiz.create({
+        data: {
+          title: data.title,
+          lessonBlockId: data.lessonBlockId || null, // Допускаем null, если не передано
+          folderId: data.folderId || null, // Допускаем null, если не передано
+        },
+      });
 
-        const answersWithIds = matchingInteraction.answers.map(answerPair => {
-          const leftItem = leftWithIds.find(item => item.content === answerPair[0]);
-          const rightItem = rightWithIds.find(item => item.content === answerPair[1]);
+      const quizId = newQuiz.id;
 
-          if (!leftItem || !rightItem) {
-            throw new Error("Cannot find matching items for the provided answer pair.");
-          }
-
-          return [leftItem.id, rightItem.id];
+      for (const question of data.questions) {
+        // Создаем новую запись вопроса
+        const createdQuestion = await prisma.question.create({
+          data: {
+            questionType: question.questionType,
+            stimulus: question.stimulus,
+            prompt: question.prompt,
+            answers: question.answers,
+            quiz: { connect: { id: quizId } },
+          },
         });
 
-        createData["matchingInteraction"] = {
-          create: {
-            left: leftWithIds,
-            right: rightWithIds,
-            answers: answersWithIds,
-          },
-        };
-      } else {
-        createData["choices"] = {
-          create: data.choices.map(choice => ({
-            content: choice.content,
-          })),
-        };
-      }
+        const questionId = createdQuestion.id;
 
-      const newQuiz = await prisma.quiz.create({
-        data: createData,
-        include: {
-          matchingInteraction: true,
-          choices: true,
-          interactions: true,
-        },
-      });
-
-      if (data.questionType !== "MATCH" && data.interactions && data.interactions.length > 0) {
-        for (const interactionInput of data.interactions) {
-          const createdInteraction = await prisma.interaction.create({
+        if (question.questionType === "MATCH") {
+          await prisma.matchingInteraction.create({
             data: {
-              quiz: { connect: { id: newQuiz.id } },
-              answers: interactionInput.answers,
+              left: question.matchingInteraction.left.map(item => ({
+                content: item.content,
+              })),
+              right: question.matchingInteraction.right.map(item => ({
+                content: item.content,
+              })),
+              answers: question.matchingInteraction.answers.map(answerArray => answerArray.map(item => item)),
+              question: { connect: { id: questionId } },
             },
           });
+        } else {
+          // Создаем варианты ответа, если они есть
+          if (question.choices) {
+            for (const choice of question.choices) {
+              await prisma.choice.create({
+                data: {
+                  content: choice.content,
+                  correctAnswerDescription: choice.correctAnswerDescription,
+                  incorrectAnswerDescription: choice.incorrectAnswerDescription,
+                  question: { connect: { id: questionId } },
+                },
+              });
+            }
+          }
 
-          for (const choice of interactionInput.choices) {
-            await prisma.choice.create({
-              data: {
-                content: choice.content,
-                interaction: { connect: { id: createdInteraction.id } },
-                quiz: { connect: { id: newQuiz.id } },
-              },
-            });
+          // Создаем interactions, если они есть
+          if (question.interactions && question.interactions.length > 0) {
+            for (const interaction of question.interactions) {
+              const createdInteraction = await prisma.interaction.create({
+                data: {
+                  answers: interaction.answers,
+                  question: { connect: { id: questionId } },
+                },
+              });
+
+              for (const choice of interaction.choices) {
+                await prisma.choice.create({
+                  data: {
+                    content: choice.content,
+                    interaction: { connect: { id: createdInteraction.id } },
+                    question: { connect: { id: questionId } },
+                  },
+                });
+              }
+            }
           }
         }
       }
 
-      const finalQuiz = await prisma.quiz.findUnique({
-        where: { id: newQuiz.id },
+      return await prisma.quiz.findUnique({
+        where: { id: quizId },
         include: {
-          matchingInteraction: true,
-          choices: true,
-          interactions: {
+          questions: {
             include: {
               choices: true,
+              interactions: {
+                include: {
+                  choices: true,
+                },
+              },
+              matchingInteraction: true,
             },
           },
         },
       });
-
-      return finalQuiz;
     });
   }
+
   async findAllQuizzes(): Promise<any> {
     return await this.prisma.quiz.findMany({
       include: {
-        choices: true,
-        interactions: true,
-        matchingInteraction: true,
+        questions: {
+          include: {
+            choices: true,
+            interactions: true,
+            matchingInteraction: true,
+          },
+        },
       },
     });
   }
@@ -132,9 +148,13 @@ export class QuizService {
     return await this.prisma.quiz.findUnique({
       where: { id },
       include: {
-        choices: true,
-        interactions: true,
-        matchingInteraction: true,
+        questions: {
+          include: {
+            choices: true,
+            interactions: true,
+            matchingInteraction: true,
+          },
+        },
       },
     });
   }
@@ -142,17 +162,27 @@ export class QuizService {
   async deleteQuiz(id: string): Promise<any> {
     return await this.prisma
       .$transaction(async prisma => {
-        await prisma.choice.deleteMany({
+        const questions = await prisma.question.findMany({
           where: { quizId: id },
         });
 
-        await prisma.interaction.deleteMany({
-          where: { quizId: id },
-        });
+        for (const question of questions) {
+          await prisma.choice.deleteMany({
+            where: { questionId: question.id },
+          });
 
-        await prisma.matchingInteraction.deleteMany({
-          where: { quizId: id },
-        });
+          await prisma.interaction.deleteMany({
+            where: { questionId: question.id },
+          });
+
+          await prisma.matchingInteraction.deleteMany({
+            where: { questionId: question.id },
+          });
+
+          await prisma.question.delete({
+            where: { id: question.id },
+          });
+        }
 
         return await prisma.quiz.delete({
           where: { id },
@@ -173,65 +203,104 @@ export class QuizService {
         throw new Error("Quiz not found.");
       }
 
-      let updateData: any = {
-        title: data.title,
-        questionType: data.questionType,
-        stimulus: data.stimulus,
-        prompt: data.prompt,
-      };
-
       const updatedQuiz = await prisma.quiz.update({
         where: { id },
-        data: updateData,
+        data: {
+          title: data.title,
+          lessonBlockId: data.lessonBlockId,
+          folderId: data.folderId,
+        },
       });
 
-      if (data.questionType === "MATCH" && data.matchingInteraction) {
-        if (!Array.isArray(data.matchingInteraction.left) || !Array.isArray(data.matchingInteraction.right) || !Array.isArray(data.matchingInteraction.answers)) {
-          throw new Error("Incomplete matchingInteraction data for MATCH type.");
-        }
+      const existingQuestions = await prisma.question.findMany({
+        where: { quizId: id },
+      });
 
-        const existingMatchingInteraction = await prisma.matchingInteraction.findUnique({
-          where: { quizId: id },
+      for (const question of existingQuestions) {
+        await prisma.choice.deleteMany({
+          where: { questionId: question.id },
         });
 
-        if (existingMatchingInteraction) {
-          // Update the existing MatchingInteraction
-          await prisma.matchingInteraction.update({
-            where: { id: existingMatchingInteraction.id },
+        await prisma.interaction.deleteMany({
+          where: { questionId: question.id },
+        });
+
+        await prisma.matchingInteraction.deleteMany({
+          where: { questionId: question.id },
+        });
+
+        await prisma.question.delete({
+          where: { id: question.id },
+        });
+      }
+
+      for (const question of data.questions) {
+        const newQuestion = await prisma.question.create({
+          data: {
+            questionType: question.questionType,
+            stimulus: question.stimulus,
+            prompt: question.prompt,
+            answers: question.answers,
+            quiz: { connect: { id: updatedQuiz.id } },
+          },
+        });
+
+        if (question.questionType === "MATCH") {
+          await prisma.matchingInteraction.create({
             data: {
-              left: JSON.parse(JSON.stringify(data.matchingInteraction.left)),
-              right: JSON.parse(JSON.stringify(data.matchingInteraction.right)),
-              answers: data.matchingInteraction.answers,
+              left: [JSON.stringify(question.matchingInteraction.left)],
+              right: [JSON.stringify(question.matchingInteraction.right)],
+              answers: question.matchingInteraction.answers,
+              question: { connect: { id: newQuestion.id } },
             },
           });
         } else {
-          // Create new MatchingInteraction if it doesn't exist
-          await prisma.matchingInteraction.create({
-            data: {
-              quizId: id,
-              left: JSON.parse(JSON.stringify(data.matchingInteraction.left)),
-              right: JSON.parse(JSON.stringify(data.matchingInteraction.right)),
-              answers: data.matchingInteraction.answers,
-            },
+          await prisma.choice.createMany({
+            data: question.choices.map(choice => ({
+              content: choice.content,
+              questionId: newQuestion.id,
+            })),
           });
+
+          if (question.interactions && question.interactions.length > 0) {
+            for (const interactionInput of question.interactions) {
+              const createdInteraction = await prisma.interaction.create({
+                data: {
+                  answers: interactionInput.answers,
+                  question: { connect: { id: newQuestion.id } },
+                },
+              });
+
+              for (const choice of interactionInput.choices) {
+                await prisma.choice.create({
+                  data: {
+                    content: choice.content,
+                    interaction: { connect: { id: createdInteraction.id } },
+                    question: { connect: { id: newQuestion.id } },
+                  },
+                });
+              }
+            }
+          }
         }
       }
 
       return await prisma.quiz.findUnique({
         where: { id },
         include: {
-          choices: true,
-          interactions: true,
-          matchingInteraction: true,
+          questions: {
+            include: {
+              choices: true,
+              interactions: true,
+              matchingInteraction: true,
+            },
+          },
         },
       });
     });
   }
-
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<any> {
     const { content, folderId, lessonBlockId, chatWithAIId } = dto;
-
-    // Check if the chatWithAIId exists
     const chatWithAI = await this.prisma.chatWithAI.findUnique({
       where: { id: chatWithAIId },
     });
@@ -245,34 +314,38 @@ export class QuizService {
       orderBy: { createdAt: "asc" },
     });
 
-    const fullContent = (await this.eduAiService
+    const fullContent = await this.eduAiService
       .getAIModelAnswer(chatWithAIId, userId, { content, messagesHistory }, "EduAI", pubSub)
-      .then(async fullContent => {
-        if (fullContent.length > 0) {
+      .then(async content => {
+        if (content.length > 0) {
           try {
-            console.log(fullContent);
+            console.log(content);
             const messageWithAI = await this.prisma.messageWithAI.create({
               data: {
-                content: fullContent,
+                content: content,
                 chatWithAIId: chatWithAIId,
                 role: MessageWithAIRole.ASSISTANT,
               },
             });
-            return messageWithAI;
+            return content; // Возвращаем полное содержимое, а не созданное сообщение
           } catch (prismaError) {
             throw prismaError;
           }
         } else {
-          return [];
+          return null;
         }
       })
       .catch(error => {
         console.error("Error: ", error);
         throw error;
-      })) as any;
+      });
+
+    if (!fullContent) {
+      throw new Error("Failed to get content from AI service.");
+    }
 
     try {
-      const match = fullContent.match(/```quiz\n(.*?)\n```/s);
+      const match = fullContent.match(/```quiz\n([\s\S]*?)\n```/);
       console.log("quiz json: ", match);
       if (!match || match.length < 2) {
         throw new Error("Cannot find quiz JSON in the provided content.");
@@ -281,35 +354,77 @@ export class QuizService {
 
       const parsedContent = JSON.parse(quizJson);
 
-      const quizzes = parsedContent.quizzes;
+      const { title, quizzes: questions } = parsedContent;
 
-      for (const quiz of quizzes) {
-        const questions = quiz.questions.map(question => ({
-          questionType: question.questionType,
-          stimulus: question.stimulus,
-          choices: question.choices.map(choice => ({
-            content: choice.content,
-            correctAnswerDescription: choice.correctAnswerDescription,
-            incorrectAnswerDescription: choice.incorrectAnswerDescription,
-          })),
-          answers: question.answers,
-        }));
+      // Создаем запись викторины, чтобы получить ее id
+      const createdQuiz = await this.prisma.quiz.create({
+        data: {
+          title: title,
+          lessonBlockId: lessonBlockId,
+          folderId: folderId,
+        },
+      });
 
-        const quizInput: QuizInput = {
-          title: quizzes.title,
-          questionType: quiz.questionType,
-          stimulus: quiz.stimulus,
-          prompt: quiz.prompt,
-          choices: questions.flatMap(q => q.choices),
-          answers: questions.flatMap(q => q.answers),
-          lessonBlockId,
-          folderId,
-        };
+      const quizId = createdQuiz.id;
 
-        await this.createQuiz(quizInput);
+      for (const question of questions) {
+        const createdQuestion = await this.prisma.question.create({
+          data: {
+            questionType: question.questionType,
+            stimulus: question.stimulus,
+            prompt: question.prompt,
+            answers: question.answers,
+            quiz: { connect: { id: quizId } },
+          },
+        });
+
+        const questionId = createdQuestion.id;
+
+        for (const choice of question.choices) {
+          await this.prisma.choice.create({
+            data: {
+              content: choice.content,
+              correctAnswerDescription: choice.correctAnswerDescription,
+              incorrectAnswerDescription: choice.incorrectAnswerDescription,
+              question: { connect: { id: questionId } },
+            },
+          });
+        }
+
+        if (question.questionType === "MATCH") {
+          await this.prisma.matchingInteraction.create({
+            data: {
+              left: question.matchingInteraction.left,
+              right: question.matchingInteraction.right,
+              answers: question.matchingInteraction.answers,
+              question: { connect: { id: questionId } },
+            },
+          });
+        }
+
+        if (question.interactions && question.interactions.length > 0) {
+          for (const interaction of question.interactions) {
+            const createdInteraction = await this.prisma.interaction.create({
+              data: {
+                answers: interaction.answers,
+                question: { connect: { id: questionId } },
+              },
+            });
+
+            for (const choice of interaction.choices) {
+              await this.prisma.choice.create({
+                data: {
+                  content: choice.content,
+                  interaction: { connect: { id: createdInteraction.id } },
+                  question: { connect: { id: questionId } },
+                },
+              });
+            }
+          }
+        }
       }
 
-      return quizzes;
+      return createdQuiz;
     } catch (error) {
       console.error("Error: ", error);
       throw error;

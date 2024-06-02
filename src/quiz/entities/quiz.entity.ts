@@ -13,10 +13,20 @@ export class Choice {
   @Field(() => String)
   content: string;
 
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  correctAnswerDescription?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  incorrectAnswerDescription?: string;
+
   @Field(() => ID, { nullable: true })
   @IsUUID()
   @IsOptional()
-  quizId?: string;
+  questionId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsUUID()
@@ -27,11 +37,6 @@ export class Choice {
 export class Interaction {
   @Field(() => [String])
   answers: string[];
-
-  @Field(() => String, { nullable: true })
-  @IsString()
-  @IsOptional()
-  quizId?: string;
 
   @Field(() => [Choice])
   @ValidateNested({ each: true })
@@ -72,29 +77,22 @@ export class MatchingInteraction {
 }
 
 @ObjectType()
-export class Quiz extends BaseEntity {
-  @Field(() => String)
-  @IsString()
-  title: string;
+export class Question {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => QuizQuestionType)
+  @IsEnum(QuizQuestionType)
+  questionType: QuizQuestionType;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   stimulus?: string;
 
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  lessonBlockId?: string;
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  folderId?: string;
-
-  @Field(() => QuizQuestionType)
-  @IsEnum(QuizQuestionType)
-  questionType: QuizQuestionType;
+  @Field(() => String)
+  @IsString()
+  prompt: string;
 
   @Field(() => [Choice], { nullable: true })
   @IsArray()
@@ -116,17 +114,30 @@ export class Quiz extends BaseEntity {
   @Type(() => MatchingInteraction)
   matchingInteraction?: MatchingInteraction;
 
-  @Field(() => String)
-  @IsString()
-  prompt: string;
-
   @Field(() => [String], { nullable: true })
   @IsOptional()
   @IsArray()
   answers?: string[];
+}
 
-  @Field(() => String, { nullable: true })
-  @IsOptional()
+@ObjectType()
+export class Quiz extends BaseEntity {
+  @Field(() => String)
   @IsString()
-  instructions?: string;
+  title: string;
+
+  @Field(() => [Question])
+  @ValidateNested({ each: true })
+  @Type(() => Question)
+  questions: Question[];
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  lessonBlockId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  folderId?: string;
 }
