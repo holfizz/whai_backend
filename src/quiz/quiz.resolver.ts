@@ -46,7 +46,7 @@ export class QuizResolver {
   chatWithAIAnswer(@Args("chatWithAIId") chatWithAIId: string) {
     return pubSub.asyncIterator("chatWithAIAnswer");
   }
-  @Mutation(() => [Quiz])
+  @Mutation(() => Quiz)
   @Auth("user")
   createQuizWithAI(@CurrentUser("id") userId: string, @Args("QuizWithAIInput") dto: QuizWithAIInput) {
     return this.quizService.createQuizWithAI(userId, dto, pubSub);

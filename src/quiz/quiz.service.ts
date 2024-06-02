@@ -345,6 +345,17 @@ export class QuizService {
     }
 
     try {
+      // Проверка на наличие folderId и создание, если он не существует
+      if (folderId) {
+        const folder = await this.prisma.folder.findUnique({
+          where: { id: folderId },
+        });
+        if (!folder) {
+          throw new Error(`Folder with id ${folderId} does not exist.`);
+        }
+      }
+
+      // Используем регулярное выражение для извлечения JSON
       const match = fullContent.match(/```quiz\n([\s\S]*?)\n```/);
       console.log("quiz json: ", match);
       if (!match || match.length < 2) {
@@ -354,14 +365,14 @@ export class QuizService {
 
       const parsedContent = JSON.parse(quizJson);
 
-      const { title, quizzes: questions } = parsedContent;
+      const { title, questions } = parsedContent;
 
       // Создаем запись викторины, чтобы получить ее id
       const createdQuiz = await this.prisma.quiz.create({
         data: {
           title: title,
           lessonBlockId: lessonBlockId,
-          folderId: folderId,
+          folderId: folderId || null,
         },
       });
 
@@ -380,15 +391,17 @@ export class QuizService {
 
         const questionId = createdQuestion.id;
 
-        for (const choice of question.choices) {
-          await this.prisma.choice.create({
-            data: {
-              content: choice.content,
-              correctAnswerDescription: choice.correctAnswerDescription,
-              incorrectAnswerDescription: choice.incorrectAnswerDescription,
-              question: { connect: { id: questionId } },
-            },
-          });
+        if (question.choices) {
+          for (const choice of question.choices) {
+            await this.prisma.choice.create({
+              data: {
+                content: choice.content,
+                correctAnswerDescription: choice.correctAnswerDescription,
+                incorrectAnswerDescription: choice.incorrectAnswerDescription,
+                question: { connect: { id: questionId } },
+              },
+            });
+          }
         }
 
         if (question.questionType === "MATCH") {
@@ -400,9 +413,7 @@ export class QuizService {
               question: { connect: { id: questionId } },
             },
           });
-        }
-
-        if (question.interactions && question.interactions.length > 0) {
+        } else if (question.interactions && question.interactions.length > 0) {
           for (const interaction of question.interactions) {
             const createdInteraction = await this.prisma.interaction.create({
               data: {

@@ -357,7 +357,7 @@ type Mutation {
   createNotice(noticeDto: CreateNoticeInput!): Notice!
   createQuiz(createQuizInput: QuizInput!): Quiz!
   createQuizPlan(createQuizPlanInput: CreateQuizPlanInput!): QuizPlan!
-  createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): [Quiz!]!
+  createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): Quiz!
   createSubtopicPlan(createSubtopicPlanInput: CreateSubtopicPlanInput!): SubtopicPlan!
 
   """Delete an existing chat for the current user."""
