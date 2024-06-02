@@ -138,7 +138,6 @@ describe("QuizService with lesson, lessonBlock, and folder", () => {
         choices: [{ content: "Option 1" }, { content: "Option 2" }],
         interactions: [
           {
-            placeholder: "Interaction Placeholder",
             choices: [{ content: "Choice A" }, { content: "Choice B" }],
             answers: ["Choice A"],
           },

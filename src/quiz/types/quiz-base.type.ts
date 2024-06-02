@@ -7,7 +7,7 @@ export class ChoiceBase {
 export class InteractionBase {
   answers: string[];
   quizId?: string;
-  placeholder: string;
+
   choices: ChoiceBase[];
 }
 

@@ -2,7 +2,7 @@ import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsJSON, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -33,10 +33,6 @@ export class Interaction {
   @IsOptional()
   quizId?: string;
 
-  @Field(() => String)
-  @IsString()
-  placeholder: string;
-
   @Field(() => [Choice])
   @ValidateNested({ each: true })
   @Type(() => Choice)
@@ -62,15 +58,17 @@ export class MatchingInteraction {
   id?: string;
 
   @Field(() => [SideType])
-  @IsJSON()
+  @ValidateNested({ each: true })
+  @Type(() => SideType)
   left: SideType[];
 
   @Field(() => [SideType])
-  @IsJSON()
+  @ValidateNested({ each: true })
+  @Type(() => SideType)
   right: SideType[];
 
   @Field(() => [[String]])
-  answers: string[][] | string[];
+  answers: string[][];
 }
 
 @ObjectType()
@@ -105,11 +103,11 @@ export class Quiz extends BaseEntity {
   @IsOptional()
   choices?: Choice[];
 
-  @Field(() => [Interaction])
+  @Field(() => [Interaction], { nullable: true })
   @IsArray()
   @ValidateNested({ each: true })
-  @IsOptional()
   @Type(() => Interaction)
+  @IsOptional()
   interactions?: Interaction[];
 
   @Field(() => MatchingInteraction, { nullable: true })

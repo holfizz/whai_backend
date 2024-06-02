@@ -7,11 +7,18 @@ import { AIDTO } from "./types/ai.types";
 
 @Injectable()
 export class EduAiService {
+  private abortControllers: Map<string, AbortController> = new Map();
+
   constructor(private readonly httpService: HttpService) {}
 
   getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatGPT" | "EduAI", pubSub: PubSub): Promise<any> {
     const messagesHistory = dto.messagesHistory;
     const botId = botMode === "ChatGPT" ? process.env.CHATGPT_ID : process.env.WHAI_AI_ID;
+    const abortController = new AbortController();
+
+    // Сохраняем AbortController для возможности отмены запроса
+    this.abortControllers.set(conversationId, abortController);
+
     return new Promise((resolve, reject) => {
       let dataBuffer = "";
       let messages = [];
@@ -37,7 +44,7 @@ export class EduAiService {
               Connection: "keep-alive",
             },
             responseType: "stream",
-            responseEncoding: "utf8",
+            signal: abortController.signal,
           },
         )
         .pipe(
@@ -73,6 +80,7 @@ export class EduAiService {
             });
 
             response.data.on("end", () => {
+              this.abortControllers.delete(conversationId); // Удаляем контроллер после завершения
               const filteredMessages = messages.filter(m => m.message && m.message.type === "answer");
 
               if (filteredMessages.length > 0) {
@@ -84,13 +92,25 @@ export class EduAiService {
             });
 
             response.data.on("error", error => {
+              this.abortControllers.delete(conversationId); // Удаляем контроллер при ошибке
               console.error("Error with the stream:", error);
               reject(error);
             });
           }),
-          catchError(async error => throwError(() => new Error(`HTTP error: ${error}`))),
+          catchError(async error => {
+            this.abortControllers.delete(conversationId);
+            return throwError(() => new Error(`HTTP error: ${error}`));
+          }),
         )
         .subscribe();
     });
+  }
+
+  stopGeneration(conversationId: string): void {
+    const abortController = this.abortControllers.get(conversationId);
+    if (abortController) {
+      abortController.abort();
+      this.abortControllers.delete(conversationId);
+    }
   }
 }

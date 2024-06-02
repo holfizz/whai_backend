@@ -202,7 +202,7 @@ model Quiz {
   Folder              Folder?              @relation(fields: [folderId], references: [id])
   folderId            String?              @map("folder_id")
   matchingInteraction MatchingInteraction?
-  interactions        Interaction?
+  interactions        Interaction[]
 }
 
 model Choice {
@@ -210,19 +210,18 @@ model Choice {
   content                    String
   correctAnswerDescription   String?
   incorrectAnswerDescription String?
-  quiz                       Quiz         @relation(fields: [quizId], references: [id])
-  quizId                     String       @map("quiz-id")
-  Interaction                Interaction? @relation(fields: [interactionId], references: [id])
+  quiz                       Quiz?        @relation(fields: [quizId], references: [id])
+  quizId                     String?      @map("quiz_id")
+  interaction                Interaction? @relation(fields: [interactionId], references: [id])
   interactionId              String?      @map("interaction_id")
 }
 
 model Interaction {
-  id          String   @id @default(uuid())
-  placeholder String
-  choices     Choice[]
-  answers     String[]
-  quiz        Quiz?    @relation(fields: [quizId], references: [id])
-  quizId      String   @unique
+  id      String   @id @default(uuid())
+  choices Choice[]
+  answers String[]
+  quiz    Quiz?    @relation(fields: [quizId], references: [id])
+  quizId  String?
 }
 
 model MatchingInteraction {

@@ -154,7 +154,6 @@ input GetAllMessagesInput {
 }
 
 enum IconType {
-  EQUATIONS
   QUIZ
   TEXT
   VIDEO
@@ -163,15 +162,12 @@ enum IconType {
 type Interaction {
   answers: [String!]!
   choices: [Choice!]!
-  placeholder: String!
   quizId: String
 }
 
 input InteractionInput {
   answers: [String!]!
   choices: [ChoiceInput!]!
-  placeholder: String!
-  quizId: String
 }
 
 type LearningSession {
@@ -358,7 +354,7 @@ type Mutation {
   createNotice(noticeDto: CreateNoticeInput!): Notice!
   createQuiz(createQuizInput: QuizInput!): Quiz!
   createQuizPlan(createQuizPlanInput: CreateQuizPlanInput!): QuizPlan!
-  createQuizWithAI(MessageWithAIInput: MessageWithAIInput!): [Quiz!]!
+  createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): [Quiz!]!
   createSubtopicPlan(createSubtopicPlanInput: CreateSubtopicPlanInput!): SubtopicPlan!
 
   """Delete an existing chat for the current user."""
@@ -411,6 +407,7 @@ type Mutation {
   Register a new user and return the user's fields and access and refresh tokens
   """
   signUp(signUpInput: SignUpInput!): SignResponse!
+  stopGeneration(conversationId: String!): Boolean!
 
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
@@ -483,7 +480,7 @@ type Quiz {
   folderId: ID
   id: ID!
   instructions: String
-  interactions: [Interaction!]!
+  interactions: [Interaction!]
   lessonBlockId: ID
   matchingInteraction: MatchingInteraction
   prompt: String!
@@ -522,6 +519,13 @@ enum QuizQuestionType {
   MRQ
   NRQ
   OEQ
+}
+
+input QuizWithAIInput {
+  chatWithAIId: ID!
+  content: String!
+  folderId: ID
+  lessonBlockId: ID
 }
 
 type RefreshTokenResponse {
@@ -578,6 +582,7 @@ type Subscription {
   Subscribe to new messages targeted to the user. The user will receive notifications of new messages.
   """
   newMessage: Message!
+  quizWithAIAnswer(chatWithAIId: String!): Quiz!
 }
 
 type SubtopicPlan {

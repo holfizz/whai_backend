@@ -1,6 +1,6 @@
 import { MessageTypeWithAI, MessageWithAIRole } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 class Message {
   @IsString()
@@ -28,7 +28,8 @@ class Message {
 
 export class AIDTO {
   @Type(() => Message)
-  messagesHistory: Message[];
+  @IsOptional()
+  messagesHistory?: Message[];
 
   @IsString()
   @IsNotEmpty()
