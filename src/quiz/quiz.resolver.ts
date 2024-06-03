@@ -5,6 +5,7 @@ import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput } from "./dto/quiz.input";
 import { Quiz } from "./entities/quiz.entity";
 import { QuizService } from "./quiz.service";
+
 const pubSub = new PubSub();
 
 @Resolver(() => Quiz)
@@ -19,15 +20,11 @@ export class QuizResolver {
   quizWithAIAnswer(@Args("chatWithAIId") chatWithAIId: string) {
     return pubSub.asyncIterator("quizWithAIAnswer");
   }
+
   @Mutation(() => Quiz)
   createQuiz(@Args("createQuizInput") createQuizInput: QuizInput) {
     return this.quizService.createQuiz(createQuizInput);
   }
-
-  // @Query(() => [Quiz])
-  // findAllQuizzes() {
-  //   return this.quizService.findAllQuizzes();
-  // }
 
   @Query(() => Quiz)
   findQuizById(@Args("id", { type: () => String }) id: string) {
@@ -43,14 +40,23 @@ export class QuizResolver {
   updateQuiz(@Args("id", { type: () => String }) id: string, @Args("updateQuizData") updateQuizData: QuizInput) {
     return this.quizService.updateQuiz(id, updateQuizData);
   }
+
+  // Подписка на событие chatWithAIAnswer
+  @Subscription(() => Quiz, {
+    filter: (payload, variables) => {
+      return payload.chatWithAIAnswer.conversation_id === variables.chatWithAIId;
+    },
+  })
   chatWithAIAnswer(@Args("chatWithAIId") chatWithAIId: string) {
     return pubSub.asyncIterator("chatWithAIAnswer");
   }
+
   @Mutation(() => Quiz)
   @Auth("user")
   createQuizWithAI(@CurrentUser("id") userId: string, @Args("QuizWithAIInput") dto: QuizWithAIInput) {
     return this.quizService.createQuizWithAI(userId, dto, pubSub);
   }
+
   @Mutation(() => Boolean)
   @Auth("user")
   stopGeneration(@Args("conversationId", { type: () => String }) conversationId: string) {

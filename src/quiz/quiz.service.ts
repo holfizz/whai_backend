@@ -68,7 +68,7 @@ export class QuizService {
               right: question.matchingInteraction.right.map(item => ({
                 content: item.content,
               })),
-              answers: question.matchingInteraction.answers.map(answerArray => answerArray.map(item => item)),
+              answers: question.matchingInteraction.answers,
               question: { connect: { id: questionId } },
             },
           });
@@ -117,11 +117,7 @@ export class QuizService {
           questions: {
             include: {
               choices: true,
-              interactions: {
-                include: {
-                  choices: true,
-                },
-              },
+              interactions: true,
               matchingInteraction: true,
             },
           },
@@ -435,7 +431,7 @@ export class QuizService {
         }
       }
 
-      return createdQuiz;
+      return parsedContent;
     } catch (error) {
       console.error("Error: ", error);
       throw error;

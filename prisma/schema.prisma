@@ -35,6 +35,7 @@ model User {
   telegramId              String?              @unique
   Notice                  Notice[]
   SentNotices             Notice[]             @relation(name: "NoticeSender")
+  QuizResult              QuizResult[]
 }
 
 model TelegramLink {
@@ -145,6 +146,7 @@ model Lesson {
   tasks        LessonTask[]
   Folder       Folder?       @relation(fields: [folderId], references: [id])
   folderId     String
+  QuizResult   QuizResult[]
 }
 
 model Folder {
@@ -186,6 +188,7 @@ model Course {
   teacherIds         String[]
   studentsId         String[]
   UserCourseProgress UserCourseProgress[]
+  QuizResult         QuizResult[]
 }
 
 //===========================QUIZ==========================//
@@ -197,6 +200,7 @@ model Quiz {
   folderId      String?      @map("folder_id")
   LessonBlock   LessonBlock? @relation(fields: [lessonBlockId], references: [id])
   Folder        Folder?      @relation(fields: [folderId], references: [id])
+  QuizResult    QuizResult[]
 }
 
 model Question {
@@ -210,6 +214,7 @@ model Question {
   quizId              String               @map("quiz_id")
   matchingInteraction MatchingInteraction?
   interactions        Interaction[]
+  UserAnswer          UserAnswer[]
 }
 
 model Choice {
@@ -238,6 +243,37 @@ model MatchingInteraction {
   answers    Json
   question   Question @relation(fields: [questionId], references: [id])
   questionId String   @unique
+}
+
+model QuizResult {
+  id             String   @id @default(uuid())
+  userId         String
+  quizId         String
+  courseId       String
+  lessonId       String
+  totalQuestions Int
+  correctAnswers Int
+  wrongAnswers   Int
+  completionTime Int // Время выполнения в секундах
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  User        User         @relation(fields: [userId], references: [id])
+  Quiz        Quiz         @relation(fields: [quizId], references: [id])
+  Course      Course       @relation(fields: [courseId], references: [id])
+  Lesson      Lesson       @relation(fields: [lessonId], references: [id])
+  UserAnswers UserAnswer[]
+}
+
+model UserAnswer {
+  id             String   @id @default(uuid())
+  quizResultId   String
+  questionId     String
+  selectedAnswer String[] // Выбранный ответ
+  isCorrect      Boolean
+
+  QuizResult QuizResult @relation(fields: [quizResultId], references: [id])
+  Question   Question   @relation(fields: [questionId], references: [id])
 }
 
 enum QuizQuestionType {
@@ -299,7 +335,6 @@ model ModulePlan {
   description   String?
   CoursePlan    CoursePlan     @relation(fields: [CoursePlanId], references: [id])
   SubtopicPlans SubtopicPlan[]
-  QuizPlan      QuizPlan[]
 }
 
 model SubtopicPlan {
@@ -309,7 +344,6 @@ model SubtopicPlan {
   description  String?
   ModulePlan   ModulePlan   @relation(fields: [ModulePlanId], references: [id])
   LessonPlans  LessonPlan[]
-  QuizPlan     QuizPlan[]
 }
 
 model LessonPlan {
@@ -319,17 +353,6 @@ model LessonPlan {
   description    String
   SubtopicPlan   SubtopicPlan @relation(fields: [SubtopicPlanId], references: [id])
   icons          IconType[]   @default([TEXT])
-}
-
-model QuizPlan {
-  id             String        @id @default(uuid())
-  SubtopicPlanId String?       @map("subtopic_plan_id")
-  ModulePlanId   String?       @map("module_plan_id")
-  title          String
-  description    String
-  SubtopicPlan   SubtopicPlan? @relation(fields: [SubtopicPlanId], references: [id])
-  ModulePlan     ModulePlan?   @relation(fields: [ModulePlanId], references: [id])
-  icon           IconType      @default(QUIZ)
 }
 
 //==============================================================//
