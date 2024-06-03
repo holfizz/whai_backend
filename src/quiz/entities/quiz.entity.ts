@@ -1,5 +1,5 @@
 import { BaseEntity } from "@/helpers/base.entity";
-import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
@@ -30,6 +30,7 @@ export class Choice {
 
   @Field(() => ID, { nullable: true })
   @IsUUID()
+  @IsOptional()
   interactionId?: string;
 }
 
@@ -140,4 +141,52 @@ export class Quiz extends BaseEntity {
   @IsOptional()
   @IsUUID()
   folderId?: string;
+
+  @Field(() => Int)
+  @IsOptional()
+  totalQuestions?: number;
+}
+@ObjectType()
+class UserAnswer {
+  @Field(() => ID)
+  questionId: string;
+
+  @Field(() => [String])
+  selectedAnswer: string[];
+
+  @Field(() => Boolean)
+  isCorrect: boolean;
+}
+
+@ObjectType()
+export class QuizResult {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => ID)
+  userId: string;
+
+  @Field(() => ID)
+  quizId: string;
+
+  @Field(() => ID, { nullable: true })
+  courseId?: string;
+
+  @Field(() => ID, { nullable: true })
+  lessonId?: string;
+
+  @Field(() => Int)
+  totalQuestions: number;
+
+  @Field(() => Int)
+  correctAnswers: number;
+
+  @Field(() => Int)
+  wrongAnswers: number;
+
+  @Field(() => Int)
+  completionTime: number;
+
+  @Field(() => [UserAnswer])
+  userAnswers: UserAnswer[];
 }

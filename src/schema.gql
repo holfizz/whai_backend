@@ -405,6 +405,7 @@ type Mutation {
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
+  saveQuizResult(saveQuizResultInput: SaveQuizResultInput!): QuizResult!
 
   """
   Register a new user and return the user's fields and access and refresh tokens
@@ -504,6 +505,7 @@ type Quiz {
   lessonBlockId: ID
   questions: [Question!]!
   title: String!
+  totalQuestions: Int!
   updatedAt: DateTime!
 }
 
@@ -531,6 +533,19 @@ enum QuizQuestionType {
   OEQ
 }
 
+type QuizResult {
+  completionTime: Int!
+  correctAnswers: Int!
+  courseId: ID
+  id: ID!
+  lessonId: ID
+  quizId: ID!
+  totalQuestions: Int!
+  userAnswers: [UserAnswer!]!
+  userId: ID!
+  wrongAnswers: Int!
+}
+
 input QuizWithAIInput {
   chatWithAIId: ID!
   content: String!
@@ -545,6 +560,17 @@ type RefreshTokenResponse {
 input ResetPasswordInput {
   password: String!
   token: String!
+}
+
+input SaveQuizResultInput {
+  completionTime: Int!
+  correctAnswers: Int!
+  courseId: ID
+  lessonId: ID
+  quizId: ID!
+  totalQuestions: Int!
+  userAnswers: [UserAnswerInput!]!
+  wrongAnswers: Int!
 }
 
 type SessionDetails {
@@ -689,6 +715,18 @@ type User {
   resetPasswordToken: String
   roles: [UserRole!]!
   updatedAt: String!
+}
+
+type UserAnswer {
+  isCorrect: Boolean!
+  questionId: ID!
+  selectedAnswer: [String!]!
+}
+
+input UserAnswerInput {
+  isCorrect: Boolean!
+  questionId: ID!
+  selectedAnswer: [String!]!
 }
 
 enum UserMode {

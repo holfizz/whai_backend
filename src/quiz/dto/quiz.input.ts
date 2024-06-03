@@ -1,7 +1,7 @@
-import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, InputType, Int, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -29,6 +29,7 @@ export class ChoiceInput {
 
   @Field(() => ID, { nullable: true })
   @IsUUID()
+  @IsOptional()
   interactionId?: string;
 }
 
@@ -156,4 +157,62 @@ export class QuizWithAIInput {
   @IsOptional()
   @IsUUID()
   folderId?: string;
+}
+
+@InputType()
+class UserAnswerInput {
+  @Field(() => ID)
+  @IsUUID()
+  questionId: string;
+
+  @Field(() => [String])
+  @IsArray()
+  selectedAnswer: string[];
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isCorrect: boolean;
+}
+
+@InputType()
+export class SaveQuizResultInput {
+  @Field(() => ID)
+  @IsUUID()
+  quizId: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  courseId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  lessonId?: string;
+
+  @Field(() => Int)
+  @IsInt()
+  @Min(0)
+  totalQuestions: number;
+
+  @Field(() => Int)
+  @IsInt()
+  @Min(0)
+  correctAnswers: number;
+
+  @Field(() => Int)
+  @IsInt()
+  @Min(0)
+  wrongAnswers: number;
+
+  @Field(() => Int)
+  @IsInt()
+  @Min(0)
+  completionTime: number; // время выполнения в секундах
+
+  @Field(() => [UserAnswerInput])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UserAnswerInput)
+  userAnswers: UserAnswerInput[];
 }

@@ -2,8 +2,8 @@ import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
-import { QuizInput, QuizWithAIInput } from "./dto/quiz.input";
-import { Quiz } from "./entities/quiz.entity";
+import { QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
+import { Quiz, QuizResult } from "./entities/quiz.entity";
 import { QuizService } from "./quiz.service";
 
 const pubSub = new PubSub();
@@ -41,7 +41,6 @@ export class QuizResolver {
     return this.quizService.updateQuiz(id, updateQuizData);
   }
 
-  // Подписка на событие chatWithAIAnswer
   @Subscription(() => Quiz, {
     filter: (payload, variables) => {
       return payload.chatWithAIAnswer.conversation_id === variables.chatWithAIId;
@@ -62,5 +61,11 @@ export class QuizResolver {
   stopGeneration(@Args("conversationId", { type: () => String }) conversationId: string) {
     this.quizService.stopGeneration(conversationId);
     return true;
+  }
+
+  @Mutation(() => QuizResult)
+  @Auth("user")
+  saveQuizResult(@CurrentUser("id") userId: string, @Args("saveQuizResultInput") input: SaveQuizResultInput) {
+    return this.quizService.saveQuizResult(userId, input);
   }
 }

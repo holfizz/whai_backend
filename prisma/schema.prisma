@@ -193,14 +193,15 @@ model Course {
 
 //===========================QUIZ==========================//
 model Quiz {
-  id            String       @id @default(uuid())
-  title         String
-  questions     Question[] // Связь с вопросами
-  lessonBlockId String?      @map("lesson_block_id")
-  folderId      String?      @map("folder_id")
-  LessonBlock   LessonBlock? @relation(fields: [lessonBlockId], references: [id])
-  Folder        Folder?      @relation(fields: [folderId], references: [id])
-  QuizResult    QuizResult[]
+  id             String       @id @default(uuid())
+  title          String
+  questions      Question[] // Связь с вопросами
+  lessonBlockId  String?      @map("lesson_block_id")
+  totalQuestions Int          @default(0)
+  folderId       String?      @map("folder_id")
+  LessonBlock    LessonBlock? @relation(fields: [lessonBlockId], references: [id])
+  Folder         Folder?      @relation(fields: [folderId], references: [id])
+  QuizResult     QuizResult[]
 }
 
 model Question {
