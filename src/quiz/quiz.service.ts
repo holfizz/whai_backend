@@ -71,17 +71,26 @@ export class QuizService {
   }
 
   private extractQuizJson(content: string): string {
-    const match = content.match(/```quiz\n([\s\S]*?)\n```/);
+    let match = content.match(/```quiz\n([\s\S]*?)\n```/);
     if (!match || match.length < 2) throw new Error("Cannot find quiz JSON in the provided content.");
-    return match[1];
+
+    let quizJson = match[1];
+
+    // Remove ```json if it follows ```quiz
+    if (quizJson.startsWith("json")) {
+      quizJson = quizJson.replace(/^json\s*/, "");
+    }
+
+    return quizJson;
   }
 
   async stopGeneration(conversationId: string): Promise<void> {
     this.eduAiService.stopGeneration(conversationId);
   }
+
   async saveQuizResult(userId: string, dto: SaveQuizResultInput): Promise<QuizResult> {
     return await this.prisma.$transaction(async prisma => {
-      // Проверяем, существует ли пользователь с указанным userId
+      // Check if the user exists
       const userExists = await prisma.user.findUnique({
         where: { id: userId },
       });
@@ -89,7 +98,7 @@ export class QuizService {
         throw new Error(`User with id ${userId} does not exist.`);
       }
 
-      // Проверяем, существует ли курс с указанным courseId (если он передан)
+      // Check if the course exists, if provided
       if (dto.courseId) {
         const courseExists = await prisma.course.findUnique({
           where: { id: dto.courseId },
@@ -99,7 +108,7 @@ export class QuizService {
         }
       }
 
-      // Проверяем, существует ли урок с указанным lessonId (если он передан)
+      // Check if the lesson exists, if provided
       if (dto.lessonId) {
         const lessonExists = await prisma.lesson.findUnique({
           where: { id: dto.lessonId },
@@ -109,12 +118,34 @@ export class QuizService {
         }
       }
 
+      // Check if the folder exists, if provided
+      if (dto.folderId) {
+        const folderExists = await prisma.folder.findUnique({
+          where: { id: dto.folderId },
+        });
+        if (!folderExists) {
+          throw new Error(`Folder with id ${dto.folderId} does not exist.`);
+        }
+
+        const folderBelongsToCourse = await prisma.folder.findFirst({
+          where: {
+            id: dto.folderId,
+            courseId: dto.courseId,
+          },
+        });
+        if (!folderBelongsToCourse) {
+          throw new Error(`Folder with id ${dto.folderId} does not belong to Course with id ${dto.courseId}.`);
+        }
+      }
+
+      // Create the quiz result
       const quizResult = await prisma.quizResult.create({
         data: {
           userId: userId,
           quizId: dto.quizId,
-          courseId: dto.courseId || null,
+          courseId: dto.courseId,
           lessonId: dto.lessonId || null,
+          folderId: dto.folderId || null,
           totalQuestions: dto.totalQuestions,
           correctAnswers: dto.correctAnswers,
           wrongAnswers: dto.wrongAnswers,
@@ -122,6 +153,7 @@ export class QuizService {
         },
       });
 
+      // Create user answers
       const userAnswersPromises = dto.userAnswers.map(userAnswer =>
         prisma.userAnswer.create({
           data: {
@@ -134,10 +166,12 @@ export class QuizService {
       );
       await Promise.all(userAnswersPromises);
 
+      // Fetch saved user answers
       const savedUserAnswers = await prisma.userAnswer.findMany({
         where: { quizResultId: quizResult.id },
       });
 
+      // Return the quiz result with saved user answers
       return {
         ...quizResult,
         userAnswers: savedUserAnswers,

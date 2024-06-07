@@ -110,12 +110,11 @@ model LessonBlock {
   id        String          @id @default(uuid())
   createdAt DateTime        @default(now()) @map("created_at")
   updatedAt DateTime        @updatedAt @map("updated_at")
-  type      LessonBlockEnum @default(DOCUMENT)
+  type      LessonBlockEnum @default(TEXT)
   code      String?
   text      String?
   videoUrl  String?
   imageUrl  String?
-  document  String?
   duration  Int?
   caption   String?
   language  String?
@@ -150,15 +149,16 @@ model Lesson {
 }
 
 model Folder {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String       @id @default(uuid())
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
   name        String
   description String?
   courseId    String
-  course      Course   @relation(fields: [courseId], references: [id])
+  course      Course       @relation(fields: [courseId], references: [id])
   quizzes     Quiz[]
   lessons     Lesson[]
+  QuizResult  QuizResult[]
 }
 
 model UserCourseProgress {
@@ -251,7 +251,8 @@ model QuizResult {
   userId         String
   quizId         String
   courseId       String
-  lessonId       String
+  lessonId       String?
+  folderId       String?
   totalQuestions Int
   correctAnswers Int
   wrongAnswers   Int
@@ -259,11 +260,12 @@ model QuizResult {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  User        User         @relation(fields: [userId], references: [id])
-  Quiz        Quiz         @relation(fields: [quizId], references: [id])
-  Course      Course       @relation(fields: [courseId], references: [id])
-  Lesson      Lesson       @relation(fields: [lessonId], references: [id])
+  User        User?        @relation(fields: [userId], references: [id])
+  Quiz        Quiz?        @relation(fields: [quizId], references: [id])
+  Course      Course?      @relation(fields: [courseId], references: [id])
   UserAnswers UserAnswer[]
+  Lesson      Lesson?      @relation(fields: [lessonId], references: [id])
+  Folder      Folder?      @relation(fields: [folderId], references: [id])
 }
 
 model UserAnswer {
@@ -273,8 +275,8 @@ model UserAnswer {
   selectedAnswer String[] // Выбранный ответ
   isCorrect      Boolean
 
-  QuizResult QuizResult @relation(fields: [quizResultId], references: [id])
-  Question   Question   @relation(fields: [questionId], references: [id])
+  QuizResult QuizResult? @relation(fields: [quizResultId], references: [id])
+  Question   Question?   @relation(fields: [questionId], references: [id])
 }
 
 enum QuizQuestionType {
@@ -405,7 +407,6 @@ enum LessonBlockEnum {
   TEXT
   VIDEO
   QUIZ
-  DOCUMENT
   IMAGE
   CODE
 }

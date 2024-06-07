@@ -271,7 +271,7 @@ export class AuthService {
         expires: new Date(0),
         secure: true,
         //PRODUCTION - нужно поставить lax
-        sameSite: "none",
+        sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
       });
     } catch (error) {
       throw error;

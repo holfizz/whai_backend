@@ -169,11 +169,16 @@ export class QuizResult {
   @Field(() => ID)
   quizId: string;
 
-  @Field(() => ID, { nullable: true })
-  courseId?: string;
+  @Field(() => ID)
+  courseId: string;
 
   @Field(() => ID, { nullable: true })
   lessonId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  folderId?: string;
 
   @Field(() => Int)
   totalQuestions: number;

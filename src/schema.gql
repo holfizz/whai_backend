@@ -215,7 +215,6 @@ type LessonBlock {
 
 enum LessonBlockEnum {
   CODE
-  DOCUMENT
   IMAGE
   QUIZ
   TEXT
@@ -536,7 +535,8 @@ enum QuizQuestionType {
 type QuizResult {
   completionTime: Int!
   correctAnswers: Int!
-  courseId: ID
+  courseId: ID!
+  folderId: ID
   id: ID!
   lessonId: ID
   quizId: ID!
@@ -565,7 +565,8 @@ input ResetPasswordInput {
 input SaveQuizResultInput {
   completionTime: Int!
   correctAnswers: Int!
-  courseId: ID
+  courseId: ID!
+  folderId: ID
   lessonId: ID
   quizId: ID!
   totalQuestions: Int!

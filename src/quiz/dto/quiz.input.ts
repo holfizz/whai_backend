@@ -180,8 +180,7 @@ export class SaveQuizResultInput {
   @IsUUID()
   quizId: string;
 
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
+  @Field(() => ID)
   @IsUUID()
   courseId?: string;
 
@@ -189,6 +188,11 @@ export class SaveQuizResultInput {
   @IsOptional()
   @IsUUID()
   lessonId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  folderId?: string;
 
   @Field(() => Int)
   @IsInt()
