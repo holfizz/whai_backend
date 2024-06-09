@@ -76,39 +76,13 @@ enum CourseLevelEnum {
   INTERMEDIATE
 }
 
-type CoursePlan {
-  createdAt: DateTime!
-  description: String
-  id: ID!
-  title: String!
-  updatedAt: DateTime!
-}
-
 input CreateChatInput {
   title: String
-}
-
-input CreateCoursePlanInput {
-  description: String
-  title: String!
-}
-
-input CreateLessonPlanInput {
-  description: String
-  icons: [IconType!]!
-  subtopicPlanId: String!
-  title: String!
 }
 
 input CreateMessageInput {
   chatId: String!
   text: String!
-}
-
-input CreateModulePlanInput {
-  coursePlanId: String!
-  description: String
-  title: String!
 }
 
 input CreateNoticeInput {
@@ -123,12 +97,6 @@ input CreateQuizPlanInput {
   icon: IconType!
   modulePlanId: String
   subtopicPlanId: String
-}
-
-input CreateSubtopicPlanInput {
-  description: String
-  modulePlanId: String!
-  title: String!
 }
 
 """
@@ -250,6 +218,12 @@ type LessonPlan {
   updatedAt: DateTime!
 }
 
+input LessonPlanInput {
+  description: String
+  icons: [IconType!]!
+  title: String!
+}
+
 type LessonTasks {
   createdAt: DateTime!
   id: ID!
@@ -328,6 +302,7 @@ enum MessageWithAIRole {
 }
 
 type ModulePlan {
+  SubtopicPlans: [SubtopicPlan!]!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -335,16 +310,20 @@ type ModulePlan {
   updatedAt: DateTime!
 }
 
+input ModulePlanInput {
+  SubtopicPlans: [SubtopicPlanInput!]!
+  description: String
+  title: String!
+}
+
 type Mutation {
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
-  createCoursePlan(createPlanInput: CreateCoursePlanInput!): CoursePlan!
   createFolder(createFolderInput: FolderInput!): Folder!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
-  createLessonPlan(createLessonPlanInput: CreateLessonPlanInput!): LessonPlan!
   createLessonTask(createLessonTaskInput: LessonTasksInput!): LessonTasks!
 
   """
@@ -352,12 +331,11 @@ type Mutation {
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
-  createModulePlan(createModulePlanInput: CreateModulePlanInput!): ModulePlan!
   createNotice(noticeDto: CreateNoticeInput!): Notice!
+  createPlan(createPlanInput: PlanInput!): Plan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
   createQuizPlan(createQuizPlanInput: CreateQuizPlanInput!): QuizPlan!
   createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): Quiz!
-  createSubtopicPlan(createSubtopicPlanInput: CreateSubtopicPlanInput!): SubtopicPlan!
 
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
@@ -396,11 +374,8 @@ type Mutation {
   Authenticate the user and return the user's fields and access and refresh tokens.
   """
   login(loginInput: loginInput!): SignResponse!
-  removeLessonPlan(id: Int!): LessonPlan!
   removeMessageWithAi(id: Int!): MessageWithAIData!
-  removeModulePlan(id: Int!): ModulePlan!
   removeQuizPlan(id: Int!): QuizPlan!
-  removeSubtopicPlan(id: Int!): SubtopicPlan!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -446,6 +421,21 @@ type Notice {
   userId: ID!
 }
 
+type Plan {
+  ModulePlans: [ModulePlan!]!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+}
+
+input PlanInput {
+  ModulePlans: [ModulePlanInput!]!
+  description: String
+  title: String!
+}
+
 type Query {
   course(id: String!): Course!
   findQuizById(id: String!): Quiz!
@@ -471,9 +461,7 @@ type Query {
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
   messageWithAi(id: Int!): MessageWithAIData!
-  modulePlan(id: Int!): ModulePlan!
   quizPlan(id: Int!): QuizPlan!
-  subtopicPlan(id: Int!): SubtopicPlan!
 }
 
 type Question {
@@ -623,11 +611,18 @@ type Subscription {
 }
 
 type SubtopicPlan {
+  LessonPlans: [LessonPlan!]!
   createdAt: DateTime!
   description: String
   id: ID!
   title: String!
   updatedAt: DateTime!
+}
+
+input SubtopicPlanInput {
+  LessonPlans: [LessonPlanInput!]!
+  description: String
+  title: String!
 }
 
 type TelegramLink {

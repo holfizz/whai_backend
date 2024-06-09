@@ -324,7 +324,7 @@ model Notice {
 
 //===========================PLANS==============================//
 
-model CoursePlan {
+model Plan {
   id          String       @id @default(uuid())
   title       String
   description String?
@@ -336,8 +336,9 @@ model ModulePlan {
   CoursePlanId  String         @map("course_plan_id")
   title         String
   description   String?
-  CoursePlan    CoursePlan     @relation(fields: [CoursePlanId], references: [id])
   SubtopicPlans SubtopicPlan[]
+  Plan          Plan?          @relation(fields: [planId], references: [id])
+  planId        String?
 }
 
 model SubtopicPlan {

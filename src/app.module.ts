@@ -13,25 +13,22 @@ import { ChatMembersModule } from "./chat-members/chat-members.module";
 import { ChatWIthAIModule } from "./chat-with-ai/chat-with-ai.module";
 import { ChatModule } from "./chat/chat.module";
 import { CourseModule } from "./course/course.module";
-import { CoursePlanModule } from "./coursePlan/coursePlan.module";
+import { EduAiModule } from "./edu-ai/edu-ai.module";
 import { FileModule } from "./file/file.module";
 import { FolderModule } from "./folder/folder.module";
 import { LessonBlockModule } from "./lesson-block/lesson-block.module";
-import { LessonPlanModule } from "./lesson-plan/lesson-plan.module";
 import { LessonTasksModule } from "./lesson-tasks/lesson-tasks.module";
 import { LessonModule } from "./lesson/lesson.module";
 import { MessageWithAiModule } from "./message-with-ai/message-with-ai.module";
 import { MessageModule } from "./message/message.module";
-import { ModulePlanModule } from "./module-plan/module-plan.module";
 import { NoticeModule } from "./notice/notice.module";
 import { PaginationModule } from "./pagination/pagination.module";
+import { PlanModule } from "./plan/plan.module";
 import { PrismaService } from "./prisma.service";
 import { QuizPlanModule } from "./quiz-plan/quiz-plan.module";
 import { QuizModule } from "./quiz/quiz.module";
-import { SubtopicPlanModule } from "./subtopic-plan/subtopic-plan.module";
 import { TelegramModule } from "./telegram/telegram.module";
 import { UserModule } from "./user/user.module";
-import { EduAiModule } from './edu-ai/edu-ai.module';
 
 @Module({
   imports: [
@@ -83,12 +80,9 @@ import { EduAiModule } from './edu-ai/edu-ai.module';
     AnalyticsModule,
     NoticeModule,
     TelegramModule,
-    CoursePlanModule,
-    LessonPlanModule,
     QuizPlanModule,
-    ModulePlanModule,
-    SubtopicPlanModule,
     EduAiModule,
+    PlanModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })
