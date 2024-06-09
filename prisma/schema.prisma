@@ -339,6 +339,7 @@ model ModulePlan {
   SubtopicPlans SubtopicPlan[]
   Plan          Plan?          @relation(fields: [planId], references: [id])
   planId        String?
+  QuizPlan      QuizPlan[]
 }
 
 model SubtopicPlan {
@@ -348,6 +349,7 @@ model SubtopicPlan {
   description  String?
   ModulePlan   ModulePlan   @relation(fields: [ModulePlanId], references: [id])
   LessonPlans  LessonPlan[]
+  QuizPlan     QuizPlan[]
 }
 
 model LessonPlan {
@@ -357,6 +359,17 @@ model LessonPlan {
   description    String
   SubtopicPlan   SubtopicPlan @relation(fields: [SubtopicPlanId], references: [id])
   icons          IconType[]   @default([TEXT])
+}
+
+model QuizPlan {
+  id             String        @id @default(uuid())
+  subtopicPlanId String?       @map("subtopic_plan_id")
+  modulePlanId   String?       @map("module_plan_id")
+  title          String
+  description    String
+  SubtopicPlan   SubtopicPlan? @relation(fields: [subtopicPlanId], references: [id])
+  ModulePlan     ModulePlan?   @relation(fields: [modulePlanId], references: [id])
+  icon           IconType      @default(QUIZ)
 }
 
 //==============================================================//

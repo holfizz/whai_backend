@@ -92,13 +92,6 @@ input CreateNoticeInput {
   title: String!
 }
 
-input CreateQuizPlanInput {
-  description: String
-  icon: IconType!
-  modulePlanId: String
-  subtopicPlanId: String
-}
-
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -333,8 +326,8 @@ type Mutation {
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
   createNotice(noticeDto: CreateNoticeInput!): Notice!
   createPlan(createPlanInput: PlanInput!): Plan!
+  createPlanWithAI(QuizWithAIInput: PlanWithAIInput!): Plan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
-  createQuizPlan(createQuizPlanInput: CreateQuizPlanInput!): QuizPlan!
   createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): Quiz!
 
   """Delete an existing chat for the current user."""
@@ -375,7 +368,6 @@ type Mutation {
   """
   login(loginInput: loginInput!): SignResponse!
   removeMessageWithAi(id: Int!): MessageWithAIData!
-  removeQuizPlan(id: Int!): QuizPlan!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -432,7 +424,14 @@ type Plan {
 
 input PlanInput {
   ModulePlans: [ModulePlanInput!]!
+  chatWithAIId: ID
   description: String
+  title: String!
+}
+
+input PlanWithAIInput {
+  chatWithAIId: ID!
+  content: String!
   title: String!
 }
 
@@ -461,7 +460,6 @@ type Query {
   """Log out a user and remove their refresh token cookie."""
   logout: Boolean!
   messageWithAi(id: Int!): MessageWithAIData!
-  quizPlan(id: Int!): QuizPlan!
 }
 
 type Question {
@@ -504,11 +502,13 @@ input QuizInput {
 }
 
 type QuizPlan {
-  createdAt: DateTime!
   description: String
-  icon: IconType!
-  id: ID!
-  updatedAt: DateTime!
+  title: String!
+}
+
+input QuizPlanInput {
+  description: String
+  title: String!
 }
 
 enum QuizQuestionType {
@@ -612,6 +612,7 @@ type Subscription {
 
 type SubtopicPlan {
   LessonPlans: [LessonPlan!]!
+  QuizPlan: QuizPlan
   createdAt: DateTime!
   description: String
   id: ID!
@@ -621,6 +622,7 @@ type SubtopicPlan {
 
 input SubtopicPlanInput {
   LessonPlans: [LessonPlanInput!]!
+  QuizPlan: QuizPlanInput
   description: String
   title: String!
 }

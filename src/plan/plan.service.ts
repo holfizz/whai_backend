@@ -1,7 +1,9 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
+import { AIDTO } from "@/edu-ai/types/ai.types";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { PlanInput } from "./dto/plan.input";
+import { PubSub } from "graphql-subscriptions";
+import { PlanInput, PlanWithAIInput } from "./dto/plan.input";
 import { PlanRepository } from "./plan.repository";
 import { PlanUtils } from "./plan.utils";
 
@@ -31,16 +33,20 @@ export class PlanService {
             const newLessonPlan = await this.planRepository.createLessonPlan(lessonPlan, newSubtopicPlan.id);
             lessonPlans.push(newLessonPlan);
           }
-          subtopicPlans.push({ ...newSubtopicPlan, LessonPlans: lessonPlans });
+
+          let quizPlan = null;
+          if (subtopicPlan.QuizPlan) {
+            quizPlan = await this.planRepository.createQuizPlan(subtopicPlan.QuizPlan, newSubtopicPlan.id);
+          }
+
+          subtopicPlans.push({ ...newSubtopicPlan, LessonPlans: lessonPlans, QuizPlan: quizPlan });
         }
         modulePlans.push({ ...newModulePlan, SubtopicPlans: subtopicPlans });
       }
 
-      // Рассчитаем статистику и выведем в лог или используем в бизнес-логике
       const planStats = await this.planUtils.calculatePlanStats(newPlan.id);
       console.log(`Total Modules: ${planStats.totalModules}`);
 
-      // Возвращаем полный план с модулями, подтемами и уроками
       return { ...newPlan, ModulePlans: modulePlans };
     });
   }
@@ -59,7 +65,6 @@ export class PlanService {
     return await this.prisma.$transaction(async prisma => {
       await this.planRepository.updatePlan(id, data);
 
-      // Возвращаем обновленный план
       return this.planRepository.findPlanById(id);
     });
   }
@@ -70,6 +75,34 @@ export class PlanService {
 
   async findAllPlans(): Promise<any> {
     return this.planRepository.findAllPlans();
+  }
+
+  async createPlanWithAI(userId: string, dto: PlanWithAIInput, pubSub: PubSub): Promise<any> {
+    const messagesHistory = await this.prisma.messageWithAI.findMany({
+      where: { chatWithAIId: dto.chatWithAIId },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+    const aiDto: AIDTO = {
+      content: dto.title,
+      messagesHistory,
+    };
+
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
+    if (!fullContent) throw new Error("Failed to get content from AI service.");
+    console.log("fullContent", fullContent);
+    const planJson = this.extractPlanJson(fullContent);
+    console.log("planJson", planJson);
+
+    const parsedContent = JSON.parse(planJson);
+    console.log("parsedContent", parsedContent);
+
+    const { title, ModulePlans } = parsedContent;
+
+    await this.createPlan({ title, ModulePlans });
+
+    return parsedContent;
   }
 
   private extractPlanJson(content: string): string {
@@ -88,17 +121,4 @@ export class PlanService {
   async stopGeneration(conversationId: string): Promise<void> {
     this.eduAiService.stopGeneration(conversationId);
   }
-
-  // async createPlanWithAI(userId: string, dto: PlanInput, pubSub: PubSub): Promise<any> {
-  //   const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, dto, "EduAI", pubSub);
-  //   if (!fullContent) throw new Error("Failed to get content from AI service.");
-
-  //   const planJson = this.extractPlanJson(fullContent);
-  //   const parsedContent = JSON.parse(planJson);
-  //   const { title, ModulePlans } = parsedContent;
-
-  //   await this.createPlan({ title, ModulePlans });
-
-  //   return parsedContent;
-  // }
 }

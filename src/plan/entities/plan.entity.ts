@@ -2,11 +2,24 @@ import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { IconType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
 
 registerEnumType(IconType, {
   name: "IconType",
 });
+
+@ObjectType()
+class QuizPlan {
+  @Field(() => String)
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
 
 @ObjectType()
 class LessonPlan extends BaseEntity {
@@ -40,6 +53,12 @@ class SubtopicPlan extends BaseEntity {
   @ValidateNested({ each: true })
   @Type(() => LessonPlan)
   LessonPlans: LessonPlan[];
+
+  @Field(() => QuizPlan, { nullable: true })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => QuizPlan)
+  QuizPlan?: QuizPlan;
 }
 
 @ObjectType()

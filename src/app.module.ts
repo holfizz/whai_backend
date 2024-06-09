@@ -25,7 +25,6 @@ import { NoticeModule } from "./notice/notice.module";
 import { PaginationModule } from "./pagination/pagination.module";
 import { PlanModule } from "./plan/plan.module";
 import { PrismaService } from "./prisma.service";
-import { QuizPlanModule } from "./quiz-plan/quiz-plan.module";
 import { QuizModule } from "./quiz/quiz.module";
 import { TelegramModule } from "./telegram/telegram.module";
 import { UserModule } from "./user/user.module";
@@ -80,7 +79,6 @@ import { UserModule } from "./user/user.module";
     AnalyticsModule,
     NoticeModule,
     TelegramModule,
-    QuizPlanModule,
     EduAiModule,
     PlanModule,
   ],

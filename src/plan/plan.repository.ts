@@ -1,6 +1,6 @@
 import { PrismaService } from "@/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { LessonPlanInput, ModulePlanInput, PlanInput, SubtopicPlanInput } from "./dto/plan.input";
+import { LessonPlanInput, ModulePlanInput, PlanInput, QuizPlanInput, SubtopicPlanInput } from "./dto/plan.input";
 
 @Injectable()
 export class PlanRepository {
@@ -58,6 +58,15 @@ export class PlanRepository {
         description: dto.description,
         SubtopicPlanId: subtopicPlanId,
         icons: dto.icons,
+      },
+    });
+  }
+  async createQuizPlan(data: QuizPlanInput, subtopicPlanId: string): Promise<any> {
+    return this.prisma.quizPlan.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        subtopicPlanId: subtopicPlanId,
       },
     });
   }

@@ -1,11 +1,23 @@
-import { Field, InputType, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
 import { IconType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(IconType, {
   name: "IconType",
 });
+@InputType()
+export class QuizPlanInput {
+  @Field(() => String)
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
 
 @InputType()
 export class LessonPlanInput {
@@ -44,6 +56,12 @@ export class SubtopicPlanInput {
   @ValidateNested({ each: true })
   @Type(() => LessonPlanInput)
   LessonPlans: LessonPlanInput[];
+
+  @Field(() => QuizPlanInput, { nullable: true })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => QuizPlanInput)
+  QuizPlan?: QuizPlanInput;
 }
 
 @InputType()
@@ -84,4 +102,26 @@ export class PlanInput {
   @ValidateNested({ each: true })
   @Type(() => ModulePlanInput)
   ModulePlans: ModulePlanInput[];
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  chatWithAIId?: string;
+}
+@InputType()
+export class PlanWithAIInput {
+  @IsString()
+  @Field(() => ID)
+  @IsUUID()
+  chatWithAIId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Field(() => String)
+  content: string;
+
+  @Field(() => String)
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 }
