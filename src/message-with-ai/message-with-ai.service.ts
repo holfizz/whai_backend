@@ -25,7 +25,7 @@ export class MessageWithAiService {
       },
     });
     return this.eduAiService
-      .getAIModelAnswer(chatWithAI.id, userId, { messagesHistory: messagesHistory, content: dto.content }, "ChatGPT", pubSub)
+      .getAIModelAnswer(chatWithAI.id, userId, { messagesHistory: messagesHistory, content: dto.content }, "ChatAI", pubSub)
       .then(async fullContent => {
         if (fullContent.length > 0) {
           try {

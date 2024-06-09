@@ -432,7 +432,6 @@ input PlanInput {
 input PlanWithAIInput {
   chatWithAIId: ID!
   content: String!
-  title: String!
 }
 
 type Query {
@@ -502,8 +501,11 @@ input QuizInput {
 }
 
 type QuizPlan {
+  createdAt: DateTime!
   description: String
+  id: ID!
   title: String!
+  updatedAt: DateTime!
 }
 
 input QuizPlanInput {

@@ -9,7 +9,7 @@ registerEnumType(IconType, {
 });
 
 @ObjectType()
-class QuizPlan {
+class QuizPlan extends BaseEntity {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()

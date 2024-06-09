@@ -85,7 +85,7 @@ export class PlanService {
       },
     });
     const aiDto: AIDTO = {
-      content: dto.title,
+      content: dto.content,
       messagesHistory,
     };
 
@@ -98,9 +98,7 @@ export class PlanService {
     const parsedContent = JSON.parse(planJson);
     console.log("parsedContent", parsedContent);
 
-    const { title, ModulePlans } = parsedContent;
-
-    await this.createPlan({ title, ModulePlans });
+    await this.createPlan(parsedContent);
 
     return parsedContent;
   }

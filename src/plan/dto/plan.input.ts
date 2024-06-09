@@ -119,9 +119,4 @@ export class PlanWithAIInput {
   @IsNotEmpty()
   @Field(() => String)
   content: string;
-
-  @Field(() => String)
-  @IsString()
-  @IsNotEmpty()
-  title: string;
 }

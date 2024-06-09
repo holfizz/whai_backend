@@ -11,9 +11,20 @@ export class EduAiService {
 
   constructor(private readonly httpService: HttpService) {}
 
-  getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatGPT" | "EduAI", pubSub: PubSub): Promise<any> {
+  async getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub: PubSub): Promise<any> {
     const messagesHistory = dto.messagesHistory;
-    const botId = botMode === "ChatGPT" ? process.env.CHATGPT_ID : process.env.WHAI_AI_ID;
+    let botId: string;
+
+    switch (botMode) {
+      case "ChatAI":
+        botId = process.env.CHATAI_ID;
+        break;
+      case "EduAI":
+        botId = process.env.WHAI_AI_ID;
+        break;
+      default:
+        throw new Error("Invalid bot mode");
+    }
     const abortController = new AbortController();
 
     // Сохраняем AbortController для возможности отмены запроса
