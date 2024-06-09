@@ -326,6 +326,8 @@ model Notice {
 
 model Plan {
   id          String       @id @default(uuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   title       String
   description String?
   ModulePlans ModulePlan[]
@@ -333,6 +335,8 @@ model Plan {
 
 model ModulePlan {
   id            String         @id @default(uuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   CoursePlanId  String         @map("course_plan_id")
   title         String
   description   String?
@@ -344,6 +348,8 @@ model ModulePlan {
 
 model SubtopicPlan {
   id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   ModulePlanId String       @map("module_plan_id")
   title        String
   description  String?
@@ -354,6 +360,8 @@ model SubtopicPlan {
 
 model LessonPlan {
   id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   SubtopicPlanId String       @map("subtopic_plan_id")
   title          String
   description    String
@@ -363,6 +371,8 @@ model LessonPlan {
 
 model QuizPlan {
   id             String        @id @default(uuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   subtopicPlanId String?       @map("subtopic_plan_id")
   modulePlanId   String?       @map("module_plan_id")
   title          String

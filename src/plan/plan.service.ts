@@ -91,16 +91,14 @@ export class PlanService {
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
-    console.log("fullContent", fullContent);
     const planJson = this.extractPlanJson(fullContent);
-    console.log("planJson", planJson);
 
     const parsedContent = JSON.parse(planJson);
     console.log("parsedContent", parsedContent);
 
-    await this.createPlan(parsedContent);
+    const plan = await this.createPlan(parsedContent);
 
-    return parsedContent;
+    return plan;
   }
 
   private extractPlanJson(content: string): string {
