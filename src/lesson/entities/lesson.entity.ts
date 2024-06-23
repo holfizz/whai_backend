@@ -34,7 +34,7 @@ export class Lesson extends BaseEntity {
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => LessonTasks)
-  tasks?: LessonTasks[];
+  lessonTasks?: LessonTasks[];
 
   @Field(() => ID)
   @IsString()

@@ -152,8 +152,8 @@ type Lesson {
   folderId: ID!
   id: ID!
   lessonBlocks: [LessonBlock]
+  lessonTasks: [LessonTasks]
   name: String!
-  tasks: [LessonTasks]
   types: [LessonTypeEnum!]!
   updatedAt: DateTime!
 }
@@ -177,7 +177,6 @@ type LessonBlock {
 enum LessonBlockEnum {
   CODE
   IMAGE
-  QUIZ
   TEXT
   VIDEO
 }
@@ -237,6 +236,21 @@ enum LessonTypeEnum {
   QUIZ
   TEXT
   VIDEO
+}
+
+input LessonWithAIInput {
+  chatWithAIId: ID!
+  content: String!
+  folderId: ID!
+}
+
+input LessonWithAITasksBlocksInput {
+  description: String
+  folderId: ID!
+  lessonBlocks: [LessonBlockInput]
+  lessonTasks: [LessonTasksInput]
+  name: String!
+  types: [LessonTypeEnum!]!
 }
 
 type MatchingInteraction {
@@ -317,7 +331,9 @@ type Mutation {
   createFolder(createFolderInput: FolderInput!): Folder!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
+  createLessonFromAI(lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput!): Lesson!
   createLessonTask(createLessonTaskInput: LessonTasksInput!): LessonTasks!
+  createLessonWithAI(createLessonWithAIInput: LessonWithAIInput!): Lesson!
 
   """
   Create a new message with the given content and associate it with the current user.
@@ -436,6 +452,8 @@ input PlanWithAIInput {
 
 type Query {
   course(id: String!): Course!
+  findAllLessons(folderId: ID!): [Lesson!]!
+  findLessonById(lessonId: ID!): Lesson
   findQuizById(id: String!): Quiz!
 
   """Retrieve all chats for the current user."""

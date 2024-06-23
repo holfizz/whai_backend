@@ -82,10 +82,10 @@ describe("LessonBlockService", () => {
         // add other required fields
       };
       const lessonBlock = await service.createLessonBlock(newLessonBlock);
-      const updatedLessonBlock = await service.updateLessonBlock(lessonBlock.id, { type: LessonBlockEnum.QUIZ });
+      const updatedLessonBlock = await service.updateLessonBlock(lessonBlock.id, { type: LessonBlockEnum.VIDEO });
       expect(updatedLessonBlock).toBeDefined();
       expect(updatedLessonBlock.id).toEqual(lessonBlock.id);
-      expect(updatedLessonBlock.type).toEqual(LessonBlockEnum.QUIZ);
+      expect(updatedLessonBlock.type).toEqual(LessonBlockEnum.VIDEO);
     });
   });
 

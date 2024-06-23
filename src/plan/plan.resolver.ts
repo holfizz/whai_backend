@@ -11,6 +11,7 @@ export class PlanResolver {
   constructor(private readonly planService: PlanService) {}
 
   @Mutation(() => Plan)
+  @Auth("user")
   createPlan(@Args("createPlanInput") createPlanInput: PlanInput) {
     return this.planService.createPlan(createPlanInput);
   }

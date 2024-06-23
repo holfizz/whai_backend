@@ -8,6 +8,12 @@ export class LessonBlockService {
   constructor(private prisma: PrismaService) {}
 
   async createLessonBlock(data: LessonBlockInput) {
+    // Check if the lessonId exists
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: data.lessonId } });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${data.lessonId} not found`);
+    }
+
     return this.prisma.lessonBlock.create({
       data: {
         ...data,
@@ -16,18 +22,47 @@ export class LessonBlockService {
   }
 
   async updateLessonBlock(id: string, data: UpdateLessonBlock) {
-    const lesson = await this.prisma.lessonBlock.findUnique({ where: { id } });
-    if (!lesson) {
-      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    // Check if the lesson block exists
+    const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id } });
+    if (!lessonBlock) {
+      throw new NotFoundException(`LessonBlock with ID ${id} not found`);
     }
-    return this.prisma.lessonBlock.update({ where: { id }, data });
+
+    return this.prisma.lessonBlock.update({
+      where: { id },
+      data,
+    });
   }
 
   async deleteLessonBlock(id: string) {
-    const lesson = await this.prisma.lessonBlock.findUnique({ where: { id } });
-    if (!lesson) {
-      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    // Check if the lesson block exists
+    const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id } });
+    if (!lessonBlock) {
+      throw new NotFoundException(`LessonBlock with ID ${id} not found`);
     }
-    await this.prisma.lessonBlock.deleteMany({ where: { id } });
+
+    // Delete the lesson block
+    return this.prisma.lessonBlock.delete({ where: { id } });
+  }
+
+  async findLessonBlockById(id: string) {
+    const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id } });
+    if (!lessonBlock) {
+      throw new NotFoundException(`LessonBlock with ID ${id} not found`);
+    }
+    return lessonBlock;
+  }
+
+  async findAllLessonBlocks() {
+    return this.prisma.lessonBlock.findMany();
+  }
+
+  async findLessonBlocksByLessonId(lessonId: string) {
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId } });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+    }
+
+    return this.prisma.lessonBlock.findMany({ where: { lessonId } });
   }
 }
