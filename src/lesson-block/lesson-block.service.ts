@@ -53,10 +53,6 @@ export class LessonBlockService {
     return lessonBlock;
   }
 
-  async findAllLessonBlocks() {
-    return this.prisma.lessonBlock.findMany();
-  }
-
   async findLessonBlocksByLessonId(lessonId: string) {
     const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId } });
     if (!lesson) {
