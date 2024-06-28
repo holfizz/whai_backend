@@ -16,6 +16,8 @@ enum IconType {
   TEXT
 }
 
+//TIME ICON TYPE
+
 enum CourseLevelEnum {
   BEGINNER
   INTERMEDIATE
