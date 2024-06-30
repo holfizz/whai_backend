@@ -18,7 +18,7 @@ export class QuizService {
 
   async createQuiz(data: QuizInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
-      await this.quizRepository.validateFolderAndLesson(data);
+      await this.quizRepository.validateSubtopicAndLesson(data);
 
       const newQuiz = await this.quizRepository.createQuiz(data);
 
@@ -69,7 +69,7 @@ export class QuizService {
       title,
       questions,
       lessonBlockId: dto.lessonBlockId,
-      folderId: dto.folderId,
+      subtopicId: dto.subtopicId,
       courseId: dto.courseId,
     });
 
@@ -124,23 +124,23 @@ export class QuizService {
         }
       }
 
-      // Check if the folder exists, if provided
-      if (dto.folderId) {
-        const folderExists = await prisma.folder.findUnique({
-          where: { id: dto.folderId },
+      // Check if the subtopic exists, if provided
+      if (dto.subtopicId) {
+        const subtopicExists = await prisma.subtopic.findUnique({
+          where: { id: dto.subtopicId },
         });
-        if (!folderExists) {
-          throw new Error(`Folder with id ${dto.folderId} does not exist.`);
+        if (!subtopicExists) {
+          throw new Error(`Subtopic with id ${dto.subtopicId} does not exist.`);
         }
 
-        const folderBelongsToCourse = await prisma.folder.findFirst({
+        const subtopicBelongsToCourse = await prisma.subtopic.findFirst({
           where: {
-            id: dto.folderId,
-            courseId: dto.courseId,
+            id: dto.subtopicId,
+            topicId: dto.subtopicId,
           },
         });
-        if (!folderBelongsToCourse) {
-          throw new Error(`Folder with id ${dto.folderId} does not belong to Course with id ${dto.courseId}.`);
+        if (!subtopicBelongsToCourse) {
+          throw new Error(`Subtopic with id ${dto.subtopicId} does not belong to Course with id ${dto.courseId}.`);
         }
       }
 
@@ -151,7 +151,7 @@ export class QuizService {
           quizId: dto.quizId,
           courseId: dto.courseId,
           lessonId: dto.lessonId || null,
-          folderId: dto.folderId || null,
+          subtopicId: dto.subtopicId || null,
           totalQuestions: dto.totalQuestions,
           correctAnswers: dto.correctAnswers,
           wrongAnswers: dto.wrongAnswers,

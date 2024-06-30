@@ -1,9 +1,9 @@
 import { BaseEntity } from "@/helpers/base.entity";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { IsOptional, IsString, IsUUID } from "class-validator";
+import { Field, Float, ID, ObjectType } from "@nestjs/graphql";
+import { IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 @ObjectType()
-export class Folder extends BaseEntity {
+export class Topic extends BaseEntity {
   @Field(() => String)
   @IsString()
   name: string;
@@ -16,4 +16,8 @@ export class Folder extends BaseEntity {
   @Field(() => ID)
   @IsUUID()
   courseId: string;
+
+  @Field(() => Float)
+  @IsNumber()
+  progressPercents: number;
 }

@@ -22,7 +22,7 @@ export class LessonInput {
   @Field(() => ID)
   @IsString()
   @IsUUID()
-  folderId: string;
+  subtopicId: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -67,5 +67,5 @@ export class LessonWithAIInput {
   @IsString()
   @Field(() => ID)
   @IsUUID()
-  folderId: string;
+  subtopicId: string;
 }

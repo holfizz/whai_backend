@@ -234,14 +234,14 @@ model Lesson {
   courseId     String
   Course       Course           @relation(fields: [courseId], references: [id])
   isCompleted  Boolean          @default(false) @map("is_completed")
-  Subtopic     Subtopic?        @relation(fields: [folderId], references: [id])
-  folderId     String           @map("folder_id")
+  Subtopic     Subtopic?        @relation(fields: [subtopicId], references: [id])
+  subtopicId   String           @map("subtopic_id")
   QuizResult   QuizResult[]
 
   @@map("lessons")
 }
 
-//=========================== Folder Models ==========================//
+//=========================== Subtopic / Models ==========================//
 
 model Subtopic {
   id               String       @id @default(uuid())
@@ -249,14 +249,28 @@ model Subtopic {
   updatedAt        DateTime     @updatedAt @map("updated_at")
   name             String
   description      String?
-  courseId         String       @map("course_id")
-  course           Course       @relation(fields: [courseId], references: [id])
   quizzes          Quiz[]
   lessons          Lesson[]
   QuizResult       QuizResult[]
   progressPercents Float        @default(0) @map("completion_percentage")
+  Topic            Topic?       @relation(fields: [topicId], references: [id])
+  topicId          String
 
-  @@map("folders")
+  @@map("subtopics")
+}
+
+model Topic {
+  id               String     @id @default(uuid())
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  name             String
+  description      String?
+  courseId         String     @map("course_id")
+  course           Course     @relation(fields: [courseId], references: [id])
+  subtopic         Subtopic[]
+  progressPercents Float      @default(0) @map("completion_percentage")
+
+  @@map("topics")
 }
 
 //=========================== Course Models ==========================//
@@ -272,7 +286,6 @@ model Course {
   publicUrl        String?          @map("public_url")
   tags             String[]
   level            CourseLevelEnum?
-  subtopics        Subtopic[]
   students         User[]
   teacherIds       String[]         @map("teacher_ids")
   studentsId       String[]         @map("students_id")
@@ -280,6 +293,7 @@ model Course {
   Lesson           Lesson[]
   Quiz             Quiz[]
   progressPercents Float            @default(0) @map("completion_percentage")
+  Topic            Topic[]
 
   @@map("courses")
 }
@@ -292,7 +306,7 @@ model Quiz {
   questions      Question[] // Связь с вопросами
   lessonBlockId  String?      @map("lesson_block_id")
   totalQuestions Int          @default(0) @map("total_questions")
-  subtopicId     String?      @map("folder_id")
+  subtopicId     String?      @map("subtopic_id")
   LessonBlock    LessonBlock? @relation(fields: [lessonBlockId], references: [id])
   Folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
   QuizResult     QuizResult[]
@@ -359,7 +373,7 @@ model QuizResult {
   quizId         String   @map("quiz_id")
   courseId       String   @map("course_id")
   lessonId       String?  @map("lesson_id")
-  subtopicId     String?  @map("folder_id")
+  subtopicId     String?  @map("subtopic_id")
   totalQuestions Int      @map("total_questions")
   correctAnswers Int      @map("correct_answers")
   wrongAnswers   Int      @map("wrong_answers")

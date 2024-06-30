@@ -2,7 +2,7 @@ import { Field, ID, InputType } from "@nestjs/graphql";
 import { IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
-export class FolderInput {
+export class TopicInput {
   @Field()
   @IsString()
   name: string;

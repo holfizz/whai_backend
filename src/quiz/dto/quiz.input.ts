@@ -137,7 +137,7 @@ export class QuizInput {
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  folderId?: string;
+  subtopicId?: string;
 }
 
 @InputType()
@@ -164,7 +164,7 @@ export class QuizWithAIInput {
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  folderId?: string;
+  subtopicId?: string;
 }
 
 @InputType()
@@ -200,7 +200,7 @@ export class SaveQuizResultInput {
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  folderId?: string;
+  subtopicId?: string;
 
   @Field(() => Int)
   @IsInt()

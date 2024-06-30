@@ -140,7 +140,7 @@ export class Quiz extends BaseEntity {
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  folderId?: string;
+  subtopicId?: string;
 
   @Field(() => Int)
   @IsOptional()
@@ -187,7 +187,7 @@ export class QuizResult {
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  folderId?: string;
+  subtopicId?: string;
 
   @Field(() => Int)
   totalQuestions: number;

@@ -15,7 +15,6 @@ import { ChatModule } from "./chat/chat.module";
 import { CourseModule } from "./course/course.module";
 import { EduAiModule } from "./edu-ai/edu-ai.module";
 import { FileModule } from "./file/file.module";
-import { FolderModule } from "./folder/folder.module";
 import { LessonBlockModule } from "./lesson-block/lesson-block.module";
 import { LessonTasksModule } from "./lesson-tasks/lesson-tasks.module";
 import { LessonModule } from "./lesson/lesson.module";
@@ -28,6 +27,8 @@ import { PrismaService } from "./prisma.service";
 import { QuizModule } from "./quiz/quiz.module";
 import { TelegramModule } from "./telegram/telegram.module";
 import { UserModule } from "./user/user.module";
+import { SubtopicModule } from "@/subtopic/subtopic.module";
+import { TopicModule } from "@/topic/topic.module";
 
 @Module({
   imports: [
@@ -74,7 +75,8 @@ import { UserModule } from "./user/user.module";
     QuizModule,
     LessonBlockModule,
     LessonTasksModule,
-    FolderModule,
+    SubtopicModule,
+    TopicModule,
     MessageWithAiModule,
     AnalyticsModule,
     NoticeModule,

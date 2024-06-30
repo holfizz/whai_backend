@@ -49,8 +49,8 @@ export class LessonService {
     return this.lessonRepository.findLessonById(lessonId);
   }
 
-  async findAllLessons(folderId: string): Promise<any> {
-    return this.lessonRepository.findAllLessons(folderId);
+  async findAllLessons(subtopicId: string): Promise<any> {
+    return this.lessonRepository.findAllLessons(subtopicId);
   }
 
   async createLessonWithAI(userId: string, dto: LessonWithAIInput, pubSub: PubSub): Promise<any> {
@@ -72,12 +72,12 @@ export class LessonService {
     const parsedContent = JSON.parse(lessonJson);
     console.log("parsedContent", parsedContent);
 
-    // Validate folder existence before creating the lesson
-    await this.lessonRepository.validateFolder(dto.folderId);
+    // Validate subtopic existence before creating the lesson
+    await this.lessonRepository.validateSubtopic(dto.subtopicId);
 
     const lesson = await this.createLessonFromAI({
       ...parsedContent,
-      folderId: dto.folderId,
+      subtopicId: dto.subtopicId,
     });
 
     return lesson;

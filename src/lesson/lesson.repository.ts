@@ -11,16 +11,16 @@ export class LessonRepository {
     if (!data.name) {
       throw new Error("Lesson name is required");
     }
-    if (!data.folderId) {
-      throw new Error("Folder ID is required");
+    if (!data.subtopicId) {
+      throw new Error("Subtopic ID is required");
     }
     // Add additional validation logic as necessary
   }
 
-  async validateFolder(folderId: string): Promise<void> {
-    const folder = await this.prisma.folder.findUnique({ where: { id: folderId } });
-    if (!folder) {
-      throw new NotFoundException(`Folder with ID ${folderId} not found`);
+  async validateSubtopic(subtopicId: string): Promise<void> {
+    const subtopic = await this.prisma.subtopic.findUnique({ where: { id: subtopicId } });
+    if (!subtopic) {
+      throw new NotFoundException(`Subtopic with ID ${subtopicId} not found`);
     }
   }
 
@@ -30,7 +30,7 @@ export class LessonRepository {
         name: data.name,
         description: data.description,
         types: data.types,
-        folderId: data.folderId,
+        subtopicId: data.subtopicId,
         courseId: data.courseId,
       },
     });
@@ -71,9 +71,9 @@ export class LessonRepository {
     });
   }
 
-  async findAllLessons(folderId: string): Promise<any> {
+  async findAllLessons(subtopicId: string): Promise<any> {
     return this.prisma.lesson.findMany({
-      where: { folderId },
+      where: { subtopicId },
       include: { lessonBlocks: true, lessonTasks: true },
     });
   }

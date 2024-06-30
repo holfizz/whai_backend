@@ -39,8 +39,8 @@ export class LessonResolver {
 
   @Query(() => [Lesson])
   @Auth("user")
-  async findAllLessons(@Args("folderId", { type: () => ID }) folderId: string) {
-    return this.lessonService.findAllLessons(folderId);
+  async findAllLessons(@Args("subtopicId", { type: () => ID }) subtopic: string) {
+    return this.lessonService.findAllLessons(subtopic);
   }
 
   @Mutation(() => Lesson)

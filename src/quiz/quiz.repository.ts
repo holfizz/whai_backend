@@ -6,10 +6,10 @@ import { QuestionInput, QuizInput } from "./dto/quiz.input";
 export class QuizRepository {
   constructor(private prisma: PrismaService) {}
 
-  async validateFolderAndLesson(data: QuizInput): Promise<void> {
-    if (data.folderId) {
-      const folder = await this.prisma.folder.findUnique({ where: { id: data.folderId } });
-      if (!folder) throw new Error(`Folder with id ${data.folderId} does not exist.`);
+  async validateSubtopicAndLesson(data: QuizInput): Promise<void> {
+    if (data.subtopicId) {
+      const subtopic = await this.prisma.topic.findUnique({ where: { id: data.subtopicId } });
+      if (!subtopic) throw new Error(`Subtopic with id ${data.subtopicId} does not exist.`);
     }
     if (data.lessonBlockId) {
       const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id: data.lessonBlockId } });
@@ -22,7 +22,7 @@ export class QuizRepository {
       data: {
         title: data.title,
         lessonBlockId: data.lessonBlockId || null,
-        folderId: data.folderId || null,
+        subtopicId: data.subtopicId || null,
         courseId: data.courseId,
       },
     });
@@ -157,7 +157,7 @@ export class QuizRepository {
       data: {
         title: data.title,
         lessonBlockId: data.lessonBlockId || null,
-        folderId: data.folderId || null,
+        subtopicId: data.subtopicId || null,
       },
     });
 

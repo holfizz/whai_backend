@@ -134,12 +134,12 @@ input LearningSessionInput {
 type Lesson {
   createdAt: DateTime!
   description: String
-  folderId: ID!
   id: ID!
   isCompleted: Boolean
   lessonBlocks: [LessonBlock]
   lessonTasks: [LessonTasks]
   name: String!
+  subtopicId: ID!
   types: [LessonTypeEnum!]!
   updatedAt: DateTime!
 }
@@ -183,8 +183,8 @@ input LessonBlockInput {
 input LessonInput {
   courseId: ID!
   description: String
-  folderId: ID!
   name: String!
+  subtopicId: ID!
   types: [LessonTypeEnum!]!
 }
 
@@ -229,16 +229,16 @@ input LessonWithAIInput {
   chatWithAIId: ID!
   content: String!
   courseId: ID!
-  folderId: ID!
+  subtopicId: ID!
 }
 
 input LessonWithAITasksBlocksInput {
   courseId: ID!
   description: String
-  folderId: ID!
   lessonBlocks: [LessonBlockInput]
   lessonTasks: [LessonTasksInput]
   name: String!
+  subtopicId: ID!
   types: [LessonTypeEnum!]!
 }
 
@@ -317,7 +317,6 @@ type Mutation {
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
-  createFolder(createFolderInput: SubtopicInput!): Subtopic!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
   createLessonFromAI(lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput!): Lesson!
@@ -334,11 +333,12 @@ type Mutation {
   createPlanWithAI(QuizWithAIInput: PlanWithAIInput!): Plan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
   createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): Quiz!
+  createSubtopic(createSubtopicInput: SubtopicInput!): Subtopic!
+  createTopic(createTopicInput: TopicInput!): Topic!
 
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
   deleteCourse(id: String!): Course!
-  deleteFolder(id: ID!): Subtopic!
   deleteLesson(id: ID!): Lesson!
   deleteLessonBlock(id: ID!): LessonBlock!
   deleteLessonTask(id: ID!): LessonTasks!
@@ -348,6 +348,8 @@ type Mutation {
   """
   deleteMessage(id: String!): Message!
   deleteQuiz(id: String!): Quiz!
+  deleteSubtopic(id: ID!): Subtopic!
+  deleteTopic(id: ID!): Topic!
 
   """
   Allows a user to enter a chat room, adding them to the chat's members list.
@@ -387,7 +389,6 @@ type Mutation {
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
   updateCourse(id: String!, updateCourseData: UpdateCourse!): Course!
-  updateFolder(updateFolderInput: UpdateSubtopicInput!): Subtopic!
   updateLesson(id: String!, updateLessonInput: UpdateLesson!): Lesson!
   updateLessonBlock(id: String!, updateLessonBlock: UpdateLessonBlock!): LessonBlock!
   updateLessonTask(id: String!, updateLessonTask: UpdateLessonTasks!): LessonTasks!
@@ -404,6 +405,8 @@ type Mutation {
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
   updateQuiz(id: String!, updateQuizData: QuizInput!): Quiz!
+  updateSubtopic(updateSubtopicInput: UpdateSubtopicInput!): Subtopic!
+  updateTopic(updateTopicInput: UpdateTopicInput!): Topic!
 }
 
 type Notice {
@@ -440,7 +443,7 @@ input PlanWithAIInput {
 }
 
 type Query {
-  findAllLessons(folderId: ID!): [Lesson!]!
+  findAllLessons(subtopicId: ID!): [Lesson!]!
   findLessonById(lessonId: ID!): Lesson
   findQuizById(id: String!): Quiz!
 
@@ -452,12 +455,13 @@ type Query {
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
   getCourse(id: String!): Course!
-  getFolder(id: String!): Subtopic!
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.
   """
   getProfile: User!
+  getSubtopic(id: String!): Subtopic!
+  getTopic(id: String!): Topic!
 
   """
   Check if a given activation link is valid and the user's email is activated.
@@ -493,11 +497,11 @@ input QuestionInput {
 type Quiz {
   courseId: ID!
   createdAt: DateTime!
-  folderId: ID
   id: ID!
   isCompleted: Boolean
   lessonBlockId: ID
   questions: [Question!]!
+  subtopicId: ID
   title: String!
   totalQuestions: Int!
   updatedAt: DateTime!
@@ -505,9 +509,9 @@ type Quiz {
 
 input QuizInput {
   courseId: ID!
-  folderId: ID
   lessonBlockId: ID
   questions: [QuestionInput!]!
+  subtopicId: ID
   title: String!
 }
 
@@ -537,10 +541,10 @@ type QuizResult {
   completionTime: Int!
   correctAnswers: Int!
   courseId: ID!
-  folderId: ID
   id: ID!
   lessonId: ID
   quizId: ID!
+  subtopicId: ID
   totalQuestions: Int!
   userAnswers: [UserAnswer!]!
   userId: ID!
@@ -551,8 +555,8 @@ input QuizWithAIInput {
   chatWithAIId: ID!
   content: String!
   courseId: ID!
-  folderId: ID
   lessonBlockId: ID
+  subtopicId: ID
 }
 
 type RefreshTokenResponse {
@@ -568,9 +572,9 @@ input SaveQuizResultInput {
   completionTime: Int!
   correctAnswers: Int!
   courseId: ID!
-  folderId: ID
   lessonId: ID
   quizId: ID!
+  subtopicId: ID
   totalQuestions: Int!
   userAnswers: [UserAnswerInput!]!
   wrongAnswers: Int!
@@ -625,19 +629,19 @@ type Subscription {
 }
 
 type Subtopic {
-  courseId: ID!
   createdAt: DateTime!
   description: String
   id: ID!
   name: String!
   progressPercents: Float!
+  topicId: ID!
   updatedAt: DateTime!
 }
 
 input SubtopicInput {
-  courseId: ID!
   description: String
   name: String!
+  topicId: ID!
 }
 
 type SubtopicPlan {
@@ -662,6 +666,22 @@ type TelegramLink {
   message: String!
 }
 
+type Topic {
+  courseId: ID!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  name: String!
+  progressPercents: Float!
+  updatedAt: DateTime!
+}
+
+input TopicInput {
+  courseId: ID!
+  description: String
+  name: String!
+}
+
 input UpdateChatInput {
   inviteLink: String
   ownerId: ID
@@ -677,10 +697,10 @@ input UpdateCourse {
 input UpdateLesson {
   courseId: ID
   description: String
-  folderId: ID
   id: ID
   isCompleted: Boolean
   name: String
+  subtopicId: ID
   types: [LessonTypeEnum!]
 }
 
@@ -717,6 +737,10 @@ input UpdateMessageWithAiInput {
 }
 
 input UpdateSubtopicInput {
+  id: ID
+}
+
+input UpdateTopicInput {
   id: ID
 }
 

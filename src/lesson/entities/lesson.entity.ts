@@ -39,7 +39,7 @@ export class Lesson extends BaseEntity {
   @Field(() => ID)
   @IsString()
   @IsUUID()
-  folderId: string;
+  subtopicId: string;
 
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
