@@ -31,6 +31,7 @@ export class LessonRepository {
         description: data.description,
         types: data.types,
         folderId: data.folderId,
+        courseId: data.courseId,
       },
     });
   }

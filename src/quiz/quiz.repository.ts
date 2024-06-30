@@ -23,6 +23,7 @@ export class QuizRepository {
         title: data.title,
         lessonBlockId: data.lessonBlockId || null,
         folderId: data.folderId || null,
+        courseId: data.courseId,
       },
     });
   }

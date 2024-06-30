@@ -21,7 +21,7 @@ export class CourseService {
     if (!course) {
       throw new NotFoundException(`Course with ID ${id} not found`);
     }
-    return course;
+    return this.updateCourseProgressPercent(userId, id);
   }
 
   async updateCourse(userId: string, id: string, data: UpdateCourse) {
@@ -32,7 +32,33 @@ export class CourseService {
   }
 
   async deleteCourse(userId: string, id: string) {
-    const course = await this.getCourse(userId, id);
+    // const course = await this.getCourse(userId, id);
     return this.prisma.course.delete({ where: { id } });
+  }
+
+  async updateCourseProgressPercent(userId: string, courseId: string) {
+    // Получаем все уроки и квизы по ID курса
+    const lessons = await this.prisma.lesson.findMany({
+      where: { courseId },
+    });
+    const quizzes = await this.prisma.quiz.findMany({
+      where: { courseId },
+    });
+
+    // Вычисляем количество завершенных уроков и квизов
+    const completedLessons = lessons.filter(lesson => lesson.isCompleted).length;
+    const completedQuizzes = quizzes.filter(quiz => quiz.isCompleted).length;
+
+    // Рассчитываем общее количество элементов и процент завершения
+    const totalItems = lessons.length + quizzes.length;
+    const completedItems = completedLessons + completedQuizzes;
+    const totalPercent = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+
+    return this.prisma.course.update({
+      where: { id: courseId, ownerID: userId },
+      data: {
+        progressPercents: totalPercent,
+      },
+    });
   }
 }

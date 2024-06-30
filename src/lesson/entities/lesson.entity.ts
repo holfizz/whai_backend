@@ -40,4 +40,8 @@ export class Lesson extends BaseEntity {
   @IsString()
   @IsUUID()
   folderId: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  isCompleted?: boolean;
 }

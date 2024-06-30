@@ -58,8 +58,8 @@ type Course {
   imageUrl: String
   level: CourseLevelEnum
   name: String!
+  progressPercents: Float!
   publicUrl: String
-  studentIds: [String!]
   tags: [String]
   teacherIds: [String!]
   updatedAt: DateTime!
@@ -96,21 +96,6 @@ input CreateNoticeInput {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
-
-type Folder {
-  courseId: ID!
-  createdAt: DateTime!
-  description: String
-  id: ID!
-  name: String!
-  updatedAt: DateTime!
-}
-
-input FolderInput {
-  courseId: ID!
-  description: String
-  name: String!
-}
 
 input GetAllMessagesInput {
   chatId: ID!
@@ -151,6 +136,7 @@ type Lesson {
   description: String
   folderId: ID!
   id: ID!
+  isCompleted: Boolean
   lessonBlocks: [LessonBlock]
   lessonTasks: [LessonTasks]
   name: String!
@@ -195,6 +181,7 @@ input LessonBlockInput {
 }
 
 input LessonInput {
+  courseId: ID!
   description: String
   folderId: ID!
   name: String!
@@ -241,10 +228,12 @@ enum LessonTypeEnum {
 input LessonWithAIInput {
   chatWithAIId: ID!
   content: String!
+  courseId: ID!
   folderId: ID!
 }
 
 input LessonWithAITasksBlocksInput {
+  courseId: ID!
   description: String
   folderId: ID!
   lessonBlocks: [LessonBlockInput]
@@ -328,7 +317,7 @@ type Mutation {
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
-  createFolder(createFolderInput: FolderInput!): Folder!
+  createFolder(createFolderInput: SubtopicInput!): Subtopic!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
   createLessonFromAI(lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput!): Lesson!
@@ -349,7 +338,7 @@ type Mutation {
   """Delete an existing chat for the current user."""
   deleteChat(id: String!): Chat!
   deleteCourse(id: String!): Course!
-  deleteFolder(id: ID!): Folder!
+  deleteFolder(id: ID!): Subtopic!
   deleteLesson(id: ID!): Lesson!
   deleteLessonBlock(id: ID!): LessonBlock!
   deleteLessonTask(id: ID!): LessonTasks!
@@ -398,7 +387,7 @@ type Mutation {
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
   updateCourse(id: String!, updateCourseData: UpdateCourse!): Course!
-  updateFolder(updateFolderInput: UpdateFolderInput!): Folder!
+  updateFolder(updateFolderInput: UpdateSubtopicInput!): Subtopic!
   updateLesson(id: String!, updateLessonInput: UpdateLesson!): Lesson!
   updateLessonBlock(id: String!, updateLessonBlock: UpdateLessonBlock!): LessonBlock!
   updateLessonTask(id: String!, updateLessonTask: UpdateLessonTasks!): LessonTasks!
@@ -451,7 +440,6 @@ input PlanWithAIInput {
 }
 
 type Query {
-  course(id: String!): Course!
   findAllLessons(folderId: ID!): [Lesson!]!
   findLessonById(lessonId: ID!): Lesson
   findQuizById(id: String!): Quiz!
@@ -463,6 +451,8 @@ type Query {
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
+  getCourse(id: String!): Course!
+  getFolder(id: String!): Subtopic!
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.
@@ -501,9 +491,11 @@ input QuestionInput {
 }
 
 type Quiz {
+  courseId: ID!
   createdAt: DateTime!
   folderId: ID
   id: ID!
+  isCompleted: Boolean
   lessonBlockId: ID
   questions: [Question!]!
   title: String!
@@ -512,6 +504,7 @@ type Quiz {
 }
 
 input QuizInput {
+  courseId: ID!
   folderId: ID
   lessonBlockId: ID
   questions: [QuestionInput!]!
@@ -557,6 +550,7 @@ type QuizResult {
 input QuizWithAIInput {
   chatWithAIId: ID!
   content: String!
+  courseId: ID!
   folderId: ID
   lessonBlockId: ID
 }
@@ -630,6 +624,22 @@ type Subscription {
   quizWithAIAnswer(chatWithAIId: String!): Quiz!
 }
 
+type Subtopic {
+  courseId: ID!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  name: String!
+  progressPercents: Float!
+  updatedAt: DateTime!
+}
+
+input SubtopicInput {
+  courseId: ID!
+  description: String
+  name: String!
+}
+
 type SubtopicPlan {
   LessonPlans: [LessonPlan!]!
   QuizPlan: QuizPlan
@@ -664,14 +674,12 @@ input UpdateCourse {
   name: String
 }
 
-input UpdateFolderInput {
-  id: ID
-}
-
 input UpdateLesson {
+  courseId: ID
   description: String
   folderId: ID
   id: ID
+  isCompleted: Boolean
   name: String
   types: [LessonTypeEnum!]
 }
@@ -706,6 +714,10 @@ input UpdateMessageWithAiInput {
   chatWithAIId: ID
   content: String
   id: Int!
+}
+
+input UpdateSubtopicInput {
+  id: ID
 }
 
 input UpdateUserInput {

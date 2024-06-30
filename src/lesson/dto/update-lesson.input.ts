@@ -8,4 +8,8 @@ export class UpdateLesson extends PartialType(LessonInput) {
   @IsUUID()
   @IsOptional()
   id?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  isCompleted?: boolean;
 }

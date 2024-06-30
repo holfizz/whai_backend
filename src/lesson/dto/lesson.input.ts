@@ -16,6 +16,10 @@ export class LessonInput {
   name: string;
 
   @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+
+  @Field(() => ID)
   @IsString()
   @IsUUID()
   folderId: string;
@@ -43,12 +47,17 @@ export class LessonWithAITasksBlocksInput extends LessonInput {
   @Type(() => LessonTasksInput)
   lessonTasks?: LessonTasksInput[];
 }
+
 @InputType()
 export class LessonWithAIInput {
   @IsString()
   @Field(() => ID)
   @IsUUID()
   chatWithAIId: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 
   @IsString()
   @IsNotEmpty()

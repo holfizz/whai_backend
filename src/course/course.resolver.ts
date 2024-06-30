@@ -18,7 +18,7 @@ export class CourseResolver {
 
   @Query(() => Course)
   @Auth("user")
-  async course(@CurrentUser("id") userId: string, @Args("id") id: string) {
+  async getCourse(@CurrentUser("id") userId: string, @Args("id") id: string) {
     return this.courseService.getCourse(userId, id);
   }
 

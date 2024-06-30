@@ -116,6 +116,10 @@ export class QuestionInput {
 
 @InputType()
 export class QuizInput {
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+
   @Field(() => String)
   @IsString()
   title: string;
@@ -142,6 +146,10 @@ export class QuizWithAIInput {
   @Field(() => ID)
   @IsUUID()
   chatWithAIId: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 
   @IsString()
   @IsNotEmpty()

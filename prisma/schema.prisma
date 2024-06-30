@@ -16,7 +16,7 @@ enum IconType {
   TEXT
 }
 
-//TIME ICON TYPE
+// TIME ICON TYPE
 
 enum CourseLevelEnum {
   BEGINNER
@@ -78,33 +78,32 @@ enum InteractionType {
 //=========================== User Models ==========================//
 
 model User {
-  id                      String               @id @default(uuid())
-  createdAt               DateTime             @default(now()) @map("created_at")
-  updatedAt               DateTime             @updatedAt @map("updated_at")
-  firstName               String               @map("first_name")
-  lastName                String               @map("last_name")
-  phoneNumber             String               @unique @map("phone_number")
-  avatarPath              String?              @map("avatar_path")
-  email                   String               @unique
+  id                      String            @id @default(uuid())
+  createdAt               DateTime          @default(now()) @map("created_at")
+  updatedAt               DateTime          @updatedAt @map("updated_at")
+  firstName               String            @map("first_name")
+  lastName                String            @map("last_name")
+  phoneNumber             String            @unique @map("phone_number")
+  avatarPath              String?           @map("avatar_path")
+  email                   String            @unique
   password                String
-  roles                   UserRole[]           @default([USER, STUDENT])
-  isVerified              Boolean              @default(false) @map("is_verified")
-  activationLink          String?              @unique @map("activation_link")
-  resetPasswordToken      String?              @map("reset_password_token")
-  resetPasswordExpiration DateTime?            @map("reset_password_expiration")
-  courseId                String?              @map("course_id")
+  roles                   UserRole[]        @default([USER, STUDENT])
+  isVerified              Boolean           @default(false) @map("is_verified")
+  activationLink          String?           @unique @map("activation_link")
+  resetPasswordToken      String?           @map("reset_password_token")
+  resetPasswordExpiration DateTime?         @map("reset_password_expiration")
+  courseId                String?           @map("course_id")
   chat                    Chat[]
   ChatMembers             ChatMembers[]
   chatsWithAI             ChatWithAI[]
   message                 Message[]
-  Course                  Course?              @relation(fields: [courseId], references: [id])
-  UserCourseProgress      UserCourseProgress[]
+  Course                  Course?           @relation(fields: [courseId], references: [id])
   LearningSession         LearningSession[]
   TelegramLink            TelegramLink?
-  isTelegramLinked        Boolean?             @default(false) @map("is_telegram_linked")
-  telegramId              String?              @unique @map("telegram_id")
+  isTelegramLinked        Boolean?          @default(false) @map("is_telegram_linked")
+  telegramId              String?           @unique @map("telegram_id")
   Notice                  Notice[]
-  SentNotices             Notice[]             @relation(name: "NoticeSender")
+  SentNotices             Notice[]          @relation(name: "NoticeSender")
   QuizResult              QuizResult[]
 
   @@map("users")
@@ -232,7 +231,10 @@ model Lesson {
   types        LessonTypeEnum[]
   lessonBlocks LessonBlock[]
   lessonTasks  LessonTask[]
-  Folder       Folder?          @relation(fields: [folderId], references: [id])
+  courseId     String
+  Course       Course           @relation(fields: [courseId], references: [id])
+  isCompleted  Boolean          @default(false) @map("is_completed")
+  Subtopic     Subtopic?        @relation(fields: [folderId], references: [id])
   folderId     String           @map("folder_id")
   QuizResult   QuizResult[]
 
@@ -241,53 +243,43 @@ model Lesson {
 
 //=========================== Folder Models ==========================//
 
-model Folder {
-  id          String       @id @default(uuid())
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  name        String
-  description String?
-  courseId    String       @map("course_id")
-  course      Course       @relation(fields: [courseId], references: [id])
-  quizzes     Quiz[]
-  lessons     Lesson[]
-  QuizResult  QuizResult[]
+model Subtopic {
+  id               String       @id @default(uuid())
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  name             String
+  description      String?
+  courseId         String       @map("course_id")
+  course           Course       @relation(fields: [courseId], references: [id])
+  quizzes          Quiz[]
+  lessons          Lesson[]
+  QuizResult       QuizResult[]
+  progressPercents Float        @default(0) @map("completion_percentage")
 
   @@map("folders")
 }
 
 //=========================== Course Models ==========================//
 
-model UserCourseProgress {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
-  courseId        String   @map("course_id")
-  progressPercent Float    @map("progress_percent")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  User            User     @relation(fields: [userId], references: [id])
-  Course          Course   @relation(fields: [courseId], references: [id])
-
-  @@map("user_course_progress")
-}
-
 model Course {
-  id                 String               @id @default(uuid())
-  createdAt          DateTime             @default(now()) @map("created_at")
-  updatedAt          DateTime             @updatedAt @map("updated_at")
-  name               String
-  description        String?
-  ownerID            String               @map("owner_id")
-  imageUrl           String?              @map("image_url")
-  publicUrl          String?              @map("public_url")
-  tags               String[]
-  level              CourseLevelEnum?
-  folders            Folder[]
-  students           User[]
-  teacherIds         String[]             @map("teacher_ids")
-  studentsId         String[]             @map("students_id")
-  UserCourseProgress UserCourseProgress[]
-  QuizResult         QuizResult[]
+  id               String           @id @default(uuid())
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  name             String
+  description      String?
+  ownerID          String           @map("owner_id")
+  imageUrl         String?          @map("image_url")
+  publicUrl        String?          @map("public_url")
+  tags             String[]
+  level            CourseLevelEnum?
+  subtopics        Subtopic[]
+  students         User[]
+  teacherIds       String[]         @map("teacher_ids")
+  studentsId       String[]         @map("students_id")
+  QuizResult       QuizResult[]
+  Lesson           Lesson[]
+  Quiz             Quiz[]
+  progressPercents Float            @default(0) @map("completion_percentage")
 
   @@map("courses")
 }
@@ -300,10 +292,13 @@ model Quiz {
   questions      Question[] // Связь с вопросами
   lessonBlockId  String?      @map("lesson_block_id")
   totalQuestions Int          @default(0) @map("total_questions")
-  folderId       String?      @map("folder_id")
+  subtopicId     String?      @map("folder_id")
   LessonBlock    LessonBlock? @relation(fields: [lessonBlockId], references: [id])
-  Folder         Folder?      @relation(fields: [folderId], references: [id])
+  Folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
   QuizResult     QuizResult[]
+  courseId       String
+  Course         Course       @relation(fields: [courseId], references: [id])
+  isCompleted    Boolean      @default(false) @map("is_completed")
 
   @@map("quizzes")
 }
@@ -364,7 +359,7 @@ model QuizResult {
   quizId         String   @map("quiz_id")
   courseId       String   @map("course_id")
   lessonId       String?  @map("lesson_id")
-  folderId       String?  @map("folder_id")
+  subtopicId     String?  @map("folder_id")
   totalQuestions Int      @map("total_questions")
   correctAnswers Int      @map("correct_answers")
   wrongAnswers   Int      @map("wrong_answers")
@@ -377,7 +372,7 @@ model QuizResult {
   Course      Course?      @relation(fields: [courseId], references: [id])
   UserAnswers UserAnswer[]
   Lesson      Lesson?      @relation(fields: [lessonId], references: [id])
-  Folder      Folder?      @relation(fields: [folderId], references: [id])
+  Subtopic    Subtopic?    @relation(fields: [subtopicId], references: [id])
 
   @@map("quiz_results")
 }

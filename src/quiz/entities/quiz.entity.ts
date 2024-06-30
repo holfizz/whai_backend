@@ -145,7 +145,16 @@ export class Quiz extends BaseEntity {
   @Field(() => Int)
   @IsOptional()
   totalQuestions?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  isCompleted?: boolean;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 }
+
 @ObjectType()
 class UserAnswer {
   @Field(() => ID)

@@ -65,7 +65,13 @@ export class QuizService {
     const parsedContent = JSON.parse(quizJson);
     const { title, questions } = parsedContent;
 
-    await this.createQuiz({ title, questions, lessonBlockId: dto.lessonBlockId, folderId: dto.folderId });
+    await this.createQuiz({
+      title,
+      questions,
+      lessonBlockId: dto.lessonBlockId,
+      folderId: dto.folderId,
+      courseId: dto.courseId,
+    });
 
     return parsedContent;
   }
