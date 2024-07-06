@@ -2,6 +2,8 @@ import { NestFactory } from "@nestjs/core";
 import * as cookieParser from "cookie-parser";
 import { graphqlUploadExpress } from "graphql-upload-ts";
 import { AppModule } from "./app.module";
+import { ValidationPipe } from "@nestjs/common";
+
 const start = async () => {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT || 7700;
@@ -13,6 +15,7 @@ const start = async () => {
   });
 
   app.use(cookieParser());
+  app.useGlobalPipes(new ValidationPipe());
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }) as any);
   app.getHttpAdapter().getInstance().disable("x-powered-by");
   await app.listen(PORT, () => {

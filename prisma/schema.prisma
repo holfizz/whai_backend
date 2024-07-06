@@ -223,20 +223,21 @@ model LessonTask {
 }
 
 model Lesson {
-  id           String           @id @default(uuid())
-  createdAt    DateTime         @default(now()) @map("created_at")
-  updatedAt    DateTime         @updatedAt @map("updated_at")
-  name         String
-  description  String?
-  types        LessonTypeEnum[]
-  lessonBlocks LessonBlock[]
-  lessonTasks  LessonTask[]
-  courseId     String
-  Course       Course           @relation(fields: [courseId], references: [id])
-  isCompleted  Boolean          @default(false) @map("is_completed")
-  Subtopic     Subtopic?        @relation(fields: [subtopicId], references: [id])
-  subtopicId   String           @map("subtopic_id")
-  QuizResult   QuizResult[]
+  id             String           @id @default(uuid())
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  name           String
+  description    String?
+  types          LessonTypeEnum[]
+  lessonBlocks   LessonBlock[]
+  lessonTasks    LessonTask[]
+  courseId       String
+  Course         Course           @relation(fields: [courseId], references: [id])
+  isCompleted    Boolean          @default(false) @map("is_completed")
+  Subtopic       Subtopic?        @relation(fields: [subtopicId], references: [id])
+  subtopicId     String           @map("subtopic_id")
+  QuizResult     QuizResult[]
+  completionTime Int              @default(0) @map("completion_time")
 
   @@map("lessons")
 }
@@ -255,6 +256,7 @@ model Subtopic {
   progressPercents Float        @default(0) @map("completion_percentage")
   Topic            Topic?       @relation(fields: [topicId], references: [id])
   topicId          String
+  completionTime   Int          @default(0) @map("completion_time")
 
   @@map("subtopics")
 }
@@ -269,6 +271,7 @@ model Topic {
   course           Course     @relation(fields: [courseId], references: [id])
   subtopic         Subtopic[]
   progressPercents Float      @default(0) @map("completion_percentage")
+  completionTime   Int        @default(0) @map("completion_time")
 
   @@map("topics")
 }
@@ -294,6 +297,7 @@ model Course {
   Quiz             Quiz[]
   progressPercents Float            @default(0) @map("completion_percentage")
   Topic            Topic[]
+  completionTime   Int              @default(0) @map("completion_time")
 
   @@map("courses")
 }
@@ -313,6 +317,7 @@ model Quiz {
   courseId       String
   Course         Course       @relation(fields: [courseId], references: [id])
   isCompleted    Boolean      @default(false) @map("is_completed")
+  completionTime Int          @default(0) @map("completion_time")
 
   @@map("quizzes")
 }

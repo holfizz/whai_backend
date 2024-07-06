@@ -75,12 +75,10 @@ export class LessonService {
     // Validate subtopic existence before creating the lesson
     await this.lessonRepository.validateSubtopic(dto.subtopicId);
 
-    const lesson = await this.createLessonFromAI({
+    return await this.createLessonFromAI({
       ...parsedContent,
       subtopicId: dto.subtopicId,
     });
-
-    return lesson;
   }
 
   async createLessonFromAI(data: LessonWithAITasksBlocksInput): Promise<any> {
@@ -123,13 +121,27 @@ export class LessonService {
   }
 
   private extractLessonJson(content: string): string {
-    const match = content.match(/```lesson\n([\s\S]*?)\n```/);
-    if (!match || match.length < 2) throw new Error("Cannot find lesson JSON in the provided content.");
-
+    const patterns = [/```lesson\n```json\n([\s\S]*?)\n```\n```/, /```json\n```lesson\n([\s\S]*?)\n```\n```/, /```lesson\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
+    let match = null;
+    for (const pattern of patterns) {
+      match = content.match(pattern);
+      if (match && match.length >= 2) {
+        break;
+      }
+    }
+    if (!match || match.length < 2) {
+      throw new Error("Cannot find lesson JSON in the provided content.");
+    }
     let lessonJson = match[1];
-
-    if (lessonJson.startsWith("json")) {
+    console.log(lessonJson);
+    if (lessonJson.trim().startsWith("json")) {
       lessonJson = lessonJson.replace(/^json\s*/, "");
+    }
+    console.log(lessonJson);
+    try {
+      JSON.parse(lessonJson);
+    } catch (e) {
+      throw new Error("Extracted content is not valid JSON.");
     }
 
     return lessonJson;

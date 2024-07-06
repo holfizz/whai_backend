@@ -1,9 +1,9 @@
 import { LessonBlockInput } from "@/lesson-block/dto/lesson-block.input";
 import { LessonTasksInput } from "@/lesson-tasks/dto/lesson-task.input";
-import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, InputType, Int, registerEnumType } from "@nestjs/graphql";
 import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(LessonTypeEnum, {
   name: "LessonTypeEnum",
@@ -46,6 +46,11 @@ export class LessonWithAITasksBlocksInput extends LessonInput {
   @ValidateNested({ each: true })
   @Type(() => LessonTasksInput)
   lessonTasks?: LessonTasksInput[];
+
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @IsOptional()
+  completionTime?: number;
 }
 
 @InputType()
@@ -68,4 +73,9 @@ export class LessonWithAIInput {
   @Field(() => ID)
   @IsUUID()
   subtopicId: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @IsOptional()
+  completionTime?: number;
 }

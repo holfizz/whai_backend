@@ -2,7 +2,7 @@ import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -153,6 +153,10 @@ export class Quiz extends BaseEntity {
   @Field(() => ID)
   @IsUUID()
   courseId: string;
+
+  @Field(() => Int)
+  @IsNumber()
+  completionTime: number;
 }
 
 @ObjectType()
@@ -199,6 +203,7 @@ export class QuizResult {
   wrongAnswers: number;
 
   @Field(() => Int)
+  @IsNumber()
   completionTime: number;
 
   @Field(() => [UserAnswer])

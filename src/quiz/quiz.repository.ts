@@ -8,7 +8,7 @@ export class QuizRepository {
 
   async validateSubtopicAndLesson(data: QuizInput): Promise<void> {
     if (data.subtopicId) {
-      const subtopic = await this.prisma.topic.findUnique({ where: { id: data.subtopicId } });
+      const subtopic = await this.prisma.subtopic.findUnique({ where: { id: data.subtopicId } });
       if (!subtopic) throw new Error(`Subtopic with id ${data.subtopicId} does not exist.`);
     }
     if (data.lessonBlockId) {

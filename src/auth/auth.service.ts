@@ -5,7 +5,7 @@ import { User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
 import { Response } from "express";
-import { ActivationLinkInput, ResetPasswordInput, SignUpInput, loginInput } from "./dto/auth.input";
+import { ActivationLinkInput, loginInput, ResetPasswordInput, SignUpInput } from "./dto/auth.input";
 import { MailService } from "./mail.service";
 
 @Injectable()
@@ -69,7 +69,8 @@ export class AuthService {
 
       const activationLink = crypto.randomUUID();
       console.log(activationLink);
-      await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
+      //TODO
+      // await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
 
       const user = await this.prisma.user.create({
         data: {

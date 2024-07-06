@@ -60,14 +60,19 @@ export class QuizService {
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<any> {
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, dto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
-
+    console.log(1, fullContent);
     const quizJson = this.extractQuizJson(fullContent);
+    console.log(2, quizJson);
+
     const parsedContent = JSON.parse(quizJson);
-    const { title, questions } = parsedContent;
+    console.log(3, parsedContent);
+
+    const { title, questions, completionTime } = parsedContent;
 
     await this.createQuiz({
       title,
       questions,
+      completionTime: Number(completionTime),
       lessonBlockId: dto.lessonBlockId,
       subtopicId: dto.subtopicId,
       courseId: dto.courseId,
@@ -77,14 +82,27 @@ export class QuizService {
   }
 
   private extractQuizJson(content: string): string {
-    let match = content.match(/```quiz\n([\s\S]*?)\n```/);
-    if (!match || match.length < 2) throw new Error("Cannot find quiz JSON in the provided content.");
-
+    const patterns = [/```quiz\n```json\n([\s\S]*?)\n```\n```/, /```json\n```quiz\n([\s\S]*?)\n```\n```/, /```quiz\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
+    let match = null;
+    for (const pattern of patterns) {
+      match = content.match(pattern);
+      if (match && match.length >= 2) {
+        break;
+      }
+    }
+    if (!match || match.length < 2) {
+      throw new Error("Cannot find quiz JSON in the provided content.");
+    }
     let quizJson = match[1];
-
-    // Remove ```json if it follows ```quiz
-    if (quizJson.startsWith("json")) {
+    console.log(quizJson);
+    if (quizJson.trim().startsWith("json")) {
       quizJson = quizJson.replace(/^json\s*/, "");
+    }
+    console.log(quizJson);
+    try {
+      JSON.parse(quizJson);
+    } catch (e) {
+      throw new Error("Extracted content is not valid JSON.");
     }
 
     return quizJson;
@@ -95,54 +113,36 @@ export class QuizService {
   }
 
   async saveQuizResult(userId: string, dto: SaveQuizResultInput): Promise<QuizResult> {
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!userExists) {
+      throw new Error(`User with id ${userId} does not exist.`);
+    }
+
+    // Check if the course exists, if provided
+    if (dto.courseId) {
+      const courseExists = await this.prisma.course.findUnique({
+        where: { id: dto.courseId },
+      });
+      if (!courseExists) {
+        throw new Error(`Course with id ${dto.courseId} does not exist.`);
+      }
+    }
+
+    // Check if the subtopic exists, if provided
+    if (dto.subtopicId) {
+      const subtopicExists = await this.prisma.subtopic.findUnique({
+        where: { id: dto.subtopicId },
+      });
+      console.log(subtopicExists);
+      if (!subtopicExists) {
+        throw new Error(`Subtopic with id ${dto.subtopicId} does not exist.`);
+      }
+    }
+
     return await this.prisma.$transaction(async prisma => {
       // Check if the user exists
-      const userExists = await prisma.user.findUnique({
-        where: { id: userId },
-      });
-      if (!userExists) {
-        throw new Error(`User with id ${userId} does not exist.`);
-      }
-
-      // Check if the course exists, if provided
-      if (dto.courseId) {
-        const courseExists = await prisma.course.findUnique({
-          where: { id: dto.courseId },
-        });
-        if (!courseExists) {
-          throw new Error(`Course with id ${dto.courseId} does not exist.`);
-        }
-      }
-
-      // Check if the lesson exists, if provided
-      if (dto.lessonId) {
-        const lessonExists = await prisma.lesson.findUnique({
-          where: { id: dto.lessonId },
-        });
-        if (!lessonExists) {
-          throw new Error(`Lesson with id ${dto.lessonId} does not exist.`);
-        }
-      }
-
-      // Check if the subtopic exists, if provided
-      if (dto.subtopicId) {
-        const subtopicExists = await prisma.subtopic.findUnique({
-          where: { id: dto.subtopicId },
-        });
-        if (!subtopicExists) {
-          throw new Error(`Subtopic with id ${dto.subtopicId} does not exist.`);
-        }
-
-        const subtopicBelongsToCourse = await prisma.subtopic.findFirst({
-          where: {
-            id: dto.subtopicId,
-            topicId: dto.subtopicId,
-          },
-        });
-        if (!subtopicBelongsToCourse) {
-          throw new Error(`Subtopic with id ${dto.subtopicId} does not belong to Course with id ${dto.courseId}.`);
-        }
-      }
 
       // Create the quiz result
       const quizResult = await prisma.quizResult.create({
@@ -150,8 +150,8 @@ export class QuizService {
           userId: userId,
           quizId: dto.quizId,
           courseId: dto.courseId,
-          lessonId: dto.lessonId || null,
-          subtopicId: dto.subtopicId || null,
+          lessonId: dto.lessonId,
+          subtopicId: dto.subtopicId,
           totalQuestions: dto.totalQuestions,
           correctAnswers: dto.correctAnswers,
           wrongAnswers: dto.wrongAnswers,

@@ -1,10 +1,10 @@
 import { BaseEntity } from "@/helpers/base.entity";
 import { LessonBlock } from "@/lesson-block/entities/lesson-block.entity";
 import { LessonTasks } from "@/lesson-tasks/entities/lesson-task.entity";
-import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(LessonTypeEnum, {
   name: "LessonTypeEnum",
@@ -44,4 +44,7 @@ export class Lesson extends BaseEntity {
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
   isCompleted?: boolean;
+  @Field(() => Int)
+  @IsNumber()
+  completionTime: number;
 }

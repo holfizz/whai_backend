@@ -24,6 +24,39 @@ export class CourseService {
     return this.updateCourseProgressPercent(userId, id);
   }
 
+  async getAllCourses(userId: string) {
+    const courses = await this.prisma.course.findMany({
+      where: { ownerID: userId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!courses || courses.length === 0) {
+      throw new NotFoundException(`No courses found for user ID ${userId}`);
+    }
+
+    // Update progress percentage for each course asynchronously
+    const updatedCourses = await Promise.all(
+      courses.map(async course => {
+        const courseId = course.id;
+        await this.updateCourseProgressPercent(userId, courseId);
+        return course;
+      }),
+    );
+
+    return updatedCourses;
+  }
+
+  async getLastCourse(userId: string) {
+    const course = await this.prisma.course.findFirst({
+      where: { ownerID: userId },
+      orderBy: { updatedAt: "desc" },
+    });
+    if (!course) {
+      throw new NotFoundException(`No courses found for user ID ${userId}`);
+    }
+    return this.updateCourseProgressPercent(userId, course.id);
+  }
+
   async updateCourse(userId: string, id: string, data: UpdateCourse) {
     return this.prisma.course.update({
       where: { id, ownerID: userId },

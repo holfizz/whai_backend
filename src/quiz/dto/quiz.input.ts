@@ -1,7 +1,7 @@
 import { Field, ID, InputType, Int, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -138,6 +138,11 @@ export class QuizInput {
   @IsOptional()
   @IsUUID()
   subtopicId?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @IsOptional()
+  completionTime?: number;
 }
 
 @InputType()
@@ -145,15 +150,18 @@ export class QuizWithAIInput {
   @IsString()
   @Field(() => ID)
   @IsUUID()
+  @IsNotEmpty()
   chatWithAIId: string;
 
   @Field(() => ID)
   @IsUUID()
+  @IsNotEmpty()
   courseId: string;
 
   @IsString()
   @IsNotEmpty()
   @Field(() => String)
+  @IsNotEmpty()
   content: string;
 
   @Field(() => ID, { nullable: true })
@@ -165,6 +173,11 @@ export class QuizWithAIInput {
   @IsOptional()
   @IsUUID()
   subtopicId?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @IsOptional()
+  completionTime?: number;
 }
 
 @InputType()

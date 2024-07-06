@@ -60,8 +60,6 @@ type Course {
   name: String!
   progressPercents: Float!
   publicUrl: String
-  tags: [String]
-  teacherIds: [String!]
   updatedAt: DateTime!
 }
 
@@ -132,6 +130,7 @@ input LearningSessionInput {
 }
 
 type Lesson {
+  completionTime: Int!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -227,12 +226,14 @@ enum LessonTypeEnum {
 
 input LessonWithAIInput {
   chatWithAIId: ID!
+  completionTime: Int
   content: String!
   courseId: ID!
   subtopicId: ID!
 }
 
 input LessonWithAITasksBlocksInput {
+  completionTime: Int
   courseId: ID!
   description: String
   lessonBlocks: [LessonBlockInput]
@@ -450,11 +451,13 @@ type Query {
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
   getAllChatsWithAI: [ChatWithAI!]!
+  getAllCourses: [Course!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
   getCourse(id: String!): Course!
+  getLastCourse: Course
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.
@@ -495,6 +498,7 @@ input QuestionInput {
 }
 
 type Quiz {
+  completionTime: Int!
   courseId: ID!
   createdAt: DateTime!
   id: ID!
@@ -508,6 +512,7 @@ type Quiz {
 }
 
 input QuizInput {
+  completionTime: Int
   courseId: ID!
   lessonBlockId: ID
   questions: [QuestionInput!]!
@@ -553,6 +558,7 @@ type QuizResult {
 
 input QuizWithAIInput {
   chatWithAIId: ID!
+  completionTime: Int
   content: String!
   courseId: ID!
   lessonBlockId: ID

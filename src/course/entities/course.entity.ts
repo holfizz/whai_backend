@@ -27,19 +27,10 @@ export class Course extends BaseEntity {
   @IsOptional()
   publicUrl?: string;
 
-  @Field(() => [String], { nullable: "itemsAndList" })
-  @IsString({ each: true })
-  tags: string[];
-
   @Field(() => CourseLevelEnum, { nullable: true })
   @IsEnum(CourseLevelEnum)
   @IsOptional()
   level?: CourseLevelEnum;
-
-  @Field(() => [String], { nullable: true })
-  @IsString({ each: true })
-  @IsOptional()
-  teacherIds?: string[];
 
   @Field(() => Float)
   @IsNumber()

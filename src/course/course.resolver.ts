@@ -22,6 +22,18 @@ export class CourseResolver {
     return this.courseService.getCourse(userId, id);
   }
 
+  @Query(() => [Course])
+  @Auth("user")
+  async getAllCourses(@CurrentUser("id") userId: string) {
+    return this.courseService.getAllCourses(userId);
+  }
+
+  @Query(() => Course, { nullable: true })
+  @Auth("user")
+  async getLastCourse(@CurrentUser("id") userId: string) {
+    return this.courseService.getLastCourse(userId);
+  }
+
   @Mutation(() => Course)
   @Auth("user")
   async updateCourse(@CurrentUser("id") userId: string, @Args("id") id: string, @Args("updateCourseData") updateCourseData: UpdateCourse) {
