@@ -1,5 +1,5 @@
 import { PrismaService } from "@/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { SubtopicInput } from "./dto/create-subtopic.input";
 import { UpdateSubtopicInput } from "./dto/update-subtopic.input";
 
@@ -8,8 +8,14 @@ export class SubtopicService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createSubtopic(data: SubtopicInput) {
+    if (!data.topicId) {
+      throw new BadRequestException("topicId must be provided888");
+    }
+
+    console.log("Creating subtopic for topicId:", data.topicId);
     const topic = await this.prisma.topic.findUnique({ where: { id: data.topicId } });
     if (!topic) {
+      console.error(`Topic with ID ${data.topicId} not found`);
       throw new NotFoundException(`Topic with ID ${data.topicId} not found`);
     }
     return this.prisma.subtopic.create({

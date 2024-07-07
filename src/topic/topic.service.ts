@@ -9,9 +9,7 @@ export class TopicService {
 
   async createTopic(createTopicInput: TopicInput) {
     return this.prisma.topic.create({
-      data: {
-        ...createTopicInput,
-      },
+      data: createTopicInput,
     });
   }
 

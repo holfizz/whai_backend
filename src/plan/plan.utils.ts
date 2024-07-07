@@ -5,10 +5,10 @@ import { Injectable } from "@nestjs/common";
 export class PlanUtils {
   constructor(private prisma: PrismaService) {}
 
-  async calculatePlanStats(planId: string): Promise<{ totalModules: number }> {
-    const totalModules = await this.prisma.modulePlan.count({
+  async calculatePlanStats(planId: string): Promise<{ totalTopics: number }> {
+    const totalTopics = await this.prisma.topicPlan.count({
       where: { CoursePlanId: planId },
     });
-    return { totalModules };
+    return { totalTopics };
   }
 }

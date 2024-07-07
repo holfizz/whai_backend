@@ -197,8 +197,10 @@ type LessonPlan {
 }
 
 input LessonPlanInput {
+  courseId: ID!
   description: String
   icons: [IconType!]!
+  subtopicId: ID!
   title: String!
 }
 
@@ -296,21 +298,6 @@ input MessageWithAIInput {
 enum MessageWithAIRole {
   ASSISTANT
   USER
-}
-
-type ModulePlan {
-  SubtopicPlans: [SubtopicPlan!]!
-  createdAt: DateTime!
-  description: String
-  id: ID!
-  title: String!
-  updatedAt: DateTime!
-}
-
-input ModulePlanInput {
-  SubtopicPlans: [SubtopicPlanInput!]!
-  description: String
-  title: String!
 }
 
 type Mutation {
@@ -423,7 +410,7 @@ type Notice {
 }
 
 type Plan {
-  ModulePlans: [ModulePlan!]!
+  TopicPlans: [TopicPlan!]!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -432,8 +419,9 @@ type Plan {
 }
 
 input PlanInput {
-  ModulePlans: [ModulePlanInput!]!
+  TopicPlans: [TopicPlanInput!]!
   chatWithAIId: ID
+  courseId: ID!
   description: String
   title: String!
 }
@@ -441,6 +429,7 @@ input PlanInput {
 input PlanWithAIInput {
   chatWithAIId: ID!
   content: String!
+  courseId: ID!
 }
 
 type Query {
@@ -665,6 +654,7 @@ input SubtopicPlanInput {
   QuizPlan: QuizPlanInput
   description: String
   title: String!
+  topicId: ID!
 }
 
 type TelegramLink {
@@ -686,6 +676,22 @@ input TopicInput {
   courseId: ID!
   description: String
   name: String!
+}
+
+type TopicPlan {
+  SubtopicPlans: [SubtopicPlan!]!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+}
+
+input TopicPlanInput {
+  SubtopicPlans: [SubtopicPlanInput!]!
+  courseId: ID!
+  description: String
+  title: String!
 }
 
 input UpdateChatInput {

@@ -62,7 +62,7 @@ class SubtopicPlan extends BaseEntity {
 }
 
 @ObjectType()
-class ModulePlan extends BaseEntity {
+class TopicPlan extends BaseEntity {
   @Field(() => String)
   @IsString()
   title: string;
@@ -90,9 +90,9 @@ export class Plan extends BaseEntity {
   @IsString()
   description?: string;
 
-  @Field(() => [ModulePlan])
+  @Field(() => [TopicPlan])
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ModulePlan)
-  ModulePlans: ModulePlan[];
+  @Type(() => TopicPlan)
+  TopicPlans: TopicPlan[];
 }

@@ -19,35 +19,8 @@ export class PlanService {
   async createPlan(data: PlanInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
       await this.planRepository.validatePlan(data);
-
-      const newPlan = await this.planRepository.createPlan(data);
-
-      const modulePlans = [];
-      for (const modulePlan of data.ModulePlans) {
-        const newModulePlan = await this.planRepository.createModulePlan(modulePlan, newPlan.id);
-        const subtopicPlans = [];
-        for (const subtopicPlan of modulePlan.SubtopicPlans) {
-          const newSubtopicPlan = await this.planRepository.createSubtopicPlan(subtopicPlan, newModulePlan.id);
-          const lessonPlans = [];
-          for (const lessonPlan of subtopicPlan.LessonPlans) {
-            const newLessonPlan = await this.planRepository.createLessonPlan(lessonPlan, newSubtopicPlan.id);
-            lessonPlans.push(newLessonPlan);
-          }
-
-          let quizPlan = null;
-          if (subtopicPlan.QuizPlan) {
-            quizPlan = await this.planRepository.createQuizPlan(subtopicPlan.QuizPlan, newSubtopicPlan.id);
-          }
-
-          subtopicPlans.push({ ...newSubtopicPlan, LessonPlans: lessonPlans, QuizPlan: quizPlan });
-        }
-        modulePlans.push({ ...newModulePlan, SubtopicPlans: subtopicPlans });
-      }
-
-      const planStats = await this.planUtils.calculatePlanStats(newPlan.id);
-      console.log(`Total Modules: ${planStats.totalModules}`);
-
-      return { ...newPlan, ModulePlans: modulePlans };
+      const newPlan = await this.planRepository.createFullPlan(data);
+      return newPlan;
     });
   }
 
@@ -95,20 +68,57 @@ export class PlanService {
 
     const parsedContent = JSON.parse(planJson);
     console.log("parsedContent", parsedContent);
-
-    const plan = await this.createPlan(parsedContent);
-
+    console.log("plan", {
+      title: parsedContent.title,
+      TopicPlans: parsedContent.TopicPlans,
+      courseId: dto.courseId,
+      chatWithAIId: dto.chatWithAIId,
+      description: parsedContent.description,
+    });
+    const plan = await this.createPlan({
+      title: parsedContent.title,
+      description: parsedContent.description,
+      TopicPlans: parsedContent.TopicPlans,
+      courseId: dto.courseId,
+      chatWithAIId: dto.chatWithAIId,
+    });
     return plan;
   }
 
+  // private extractPlanJson(content: string): string {
+  //   let match = content.match(/```plan\n([\s\S]*?)\n```/);
+  //   if (!match || match.length < 2) throw new Error("Cannot find plan JSON in the provided content.");
+  //
+  //   let planJson = match[1];
+  //
+  //   if (planJson.startsWith("json")) {
+  //     planJson = planJson.replace(/^json\s*/, "");
+  //   }
+  //
+  //   return planJson;
+  // }
   private extractPlanJson(content: string): string {
-    let match = content.match(/```plan\n([\s\S]*?)\n```/);
-    if (!match || match.length < 2) throw new Error("Cannot find plan JSON in the provided content.");
-
+    const patterns = [/```plan\n```json\n([\s\S]*?)\n```\n```/, /```json\n```plan\n([\s\S]*?)\n```\n```/, /```plan\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
+    let match = null;
+    for (const pattern of patterns) {
+      match = content.match(pattern);
+      if (match && match.length >= 2) {
+        break;
+      }
+    }
+    if (!match || match.length < 2) {
+      throw new Error("Cannot find plan JSON in the provided content.");
+    }
     let planJson = match[1];
-
-    if (planJson.startsWith("json")) {
+    console.log(planJson);
+    if (planJson.trim().startsWith("json")) {
       planJson = planJson.replace(/^json\s*/, "");
+    }
+    console.log(planJson);
+    try {
+      JSON.parse(planJson);
+    } catch (e) {
+      throw new Error("Extracted content is not valid JSON.");
     }
 
     return planJson;

@@ -36,6 +36,14 @@ export class LessonPlanInput {
   @ArrayNotEmpty()
   @IsEnum(IconType, { each: true })
   icons: IconType[];
+
+  @Field(() => ID)
+  @IsUUID()
+  subtopicId: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 }
 
 @InputType()
@@ -49,6 +57,10 @@ export class SubtopicPlanInput {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  topicId: string;
 
   @Field(() => [LessonPlanInput])
   @IsArray()
@@ -65,7 +77,7 @@ export class SubtopicPlanInput {
 }
 
 @InputType()
-export class ModulePlanInput {
+export class TopicPlanInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
@@ -75,6 +87,10 @@ export class ModulePlanInput {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 
   @Field(() => [SubtopicPlanInput])
   @IsArray()
@@ -96,12 +112,16 @@ export class PlanInput {
   @IsString()
   description?: string;
 
-  @Field(() => [ModulePlanInput])
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+
+  @Field(() => [TopicPlanInput])
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => ModulePlanInput)
-  ModulePlans: ModulePlanInput[];
+  @Type(() => TopicPlanInput)
+  TopicPlans: TopicPlanInput[];
 
   @Field(() => ID, { nullable: true })
   @IsUUID()
@@ -119,4 +139,8 @@ export class PlanWithAIInput {
   @IsNotEmpty()
   @Field(() => String)
   content: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 }

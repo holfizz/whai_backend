@@ -1,5 +1,5 @@
 import { PrismaService } from "@/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { LessonInput } from "./dto/lesson.input";
 import { UpdateLesson } from "./dto/update-lesson.input";
 
@@ -25,6 +25,10 @@ export class LessonRepository {
   }
 
   async createLesson(data: LessonInput): Promise<any> {
+    if (!data.courseId) {
+      throw new BadRequestException("courseId must be provided");
+    }
+
     return this.prisma.lesson.create({
       data: {
         name: data.name,

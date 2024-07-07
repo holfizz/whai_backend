@@ -7,9 +7,33 @@ import { PlanRepository } from "./plan.repository";
 import { PlanResolver } from "./plan.resolver";
 import { PlanService } from "./plan.service";
 import { PlanUtils } from "./plan.utils";
+import { LessonModule } from "@/lesson/lesson.module";
+import { TopicModule } from "@/topic/topic.module";
+import { SubtopicModule } from "@/subtopic/subtopic.module";
+import { LessonService } from "@/lesson/lesson.service";
+import { TopicService } from "@/topic/topic.service";
+import { SubtopicService } from "@/subtopic/subtopic.service";
+import { LessonRepository } from "@/lesson/lesson.repository";
+import { LessonUtils } from "@/lesson/lesson.utils";
+import { LessonBlockService } from "@/lesson-block/lesson-block.service";
+import { LessonTasksService } from "@/lesson-tasks/lesson-tasks.service";
 
 @Module({
-  providers: [PlanResolver, PlanService, PrismaService, PlanRepository, PlanUtils, EduAiService],
-  imports: [EduAiModule, HttpModule],
+  providers: [
+    PlanResolver,
+    PlanService,
+    PrismaService,
+    PlanRepository,
+    PlanUtils,
+    EduAiService,
+    LessonService,
+    TopicService,
+    SubtopicService,
+    LessonRepository,
+    LessonUtils,
+    LessonBlockService,
+    LessonTasksService,
+  ],
+  imports: [EduAiModule, HttpModule, LessonModule, TopicModule, SubtopicModule],
 })
 export class PlanModule {}

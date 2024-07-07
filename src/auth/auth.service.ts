@@ -69,8 +69,7 @@ export class AuthService {
 
       const activationLink = crypto.randomUUID();
       console.log(activationLink);
-      //TODO
-      // await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
+      await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
 
       const user = await this.prisma.user.create({
         data: {

@@ -22,9 +22,9 @@ export class LessonService {
   ) {}
 
   async createLesson(data: LessonInput): Promise<any> {
-    await this.lessonRepository.validateLesson(data); // Validate the input data
+    await this.lessonRepository.validateLesson(data);
 
-    return await this.lessonRepository.createLesson(data); // Create the lesson
+    return await this.lessonRepository.createLesson(data);
   }
 
   async deleteLesson(id: string): Promise<any> {

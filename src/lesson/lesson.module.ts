@@ -13,5 +13,6 @@ import { LessonUtils } from "./lesson.utils";
 @Module({
   providers: [LessonResolver, LessonService, PrismaService, EduAiService, LessonRepository, LessonUtils, LessonBlockService, LessonTasksService],
   imports: [EduAiModule, HttpModule],
+  exports: [LessonModule],
 })
 export class LessonModule {}
