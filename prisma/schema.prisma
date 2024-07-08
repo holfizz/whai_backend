@@ -195,7 +195,6 @@ model LessonBlock {
   caption   String?
   lessonId  String          @map("lesson_id")
   lesson    Lesson          @relation(fields: [lessonId], references: [id])
-  quizzes   Quiz[]
 
   @@map("lesson_blocks")
 }
@@ -298,14 +297,12 @@ model Quiz {
   name           String
   description    String?
   questions      Question[] // Связь с вопросами
-  lessonBlockId  String?      @map("lesson_block_id")
   totalQuestions Int?         @default(0) @map("total_questions")
   subtopicId     String?      @map("subtopic_id")
-  lessonBlock    LessonBlock? @relation(fields: [lessonBlockId], references: [id])
   folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
   quizResult     QuizResult[]
   courseId       String
-  course         Course       @relation(fields: [courseId], references: [id])
+  course         Course?      @relation(fields: [courseId], references: [id])
   isCompleted    Boolean      @default(false) @map("is_completed")
   completionTime Int          @default(0) @map("completion_time")
   isPlan         Boolean      @default(false)

@@ -204,7 +204,7 @@ input LessonInput {
   description: String
   name: String!
   subtopicId: ID!
-  types: [LessonTypeEnum!]!
+  types: [LessonTypeEnum!]
 }
 
 type LessonPlan {
@@ -236,7 +236,6 @@ type LessonTasks {
 }
 
 input LessonTasksInput {
-  isChecked: Boolean!
   lessonId: ID!
   name: String!
 }
@@ -246,10 +245,14 @@ enum LessonTypeEnum {
 }
 
 input LessonWithAIInput {
+  additionalParams: String
   chatWithAIId: ID!
   completionTime: Int
-  content: String!
   courseId: ID!
+  description: String
+  isHasAISearchImage: Boolean
+  isHasVideo: Boolean
+  name: String!
   subtopicId: ID!
 }
 
@@ -261,7 +264,7 @@ input LessonWithAITasksBlocksInput {
   lessonTasks: [LessonTasksInput]
   name: String!
   subtopicId: ID!
-  types: [LessonTypeEnum!]!
+  types: [LessonTypeEnum!]
 }
 
 type MatchingInteraction {
@@ -736,7 +739,6 @@ input UpdateLessonBlock {
 
 input UpdateLessonTasks {
   id: ID
-  isChecked: Boolean
   lessonId: ID
   name: String
 }

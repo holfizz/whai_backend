@@ -9,7 +9,8 @@ export class LessonTasksService {
   async createLessonTask(data: LessonTasksInput) {
     return this.prisma.lessonTask.create({
       data: {
-        ...data,
+        name: data.name,
+        lessonId: data.lessonId,
       },
     });
   }

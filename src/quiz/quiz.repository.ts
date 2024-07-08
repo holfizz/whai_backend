@@ -11,25 +11,27 @@ export class QuizRepository {
       const subtopic = await this.prisma.subtopic.findUnique({ where: { id: data.subtopicId } });
       if (!subtopic) throw new Error(`Subtopic with id ${data.subtopicId} does not exist.`);
     }
-    if (data.lessonBlockId) {
-      const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id: data.lessonBlockId } });
-      if (!lessonBlock) throw new Error(`LessonBlock with id ${data.lessonBlockId} does not exist.`);
-    }
   }
 
   async createQuiz(data: QuizInput): Promise<any> {
-    const questionsData = data.questions || []; // Если data.questions не определен, используем пустой массив
-
     return this.prisma.quiz.create({
       data: {
         name: data.name,
         description: data.description,
-        lessonBlockId: data.lessonBlockId || null,
         subtopicId: data.subtopicId || null,
         courseId: data.courseId,
         isPlan: data.isPlan || false,
+        completionTime: data.completionTime || 0,
       },
     });
+
+    // if (data.questions && data.questions.length > 0) {
+    //   for (const question of data.questions) {
+    //     await this.createQuestion(question, createdQuiz.id);
+    //   }
+    // }
+    //
+    // return createdQuiz;
   }
 
   async createQuestion(question: QuestionInput, quizId: string): Promise<any> {
@@ -48,7 +50,6 @@ export class QuizRepository {
     } else {
       await this.createChoicesAndInteractions(question, createdQuestion.id);
     }
-
     return createdQuestion;
   }
 
@@ -160,7 +161,6 @@ export class QuizRepository {
       where: { id },
       data: {
         name: data.name,
-        lessonBlockId: data.lessonBlockId || null,
         subtopicId: data.subtopicId || null,
       },
     });

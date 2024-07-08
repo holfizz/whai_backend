@@ -61,10 +61,17 @@ export class LessonService {
       },
     });
     const aiDto: AIDTO = {
-      content: dto.content,
+      content: {
+        createType: "Урок",
+        descriptionType: "Создай урок",
+        lessonTitle: dto.name,
+        lessonDescription: dto.description,
+        additionalParams: dto.additionalParams,
+        isHasVideo: dto.isHasVideo,
+        isHasAISearchImage: dto.isHasAISearchImage,
+      },
       messagesHistory,
     };
-
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
     const lessonJson = this.extractLessonJson(fullContent);
@@ -72,10 +79,12 @@ export class LessonService {
     const parsedContent = JSON.parse(lessonJson);
     console.log("parsedContent", parsedContent);
 
-    // Validate subtopic existence before creating the lesson
     await this.lessonRepository.validateSubtopic(dto.subtopicId);
 
     return await this.createLessonFromAI({
+      name: dto.description,
+      description: dto.description,
+      courseId: dto.courseId,
       ...parsedContent,
       subtopicId: dto.subtopicId,
     });
@@ -103,7 +112,6 @@ export class LessonService {
         for (const lessonTask of data.lessonTasks) {
           const newLessonTask = await this.lessonTasksService.createLessonTask({
             name: lessonTask.name,
-            isChecked: false,
             lessonId: newLesson.id,
           });
           lessonTasks.push(newLessonTask);
@@ -128,9 +136,6 @@ export class LessonService {
       if (match && match.length >= 2) {
         break;
       }
-    }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find lesson JSON in the provided content.");
     }
     let lessonJson = match[1];
     console.log(lessonJson);

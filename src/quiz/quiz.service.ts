@@ -6,6 +6,7 @@ import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
 import { QuizRepository } from "./quiz.repository";
 import { QuizUtils } from "./quiz.utils";
+import { AIDTO } from "@/edu-ai/types/ai.types";
 
 @Injectable()
 export class QuizService {
@@ -59,7 +60,24 @@ export class QuizService {
   }
 
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<any> {
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, dto, "EduAI", pubSub);
+    const messagesHistory = await this.prisma.messageWithAI.findMany({
+      where: { chatWithAIId: dto.chatWithAIId },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+    const aiDto: AIDTO = {
+      content: {
+        createType: "Тест",
+        descriptionType: "Создай тест",
+        quizTitle: dto.name,
+        quizDescription: dto.description,
+        additionalParams: dto.additionalParams,
+      },
+      messagesHistory,
+    };
+
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
     console.log(1, fullContent);
     const quizJson = this.extractQuizJson(fullContent);
@@ -68,18 +86,16 @@ export class QuizService {
     const parsedContent = JSON.parse(quizJson);
     console.log(3, parsedContent);
 
-    const { name, questions, completionTime } = parsedContent;
+    const { questions, completionTime } = parsedContent;
 
-    await this.createQuiz({
-      name,
-      questions,
+    return this.createQuiz({
+      name: dto.name,
+      description: dto.description,
+      questions: JSON.parse(JSON.stringify(questions)),
       completionTime: Number(completionTime),
-      lessonBlockId: dto.lessonBlockId,
       subtopicId: dto.subtopicId,
       courseId: dto.courseId,
     });
-
-    return parsedContent;
   }
 
   private extractQuizJson(content: string): string {

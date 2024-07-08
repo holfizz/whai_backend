@@ -126,6 +126,7 @@ export class QuizInput {
 
   @Field(() => String, { nullable: true })
   @IsString()
+  @IsOptional()
   description?: string;
 
   @Field(() => [QuestionInput], { nullable: true })
@@ -133,11 +134,6 @@ export class QuizInput {
   @Type(() => QuestionInput)
   @IsOptional()
   questions?: QuestionInput[];
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  lessonBlockId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -157,37 +153,34 @@ export class QuizInput {
 
 @InputType()
 export class QuizWithAIInput {
+  @Field(() => String)
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  additionalParams?: string;
+
   @IsString()
   @Field(() => ID)
   @IsUUID()
-  @IsNotEmpty()
   chatWithAIId: string;
 
   @Field(() => ID)
   @IsUUID()
-  @IsNotEmpty()
   courseId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => String)
-  @IsNotEmpty()
-  content: string;
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  lessonBlockId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
   subtopicId?: string;
-
-  @Field(() => Int, { nullable: true })
-  @IsNumber()
-  @IsOptional()
-  completionTime?: number;
 }
 
 @InputType()
