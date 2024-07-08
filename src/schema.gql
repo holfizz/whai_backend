@@ -486,9 +486,9 @@ type Quiz {
   completionTime: Int!
   courseId: ID!
   createdAt: DateTime!
+  description: String!
   id: ID!
   isCompleted: Boolean
-  lessonBlockId: ID
   name: String!
   questions: [Question!]!
   subtopicId: ID
@@ -501,7 +501,6 @@ input QuizInput {
   courseId: ID!
   description: String
   isPlan: Boolean
-  lessonBlockId: ID
   name: String!
   questions: [QuestionInput!]
   subtopicId: ID
@@ -538,11 +537,11 @@ type QuizResult {
 }
 
 input QuizWithAIInput {
+  additionalParams: String
   chatWithAIId: ID!
-  completionTime: Int
-  content: String!
   courseId: ID!
-  lessonBlockId: ID
+  description: String
+  name: String!
   subtopicId: ID
 }
 

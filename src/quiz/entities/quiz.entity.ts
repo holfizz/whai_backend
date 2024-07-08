@@ -127,15 +127,15 @@ export class Quiz extends BaseEntity {
   @IsString()
   name: string;
 
+  @Field(() => String)
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @Field(() => [Question])
   @ValidateNested({ each: true })
   @Type(() => Question)
   questions: Question[];
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  lessonBlockId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()

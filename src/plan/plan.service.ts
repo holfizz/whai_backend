@@ -59,7 +59,6 @@ export class PlanService {
       },
       messagesHistory,
     };
-    console.log("aiDto", aiDto);
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
@@ -74,7 +73,6 @@ export class PlanService {
       courseId: dto.courseId,
       topics: JSON.parse(JSON.stringify(parsedContent.topics)),
     });
-    console.log("PLENNS", plan);
     return plan;
   }
 
@@ -95,7 +93,6 @@ export class PlanService {
     if (planJson.trim().startsWith("json")) {
       planJson = planJson.replace(/^json\s*/, "");
     }
-    console.log("VISISISISI", planJson);
     try {
       JSON.parse(planJson);
     } catch (e) {
