@@ -74,6 +74,32 @@ enum CourseLevelEnum {
   INTERMEDIATE
 }
 
+type CoursePlan {
+  courseId: ID!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  name: String!
+  topics: [TopicPlan!]!
+  updatedAt: DateTime!
+}
+
+input CoursePlanInput {
+  courseId: ID!
+  description: String
+  name: String!
+  topics: [TopicPlanInput!]!
+}
+
+input CoursePlanWithAIInput {
+  additionalParams: String
+  chatWithAIId: ID!
+  courseId: ID!
+  description: String
+  isHasVideo: Boolean
+  name: String!
+}
+
 input CreateChatInput {
   title: String
 }
@@ -99,12 +125,6 @@ input GetAllMessagesInput {
   chatId: ID!
   page: String
   perPage: String
-}
-
-enum IconType {
-  QUIZ
-  TEXT
-  VIDEO
 }
 
 type Interaction {
@@ -188,20 +208,22 @@ input LessonInput {
 }
 
 type LessonPlan {
+  courseId: ID!
   createdAt: DateTime!
   description: String
-  icons: [IconType!]!
   id: ID!
-  title: String!
+  name: String!
+  subtopicId: ID!
+  types: [LessonTypeEnum!]!
   updatedAt: DateTime!
 }
 
 input LessonPlanInput {
-  courseId: ID!
+  courseId: ID
   description: String
-  icons: [IconType!]!
-  subtopicId: ID!
-  title: String!
+  name: String!
+  subtopicId: ID
+  types: [LessonTypeEnum!]!
 }
 
 type LessonTasks {
@@ -220,9 +242,6 @@ input LessonTasksInput {
 }
 
 enum LessonTypeEnum {
-  DOCUMENT
-  QUIZ
-  TEXT
   VIDEO
 }
 
@@ -317,8 +336,8 @@ type Mutation {
   createMessage(createMessageInput: CreateMessageInput!): Message!
   createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
   createNotice(noticeDto: CreateNoticeInput!): Notice!
-  createPlan(createPlanInput: PlanInput!): Plan!
-  createPlanWithAI(QuizWithAIInput: PlanWithAIInput!): Plan!
+  createPlan(createPlanInput: CoursePlanInput!): CoursePlan!
+  createPlanWithAI(CoursePlanWithAIInput: CoursePlanWithAIInput!): CoursePlan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
   createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): Quiz!
   createSubtopic(createSubtopicInput: SubtopicInput!): Subtopic!
@@ -409,29 +428,6 @@ type Notice {
   userId: ID!
 }
 
-type Plan {
-  TopicPlans: [TopicPlan!]!
-  createdAt: DateTime!
-  description: String
-  id: ID!
-  title: String!
-  updatedAt: DateTime!
-}
-
-input PlanInput {
-  TopicPlans: [TopicPlanInput!]!
-  chatWithAIId: ID
-  courseId: ID!
-  description: String
-  title: String!
-}
-
-input PlanWithAIInput {
-  chatWithAIId: ID!
-  content: String!
-  courseId: ID!
-}
-
 type Query {
   findAllLessons(subtopicId: ID!): [Lesson!]!
   findLessonById(lessonId: ID!): Lesson
@@ -493,9 +489,9 @@ type Quiz {
   id: ID!
   isCompleted: Boolean
   lessonBlockId: ID
+  name: String!
   questions: [Question!]!
   subtopicId: ID
-  title: String!
   totalQuestions: Int!
   updatedAt: DateTime!
 }
@@ -503,23 +499,19 @@ type Quiz {
 input QuizInput {
   completionTime: Int
   courseId: ID!
-  lessonBlockId: ID
-  questions: [QuestionInput!]!
-  subtopicId: ID
-  title: String!
-}
-
-type QuizPlan {
-  createdAt: DateTime!
   description: String
-  id: ID!
-  title: String!
-  updatedAt: DateTime!
+  isPlan: Boolean
+  lessonBlockId: ID
+  name: String!
+  questions: [QuestionInput!]
+  subtopicId: ID
 }
 
 input QuizPlanInput {
+  courseId: ID
   description: String
-  title: String!
+  name: String!
+  subtopicId: ID
 }
 
 enum QuizQuestionType {
@@ -552,6 +544,17 @@ input QuizWithAIInput {
   courseId: ID!
   lessonBlockId: ID
   subtopicId: ID
+}
+
+type QuizzesPlan {
+  courseId: ID!
+  createdAt: DateTime!
+  description: String!
+  id: ID!
+  isPlan: Boolean!
+  name: String!
+  subtopicId: ID!
+  updatedAt: DateTime!
 }
 
 type RefreshTokenResponse {
@@ -640,21 +643,22 @@ input SubtopicInput {
 }
 
 type SubtopicPlan {
-  LessonPlans: [LessonPlan!]!
-  QuizPlan: QuizPlan
   createdAt: DateTime!
   description: String
   id: ID!
-  title: String!
+  lessons: [LessonPlan!]!
+  name: String!
+  quizzes: [QuizzesPlan!]
+  topicId: ID!
   updatedAt: DateTime!
 }
 
 input SubtopicPlanInput {
-  LessonPlans: [LessonPlanInput!]!
-  QuizPlan: QuizPlanInput
   description: String
-  title: String!
-  topicId: ID!
+  lessons: [LessonPlanInput!]
+  name: String!
+  quizzes: [QuizPlanInput!]
+  topicId: ID
 }
 
 type TelegramLink {
@@ -679,19 +683,20 @@ input TopicInput {
 }
 
 type TopicPlan {
-  SubtopicPlans: [SubtopicPlan!]!
+  courseId: ID!
   createdAt: DateTime!
   description: String
   id: ID!
-  title: String!
+  name: String!
+  subtopics: [SubtopicPlan!]!
   updatedAt: DateTime!
 }
 
 input TopicPlanInput {
-  SubtopicPlans: [SubtopicPlanInput!]!
-  courseId: ID!
+  courseId: ID
   description: String
-  title: String!
+  name: String!
+  subtopics: [SubtopicPlanInput!]
 }
 
 input UpdateChatInput {

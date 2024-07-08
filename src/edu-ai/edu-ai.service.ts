@@ -29,7 +29,6 @@ export class EduAiService {
 
     // Сохраняем AbortController для возможности отмены запроса
     this.abortControllers.set(conversationId, abortController);
-
     return new Promise((resolve, reject) => {
       let dataBuffer = "";
       let messages = [];
@@ -41,7 +40,7 @@ export class EduAiService {
             conversation_id: conversationId,
             bot_id: botId,
             user: userId,
-            query: dto.content,
+            query: JSON.stringify(dto.content),
             content_type: "answer",
             stream: true,
             chat_history: messagesHistory,

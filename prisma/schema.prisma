@@ -10,12 +10,6 @@ datasource db {
 
 //=========================== Enums ==========================//
 
-enum IconType {
-  VIDEO
-  QUIZ
-  TEXT
-}
-
 // TIME ICON TYPE
 
 enum CourseLevelEnum {
@@ -49,10 +43,7 @@ enum MessageTypeWithAI {
 }
 
 enum LessonTypeEnum {
-  TEXT
   VIDEO
-  QUIZ
-  DOCUMENT
 }
 
 enum LessonBlockEnum {
@@ -94,17 +85,17 @@ model User {
   resetPasswordExpiration DateTime?         @map("reset_password_expiration")
   courseId                String?           @map("course_id")
   chat                    Chat[]
-  ChatMembers             ChatMembers[]
+  chatMembers             ChatMembers[]
   chatsWithAI             ChatWithAI[]
   message                 Message[]
-  Course                  Course?           @relation(fields: [courseId], references: [id])
-  LearningSession         LearningSession[]
-  TelegramLink            TelegramLink?
+  course                  Course?           @relation(fields: [courseId], references: [id])
+  learningSession         LearningSession[]
+  telegramLink            TelegramLink?
   isTelegramLinked        Boolean?          @default(false) @map("is_telegram_linked")
   telegramId              String?           @unique @map("telegram_id")
-  Notice                  Notice[]
-  SentNotices             Notice[]          @relation(name: "NoticeSender")
-  QuizResult              QuizResult[]
+  notice                  Notice[]
+  sentNotices             Notice[]          @relation(name: "NoticeSender")
+  quizResult              QuizResult[]
 
   @@map("users")
 }
@@ -141,7 +132,7 @@ model MessageWithAI {
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
   role         MessageWithAIRole  @default(USER)
-  ChatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
+  chatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
   chatWithAIId String?            @map("chat_with_ai_id")
 
   @@map("messages_with_ai")
@@ -175,8 +166,7 @@ model ChatMembers {
 }
 
 model Message {
-  id String @id @default(uuid())
-
+  id          String        @id @default(uuid())
   userId      String        @map("user_id")
   type        MessageType   @default(TEXT)
   text        String
@@ -232,13 +222,12 @@ model Lesson {
   lessonBlocks   LessonBlock[]
   lessonTasks    LessonTask[]
   courseId       String
-  Course         Course           @relation(fields: [courseId], references: [id])
+  course         Course           @relation(fields: [courseId], references: [id])
   isCompleted    Boolean          @default(false) @map("is_completed")
-  Subtopic       Subtopic?        @relation(fields: [subtopicId], references: [id])
+  subtopic       Subtopic?        @relation(fields: [subtopicId], references: [id])
   subtopicId     String           @map("subtopic_id")
-  QuizResult     QuizResult[]
+  quizResult     QuizResult[]
   completionTime Int              @default(0) @map("completion_time")
-  LessonPlan     LessonPlan[]
 
   @@map("lessons")
 }
@@ -246,35 +235,33 @@ model Lesson {
 //=========================== Subtopic / Models ==========================//
 
 model Subtopic {
-  id               String         @id @default(uuid())
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
+  id               String       @id @default(uuid())
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
   name             String
   description      String?
   quizzes          Quiz[]
   lessons          Lesson[]
-  QuizResult       QuizResult[]
-  progressPercents Float          @default(0) @map("completion_percentage")
-  Topic            Topic?         @relation(fields: [topicId], references: [id])
+  quizResult       QuizResult[]
+  progressPercents Float        @default(0) @map("completion_percentage")
+  topic            Topic?       @relation(fields: [topicId], references: [id])
   topicId          String
-  completionTime   Int            @default(0) @map("completion_time")
-  SubtopicPlan     SubtopicPlan[]
+  completionTime   Int          @default(0) @map("completion_time")
 
   @@map("subtopics")
 }
 
 model Topic {
-  id               String      @id @default(uuid())
-  createdAt        DateTime    @default(now()) @map("created_at")
-  updatedAt        DateTime    @updatedAt @map("updated_at")
+  id               String     @id @default(uuid())
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
   name             String
   description      String?
-  courseId         String      @map("course_id")
-  course           Course      @relation(fields: [courseId], references: [id])
-  subtopic         Subtopic[]
-  progressPercents Float       @default(0) @map("completion_percentage")
-  completionTime   Int         @default(0) @map("completion_time")
-  TopicPlan        TopicPlan[]
+  courseId         String     @map("course_id")
+  course           Course     @relation(fields: [courseId], references: [id])
+  subtopics        Subtopic[]
+  progressPercents Float      @default(0) @map("completion_percentage")
+  completionTime   Int        @default(0) @map("completion_time")
 
   @@map("topics")
 }
@@ -282,27 +269,24 @@ model Topic {
 //=========================== Course Models ==========================//
 
 model Course {
-  id          String           @id @default(uuid())
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-  name        String
-  description String?
-  ownerID     String           @map("owner_id")
-  imageUrl    String?          @map("image_url")
-  publicUrl   String?          @map("public_url")
-  tags        String[]
-  level       CourseLevelEnum?
-
+  id               String           @id @default(uuid())
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  name             String
+  description      String?
+  ownerID          String           @map("owner_id")
+  publicUrl        String?          @map("public_url")
+  tags             String[]
+  level            CourseLevelEnum?
   students         User[]
-  teacherIds       String[]     @map("teacher_ids")
-  studentsId       String[]     @map("students_id")
-  QuizResult       QuizResult[]
-  Lesson           Lesson[]
-  Quiz             Quiz[]
-  progressPercents Float        @default(0) @map("completion_percentage")
-  Topic            Topic[]
-  completionTime   Int          @default(0) @map("completion_time")
-  Plan             Plan[]
+  teacherIds       String[]         @map("teacher_ids")
+  studentsId       String[]         @map("students_id")
+  quizResult       QuizResult[]
+  lessons          Lesson[]
+  quizzes          Quiz[]
+  progressPercents Float            @default(0) @map("completion_percentage")
+  topics           Topic[]
+  completionTime   Int              @default(0) @map("completion_time")
 
   @@map("courses")
 }
@@ -311,18 +295,20 @@ model Course {
 
 model Quiz {
   id             String       @id @default(uuid())
-  title          String
+  name           String
+  description    String?
   questions      Question[] // Связь с вопросами
   lessonBlockId  String?      @map("lesson_block_id")
-  totalQuestions Int          @default(0) @map("total_questions")
+  totalQuestions Int?         @default(0) @map("total_questions")
   subtopicId     String?      @map("subtopic_id")
-  LessonBlock    LessonBlock? @relation(fields: [lessonBlockId], references: [id])
-  Folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
-  QuizResult     QuizResult[]
+  lessonBlock    LessonBlock? @relation(fields: [lessonBlockId], references: [id])
+  folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
+  quizResult     QuizResult[]
   courseId       String
-  Course         Course       @relation(fields: [courseId], references: [id])
+  course         Course       @relation(fields: [courseId], references: [id])
   isCompleted    Boolean      @default(false) @map("is_completed")
   completionTime Int          @default(0) @map("completion_time")
+  isPlan         Boolean      @default(false)
 
   @@map("quizzes")
 }
@@ -378,38 +364,36 @@ model MatchingInteraction {
 }
 
 model QuizResult {
-  id             String   @id @default(uuid())
-  userId         String   @map("user_id")
-  quizId         String   @map("quiz_id")
-  courseId       String   @map("course_id")
-  lessonId       String?  @map("lesson_id")
-  subtopicId     String?  @map("subtopic_id")
-  totalQuestions Int      @map("total_questions")
-  correctAnswers Int      @map("correct_answers")
-  wrongAnswers   Int      @map("wrong_answers")
-  completionTime Int      @map("completion_time") // Время выполнения в секундах
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  User        User?        @relation(fields: [userId], references: [id])
-  Quiz        Quiz?        @relation(fields: [quizId], references: [id])
-  Course      Course?      @relation(fields: [courseId], references: [id])
-  UserAnswers UserAnswer[]
-  Lesson      Lesson?      @relation(fields: [lessonId], references: [id])
-  Subtopic    Subtopic?    @relation(fields: [subtopicId], references: [id])
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  quizId         String       @map("quiz_id")
+  courseId       String       @map("course_id")
+  lessonId       String?      @map("lesson_id")
+  subtopicId     String?      @map("subtopic_id")
+  totalQuestions Int          @map("total_questions")
+  correctAnswers Int          @map("correct_answers")
+  wrongAnswers   Int          @map("wrong_answers")
+  completionTime Int          @map("completion_time")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User?        @relation(fields: [userId], references: [id])
+  quiz           Quiz?        @relation(fields: [quizId], references: [id])
+  course         Course?      @relation(fields: [courseId], references: [id])
+  userAnswers    UserAnswer[]
+  lesson         Lesson?      @relation(fields: [lessonId], references: [id])
+  subtopic       Subtopic?    @relation(fields: [subtopicId], references: [id])
 
   @@map("quiz_results")
 }
 
 model UserAnswer {
-  id             String   @id @default(uuid())
-  quizResultId   String   @map("quiz_result_id")
-  questionId     String   @map("question_id")
-  selectedAnswer String[] @map("selected_answer") // Выбранный ответ
-  isCorrect      Boolean  @map("is_correct")
-
-  QuizResult QuizResult? @relation(fields: [quizResultId], references: [id])
-  Question   Question?   @relation(fields: [questionId], references: [id])
+  id             String      @id @default(uuid())
+  quizResultId   String      @map("quiz_result_id")
+  questionId     String      @map("question_id")
+  selectedAnswer String[]    @map("selected_answer")
+  isCorrect      Boolean     @map("is_correct")
+  quizResult     QuizResult? @relation(fields: [quizResultId], references: [id])
+  question       Question?   @relation(fields: [questionId], references: [id])
 
   @@map("user_answers")
 }
@@ -436,88 +420,9 @@ model Notice {
   title       String
   description String?
   readStatus  Boolean  @default(false) @map("read_status")
-  User        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
   senderId    String?  @map("sender_id")
-  Sender      User?    @relation(name: "NoticeSender", fields: [senderId], references: [id])
+  sender      User?    @relation(name: "NoticeSender", fields: [senderId], references: [id])
 
   @@map("notices")
-}
-
-//=========================== Plan Models ==========================//
-
-model Plan {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  title       String
-  description String?
-
-  TopicPlans TopicPlan[]
-  Course     Course      @relation(fields: [courseId], references: [id])
-  courseId   String
-
-  @@map("plans")
-}
-
-model TopicPlan {
-  id            String         @id @default(uuid())
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  CoursePlanId  String         @map("course_plan_id")
-  title         String
-  description   String?
-  SubtopicPlans SubtopicPlan[]
-  Plan          Plan?          @relation(fields: [planId], references: [id])
-  planId        String?        @map("plan_id")
-  QuizPlan      QuizPlan[]
-  topic         Topic          @relation(fields: [topicId], references: [id])
-  topicId       String         @map("topic_id")
-
-  @@map("topic_plans")
-}
-
-model SubtopicPlan {
-  id          String       @id @default(uuid())
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  topicPlanId String       @map("topic_plan_id")
-  title       String
-  description String?
-  TopicPlan   TopicPlan    @relation(fields: [topicPlanId], references: [id])
-  LessonPlans LessonPlan[]
-  QuizPlan    QuizPlan[]
-  subtopic    Subtopic     @relation(fields: [subtopicId], references: [id])
-  subtopicId  String       @map("subtopic_id")
-
-  @@map("subtopic_plans")
-}
-
-model LessonPlan {
-  id             String       @id @default(uuid())
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-  SubtopicPlanId String       @map("subtopic_plan_id")
-  title          String
-  description    String
-  SubtopicPlan   SubtopicPlan @relation(fields: [SubtopicPlanId], references: [id])
-  icons          IconType[]   @default([TEXT])
-  lesson         Lesson       @relation(fields: [lessonId], references: [id])
-  lessonId       String       @map("subtopic_id")
-
-  @@map("lesson_plans")
-}
-
-model QuizPlan {
-  id             String        @id @default(uuid())
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-  subtopicPlanId String?       @map("subtopic_plan_id")
-  topicPlanId    String?       @map("topic_plan_id")
-  title          String
-  description    String
-  SubtopicPlan   SubtopicPlan? @relation(fields: [subtopicPlanId], references: [id])
-  TopicPlan      TopicPlan?    @relation(fields: [topicPlanId], references: [id])
-  icon           IconType      @default(QUIZ)
-
-  @@map("quiz_plans")
 }

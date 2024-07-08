@@ -1,98 +1,139 @@
 import { BaseEntity } from "@/helpers/base.entity";
-import { Field, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { IconType } from "@prisma/client";
+import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
-registerEnumType(IconType, {
-  name: "IconType",
+registerEnumType(LessonTypeEnum, {
+  name: "LessonTypeEnum",
 });
 
 @ObjectType()
-class QuizPlan extends BaseEntity {
+export class QuizzesPlan extends BaseEntity {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
-  @Field(() => String, { nullable: true })
-  @IsOptional()
+  @Field(() => String)
   @IsString()
-  description?: string;
+  @IsNotEmpty()
+  description: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  subtopicId: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isPlan: boolean;
 }
 
 @ObjectType()
-class LessonPlan extends BaseEntity {
+export class LessonPlan extends BaseEntity {
   @Field(() => String)
   @IsString()
-  title: string;
+  @IsNotEmpty()
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Field(() => [IconType])
-  @IsEnum(IconType, { each: true })
-  icons: IconType[];
+  @Field(() => [LessonTypeEnum])
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(LessonTypeEnum, { each: true })
+  types: LessonTypeEnum[];
+
+  @Field(() => ID)
+  @IsUUID()
+  subtopicId: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 }
 
 @ObjectType()
-class SubtopicPlan extends BaseEntity {
+export class SubtopicPlan extends BaseEntity {
   @Field(() => String)
   @IsString()
-  title: string;
+  @IsNotEmpty()
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  topicId: string;
 
   @Field(() => [LessonPlan])
   @IsArray()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => LessonPlan)
-  LessonPlans: LessonPlan[];
+  lessons: LessonPlan[];
 
-  @Field(() => QuizPlan, { nullable: true })
+  @Field(() => [QuizzesPlan], { nullable: true })
   @IsOptional()
   @ValidateNested()
-  @Type(() => QuizPlan)
-  QuizPlan?: QuizPlan;
+  @Type(() => QuizzesPlan)
+  quizzes?: QuizzesPlan[];
 }
 
 @ObjectType()
-class TopicPlan extends BaseEntity {
+export class TopicPlan extends BaseEntity {
   @Field(() => String)
   @IsString()
-  title: string;
+  @IsNotEmpty()
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
 
   @Field(() => [SubtopicPlan])
   @IsArray()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => SubtopicPlan)
-  SubtopicPlans: SubtopicPlan[];
+  subtopics: SubtopicPlan[];
 }
 
 @ObjectType()
-export class Plan extends BaseEntity {
+export class CoursePlan extends BaseEntity {
   @Field(() => String)
   @IsString()
-  title: string;
+  @IsNotEmpty()
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+
   @Field(() => [TopicPlan])
   @IsArray()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TopicPlan)
-  TopicPlans: TopicPlan[];
+  topics: TopicPlan[];
 }

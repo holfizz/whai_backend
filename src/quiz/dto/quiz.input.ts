@@ -122,12 +122,17 @@ export class QuizInput {
 
   @Field(() => String)
   @IsString()
-  title: string;
+  name: string;
 
-  @Field(() => [QuestionInput])
+  @Field(() => String, { nullable: true })
+  @IsString()
+  description?: string;
+
+  @Field(() => [QuestionInput], { nullable: true })
   @ValidateNested({ each: true })
   @Type(() => QuestionInput)
-  questions: QuestionInput[];
+  @IsOptional()
+  questions?: QuestionInput[];
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -143,6 +148,11 @@ export class QuizInput {
   @IsNumber()
   @IsOptional()
   completionTime?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  isPlan?: boolean;
 }
 
 @InputType()

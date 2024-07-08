@@ -125,7 +125,7 @@ export class Question {
 export class Quiz extends BaseEntity {
   @Field(() => String)
   @IsString()
-  title: string;
+  name: string;
 
   @Field(() => [Question])
   @ValidateNested({ each: true })

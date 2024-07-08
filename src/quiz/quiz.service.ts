@@ -18,14 +18,15 @@ export class QuizService {
 
   async createQuiz(data: QuizInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
-      await this.quizRepository.validateSubtopicAndLesson(data);
+      // await this.quizRepository.validateSubtopicAndLesson(data);
 
       const newQuiz = await this.quizRepository.createQuiz(data);
 
-      for (const question of data.questions) {
-        await this.quizRepository.createQuestion(question, newQuiz.id);
+      if (data.questions) {
+        for (const question of data.questions) {
+          await this.quizRepository.createQuestion(question, newQuiz.id);
+        }
       }
-
       const quizStats = await this.quizUtils.calculateQuizStats(newQuiz.id);
       await this.quizRepository.updateQuizStats(newQuiz.id, quizStats);
 
@@ -67,10 +68,10 @@ export class QuizService {
     const parsedContent = JSON.parse(quizJson);
     console.log(3, parsedContent);
 
-    const { title, questions, completionTime } = parsedContent;
+    const { name, questions, completionTime } = parsedContent;
 
     await this.createQuiz({
-      title,
+      name,
       questions,
       completionTime: Number(completionTime),
       lessonBlockId: dto.lessonBlockId,

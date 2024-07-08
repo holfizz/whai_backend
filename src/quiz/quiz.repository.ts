@@ -18,12 +18,16 @@ export class QuizRepository {
   }
 
   async createQuiz(data: QuizInput): Promise<any> {
+    const questionsData = data.questions || []; // Если data.questions не определен, используем пустой массив
+
     return this.prisma.quiz.create({
       data: {
-        title: data.title,
+        name: data.name,
+        description: data.description,
         lessonBlockId: data.lessonBlockId || null,
         subtopicId: data.subtopicId || null,
         courseId: data.courseId,
+        isPlan: data.isPlan || false,
       },
     });
   }
@@ -155,7 +159,7 @@ export class QuizRepository {
     await this.prisma.quiz.update({
       where: { id },
       data: {
-        title: data.title,
+        name: data.name,
         lessonBlockId: data.lessonBlockId || null,
         subtopicId: data.subtopicId || null,
       },

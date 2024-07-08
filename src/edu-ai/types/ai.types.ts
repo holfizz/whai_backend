@@ -33,5 +33,5 @@ export class AIDTO {
 
   @IsString()
   @IsNotEmpty()
-  content: string;
+  content: any;
 }

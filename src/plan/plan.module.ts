@@ -17,6 +17,9 @@ import { LessonRepository } from "@/lesson/lesson.repository";
 import { LessonUtils } from "@/lesson/lesson.utils";
 import { LessonBlockService } from "@/lesson-block/lesson-block.service";
 import { LessonTasksService } from "@/lesson-tasks/lesson-tasks.service";
+import { QuizService } from "@/quiz/quiz.service";
+import { QuizRepository } from "@/quiz/quiz.repository";
+import { QuizUtils } from "@/quiz/quiz.utils";
 
 @Module({
   providers: [
@@ -33,6 +36,9 @@ import { LessonTasksService } from "@/lesson-tasks/lesson-tasks.service";
     LessonUtils,
     LessonBlockService,
     LessonTasksService,
+    QuizService,
+    QuizRepository,
+    QuizUtils,
   ],
   imports: [EduAiModule, HttpModule, LessonModule, TopicModule, SubtopicModule],
 })

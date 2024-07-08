@@ -3,9 +3,10 @@ import { AIDTO } from "@/edu-ai/types/ai.types";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { PubSub } from "graphql-subscriptions";
-import { PlanInput, PlanWithAIInput } from "./dto/plan.input";
+import { CoursePlanInput, CoursePlanWithAIInput } from "./dto/plan.input";
 import { PlanRepository } from "./plan.repository";
 import { PlanUtils } from "./plan.utils";
+import { CoursePlan } from "@/plan/entities/plan.entity";
 
 @Injectable()
 export class PlanService {
@@ -16,25 +17,15 @@ export class PlanService {
     private readonly planUtils: PlanUtils,
   ) {}
 
-  async createPlan(data: PlanInput): Promise<any> {
-    return await this.prisma.$transaction(async prisma => {
-      await this.planRepository.validatePlan(data);
-      const newPlan = await this.planRepository.createFullPlan(data);
-      return newPlan;
-    });
+  async createPlan(data: CoursePlanInput): Promise<CoursePlan> {
+    const newPlan = await this.planRepository.createFullPlan(data);
+    if (!newPlan.topics || newPlan.topics.length === 0) {
+      throw new Error("No topics found in the created plan");
+    }
+    return newPlan;
   }
 
-  async deletePlan(id: string): Promise<any> {
-    return await this.prisma
-      .$transaction(async prisma => {
-        await this.planRepository.deletePlanAndRelatedEntities(id);
-      })
-      .catch(error => {
-        throw new Error(`Failed to delete plan and its related entities: ${error.message}`);
-      });
-  }
-
-  async updatePlan(id: string, data: PlanInput): Promise<any> {
+  async updatePlan(id: string, data: CoursePlanInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
       await this.planRepository.updatePlan(id, data);
 
@@ -50,7 +41,7 @@ export class PlanService {
     return this.planRepository.findAllPlans();
   }
 
-  async createPlanWithAI(userId: string, dto: PlanWithAIInput, pubSub: PubSub): Promise<any> {
+  async createPlanWithAI(userId: string, dto: CoursePlanWithAIInput, pubSub: PubSub): Promise<any> {
     const messagesHistory = await this.prisma.messageWithAI.findMany({
       where: { chatWithAIId: dto.chatWithAIId },
       orderBy: {
@@ -58,9 +49,17 @@ export class PlanService {
       },
     });
     const aiDto: AIDTO = {
-      content: dto.content,
+      content: {
+        createType: "План",
+        descriptionType: "Создай план",
+        planTitle: dto.name,
+        planDescription: dto.description,
+        isHasVideo: dto.isHasVideo,
+        additionalParams: dto.additionalParams,
+      },
       messagesHistory,
     };
+    console.log("aiDto", aiDto);
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
@@ -68,35 +67,17 @@ export class PlanService {
 
     const parsedContent = JSON.parse(planJson);
     console.log("parsedContent", parsedContent);
-    console.log("plan", {
-      title: parsedContent.title,
-      TopicPlans: parsedContent.TopicPlans,
-      courseId: dto.courseId,
-      chatWithAIId: dto.chatWithAIId,
-      description: parsedContent.description,
-    });
+
     const plan = await this.createPlan({
-      title: parsedContent.title,
-      description: parsedContent.description,
-      TopicPlans: parsedContent.TopicPlans,
+      name: dto.name,
+      description: dto.description,
       courseId: dto.courseId,
-      chatWithAIId: dto.chatWithAIId,
+      topics: JSON.parse(JSON.stringify(parsedContent.topics)),
     });
+    console.log("PLENNS", plan);
     return plan;
   }
 
-  // private extractPlanJson(content: string): string {
-  //   let match = content.match(/```plan\n([\s\S]*?)\n```/);
-  //   if (!match || match.length < 2) throw new Error("Cannot find plan JSON in the provided content.");
-  //
-  //   let planJson = match[1];
-  //
-  //   if (planJson.startsWith("json")) {
-  //     planJson = planJson.replace(/^json\s*/, "");
-  //   }
-  //
-  //   return planJson;
-  // }
   private extractPlanJson(content: string): string {
     const patterns = [/```plan\n```json\n([\s\S]*?)\n```\n```/, /```json\n```plan\n([\s\S]*?)\n```\n```/, /```plan\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
     let match = null;
@@ -114,7 +95,7 @@ export class PlanService {
     if (planJson.trim().startsWith("json")) {
       planJson = planJson.replace(/^json\s*/, "");
     }
-    console.log(planJson);
+    console.log("VISISISISI", planJson);
     try {
       JSON.parse(planJson);
     } catch (e) {

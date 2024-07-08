@@ -1,22 +1,36 @@
 import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
-import { IconType } from "@prisma/client";
+import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
-registerEnumType(IconType, {
-  name: "IconType",
+registerEnumType(LessonTypeEnum, {
+  name: "LessonTypeEnum",
 });
+
 @InputType()
 export class QuizPlanInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @Field(() => String, { nullable: true })
-  @IsOptional()
   @IsString()
+  @IsOptional()
+  @IsNotEmpty()
   description?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  @IsUUID()
+  subtopicId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  @IsUUID()
+  courseId?: string;
 }
 
 @InputType()
@@ -24,26 +38,30 @@ export class LessonPlanInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Field(() => [IconType])
+  @Field(() => [LessonTypeEnum])
   @IsArray()
   @ArrayNotEmpty()
-  @IsEnum(IconType, { each: true })
-  icons: IconType[];
+  @IsEnum(LessonTypeEnum, { each: true })
+  types: LessonTypeEnum[];
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  subtopicId: string;
+  @IsOptional()
+  @IsUUID()
+  subtopicId?: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  courseId: string;
+  @IsOptional()
+  @IsUUID()
+  courseId?: string;
 }
 
 @InputType()
@@ -51,29 +69,32 @@ export class SubtopicPlanInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
   @IsUUID()
-  topicId: string;
+  topicId?: string;
 
-  @Field(() => [LessonPlanInput])
+  @Field(() => [LessonPlanInput], { nullable: true })
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => LessonPlanInput)
-  LessonPlans: LessonPlanInput[];
+  @IsOptional()
+  lessons?: LessonPlanInput[];
 
-  @Field(() => QuizPlanInput, { nullable: true })
+  @Field(() => [QuizPlanInput], { nullable: true })
   @IsOptional()
   @ValidateNested()
+  @IsArray()
   @Type(() => QuizPlanInput)
-  QuizPlan?: QuizPlanInput;
+  quizzes?: QuizPlanInput[];
 }
 
 @InputType()
@@ -81,31 +102,34 @@ export class TopicPlanInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  courseId: string;
+  @IsOptional()
+  @IsUUID()
+  courseId?: string;
 
-  @Field(() => [SubtopicPlanInput])
+  @Field(() => [SubtopicPlanInput], { nullable: true })
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
+  @IsOptional()
   @Type(() => SubtopicPlanInput)
-  SubtopicPlans: SubtopicPlanInput[];
+  subtopics?: SubtopicPlanInput[];
 }
 
 @InputType()
-export class PlanInput {
+export class CoursePlanInput {
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -121,26 +145,37 @@ export class PlanInput {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TopicPlanInput)
-  TopicPlans: TopicPlanInput[];
-
-  @Field(() => ID, { nullable: true })
-  @IsUUID()
-  @IsOptional()
-  chatWithAIId?: string;
+  topics: TopicPlanInput[];
 }
+
 @InputType()
-export class PlanWithAIInput {
+export class CoursePlanWithAIInput {
+  @Field(() => String)
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  additionalParams?: string;
+
   @IsString()
   @Field(() => ID)
   @IsUUID()
   chatWithAIId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => String)
-  content: string;
-
   @Field(() => ID)
   @IsUUID()
   courseId: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  isHasVideo?: boolean;
 }
