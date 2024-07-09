@@ -18,17 +18,34 @@ export class SubtopicService {
       console.error(`Topic with ID ${data.topicId} not found`);
       throw new NotFoundException(`Topic with ID ${data.topicId} not found`);
     }
-    return this.prisma.subtopic.create({
+    const subtopic = await this.prisma.subtopic.create({
       data,
     });
+    return {
+      ...subtopic,
+      ...(await this.getSubtopicStats(subtopic.id)),
+    };
   }
 
-  async getSubtopic(id: string) {
-    const subtopic = await this.prisma.subtopic.findUnique({ where: { id } });
+  async getSubtopic(subtopicId: string) {
+    const subtopic = await this.prisma.subtopic.findUnique({ where: { id: subtopicId } });
     if (!subtopic) {
-      throw new NotFoundException(`Subtopic with ID ${id} not found`);
+      throw new NotFoundException(`Subtopic with ID ${subtopicId} not found`);
     }
-    return this.updateSubtopicProgressPercent(id);
+    return {
+      ...subtopic,
+      ...(await this.getSubtopicStats(subtopicId)),
+    };
+  }
+
+  async getAllSubtopics(topicId: string) {
+    const subtopics = await this.prisma.subtopic.findMany({ where: { topicId } });
+
+    return await Promise.all(
+      subtopics.map(async subtopic => {
+        return { ...subtopic, ...(await this.getSubtopicStats(subtopic.id)) };
+      }),
+    );
   }
 
   async updateSubtopic(id: string, updateSubtopicInput: UpdateSubtopicInput) {
@@ -56,10 +73,11 @@ export class SubtopicService {
     return this.prisma.subtopic.delete({ where: { id } });
   }
 
-  async updateSubtopicProgressPercent(subtopicId: string) {
+  async getSubtopicStats(subtopicId: string) {
     const lessons = await this.prisma.lesson.findMany({
       where: { subtopicId },
     });
+
     const quizzes = await this.prisma.quiz.findMany({
       where: { subtopicId },
     });
@@ -71,11 +89,17 @@ export class SubtopicService {
     const completedItems = completedLessons + completedQuizzes;
     const totalPercent = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
-    return this.prisma.subtopic.update({
-      where: { id: subtopicId },
-      data: {
-        progressPercents: totalPercent,
-      },
-    });
+    // Calculate total completion time
+    const totalLessonsTime = lessons.reduce((sum, lesson) => sum + (lesson.completionTime || 0), 0);
+    const totalQuizzesTime = quizzes.reduce((sum, quiz) => sum + (quiz.completionTime || 0), 0);
+    const totalTime = totalLessonsTime + totalQuizzesTime;
+
+    // Round total time to the nearest whole hour
+    const roundedTotalTime = Math.round(totalTime / 60);
+
+    return {
+      progressPercents: totalPercent || 0,
+      completionTime: roundedTotalTime || 0,
+    };
   }
 }

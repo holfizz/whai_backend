@@ -39,6 +39,28 @@ export class TopicService {
   }
 
   async getTopic(topicId: string) {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+    });
+    return {
+      ...topic,
+      ...(await this.getTopicStats(topicId)),
+    };
+  }
+
+  async getAllTopics(courseId: string) {
+    const topics = await this.prisma.topic.findMany({
+      where: { courseId },
+    });
+
+    return await Promise.all(
+      topics.map(async topic => {
+        return { ...topic, ...(await this.getTopicStats(topic.id)) };
+      }),
+    );
+  }
+
+  async getTopicStats(topicId: string) {
     const subtopics = await this.prisma.subtopic.findMany({
       where: { topicId },
     });
@@ -59,12 +81,18 @@ export class TopicService {
     const completedItems = completedLessons + completedQuizzes;
     const totalPercent = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
-    // Обновляем процент прохождения топика
-    return this.prisma.topic.update({
-      where: { id: topicId },
-      data: {
-        progressPercents: totalPercent,
-      },
-    });
+    // Calculate total completion time
+    const totalLessonsTime = lessons.reduce((sum, lesson) => sum + lesson.completionTime, 0);
+    const totalQuizzesTime = quizzes.reduce((sum, quiz) => sum + quiz.completionTime, 0);
+    const totalTime = totalLessonsTime + totalQuizzesTime;
+
+    // Round total time to the nearest whole hour
+    const roundedTotalTime = Math.round(totalTime / 60); // Assuming completionTime is in minutes
+
+    // Update the progress percentage and completion time in the topic
+    return {
+      progressPercents: totalPercent || 0,
+      completionTime: roundedTotalTime || 0,
+    };
   }
 }

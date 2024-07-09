@@ -35,4 +35,12 @@ export class Course extends BaseEntity {
   @Field(() => Float)
   @IsNumber()
   progressPercents: number;
+
+  @Field(() => Number)
+  @IsNumber()
+  totalTopics: number;
+
+  @Field(() => Number)
+  @IsNumber()
+  completionTime: number;
 }

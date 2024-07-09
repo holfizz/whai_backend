@@ -29,4 +29,10 @@ export class TopicResolver {
   async getTopic(@Args("id") id: string) {
     return this.topicService.getTopic(id);
   }
+
+  @Query(() => [Topic])
+  @Auth("user")
+  async getAllTopics(@Args("courseId") courseId: string) {
+    return this.topicService.getAllTopics(courseId);
+  }
 }

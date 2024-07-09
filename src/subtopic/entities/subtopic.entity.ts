@@ -20,4 +20,8 @@ export class Subtopic extends BaseEntity {
   @Field(() => Float)
   @IsNumber()
   progressPercents: number;
+
+  @Field(() => Number)
+  @IsNumber()
+  completionTime: number;
 }

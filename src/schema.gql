@@ -52,6 +52,7 @@ input ChoiceInput {
 }
 
 type Course {
+  completionTime: Float!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -60,6 +61,7 @@ type Course {
   name: String!
   progressPercents: Float!
   publicUrl: String
+  totalTopics: Float!
   updatedAt: DateTime!
 }
 
@@ -444,6 +446,8 @@ type Query {
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
+  getAllSubtopics(topicId: String!): [Subtopic!]!
+  getAllTopics(courseId: String!): [Topic!]!
   getCourse(id: String!): Course!
   getLastCourse: Course
 
@@ -629,6 +633,7 @@ type Subscription {
 }
 
 type Subtopic {
+  completionTime: Float!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -669,6 +674,7 @@ type TelegramLink {
 }
 
 type Topic {
+  completionTime: Float!
   courseId: ID!
   createdAt: DateTime!
   description: String

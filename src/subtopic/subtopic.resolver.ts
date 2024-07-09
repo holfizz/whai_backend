@@ -29,4 +29,10 @@ export class SubtopicResolver {
   async getSubtopic(@Args("id") id: string) {
     return this.subtopicService.getSubtopic(id);
   }
+
+  @Query(() => [Subtopic])
+  @Auth("user")
+  async getAllSubtopics(@Args("topicId") topicId: string) {
+    return this.subtopicService.getAllSubtopics(topicId);
+  }
 }

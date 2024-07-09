@@ -234,33 +234,29 @@ model Lesson {
 //=========================== Subtopic / Models ==========================//
 
 model Subtopic {
-  id               String       @id @default(uuid())
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @updatedAt @map("updated_at")
-  name             String
-  description      String?
-  quizzes          Quiz[]
-  lessons          Lesson[]
-  quizResult       QuizResult[]
-  progressPercents Float        @default(0) @map("completion_percentage")
-  topic            Topic?       @relation(fields: [topicId], references: [id])
-  topicId          String
-  completionTime   Int          @default(0) @map("completion_time")
+  id          String       @id @default(uuid())
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  name        String
+  description String?
+  quizzes     Quiz[]
+  lessons     Lesson[]
+  quizResult  QuizResult[]
+  topic       Topic?       @relation(fields: [topicId], references: [id])
+  topicId     String
 
   @@map("subtopics")
 }
 
 model Topic {
-  id               String     @id @default(uuid())
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
-  name             String
-  description      String?
-  courseId         String     @map("course_id")
-  course           Course     @relation(fields: [courseId], references: [id])
-  subtopics        Subtopic[]
-  progressPercents Float      @default(0) @map("completion_percentage")
-  completionTime   Int        @default(0) @map("completion_time")
+  id          String     @id @default(uuid())
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  name        String
+  description String?
+  courseId    String     @map("course_id")
+  course      Course     @relation(fields: [courseId], references: [id])
+  subtopics   Subtopic[]
 
   @@map("topics")
 }
@@ -268,24 +264,22 @@ model Topic {
 //=========================== Course Models ==========================//
 
 model Course {
-  id               String           @id @default(uuid())
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
-  name             String
-  description      String?
-  ownerID          String           @map("owner_id")
-  publicUrl        String?          @map("public_url")
-  tags             String[]
-  level            CourseLevelEnum?
-  students         User[]
-  teacherIds       String[]         @map("teacher_ids")
-  studentsId       String[]         @map("students_id")
-  quizResult       QuizResult[]
-  lessons          Lesson[]
-  quizzes          Quiz[]
-  progressPercents Float            @default(0) @map("completion_percentage")
-  topics           Topic[]
-  completionTime   Int              @default(0) @map("completion_time")
+  id          String           @id @default(uuid())
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  name        String
+  description String?
+  ownerID     String           @map("owner_id")
+  publicUrl   String?          @map("public_url")
+  tags        String[]
+  level       CourseLevelEnum?
+  students    User[]
+  teacherIds  String[]         @map("teacher_ids")
+  studentsId  String[]         @map("students_id")
+  quizResult  QuizResult[]
+  lessons     Lesson[]
+  quizzes     Quiz[]
+  topics      Topic[]
 
   @@map("courses")
 }
