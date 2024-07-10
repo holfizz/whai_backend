@@ -1,6 +1,6 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
-import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { CourseService } from "./course.service";
 import { CourseInput } from "./dto/course.input";
 import { UpdateCourse } from "./dto/update-course.input";
@@ -18,8 +18,8 @@ export class CourseResolver {
 
   @Query(() => Course)
   @Auth("user")
-  async getCourse(@CurrentUser("id") userId: string, @Args("id") id: string) {
-    return this.courseService.getCourse(userId, id);
+  async getCourse(@CurrentUser("id") userId: string, @Args("courseId", { type: () => ID }) courseId: string) {
+    return this.courseService.getCourse(userId, courseId);
   }
 
   @Query(() => [Course])

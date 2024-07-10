@@ -20,19 +20,19 @@ export class TopicResolver {
   }
 
   @Mutation(() => Topic)
-  deleteTopic(@Args("id", { type: () => ID }) id: string) {
+  deleteTopic(@Args("topicId", { type: () => ID }) id: string) {
     return this.topicService.deleteTopic(id);
   }
 
   @Query(() => Topic)
   @Auth("user")
-  async getTopic(@Args("id") id: string) {
+  async getTopic(@Args("topicId", { type: () => ID }) id: string) {
     return this.topicService.getTopic(id);
   }
 
   @Query(() => [Topic])
   @Auth("user")
-  async getAllTopics(@Args("courseId") courseId: string) {
+  async getAllTopics(@Args("courseId", { type: () => ID }) courseId: string) {
     return this.topicService.getAllTopics(courseId);
   }
 }

@@ -361,7 +361,7 @@ type Mutation {
   deleteMessage(id: String!): Message!
   deleteQuiz(id: String!): Quiz!
   deleteSubtopic(id: ID!): Subtopic!
-  deleteTopic(id: ID!): Topic!
+  deleteTopic(topicId: ID!): Topic!
 
   """
   Allows a user to enter a chat room, adding them to the chat's members list.
@@ -447,8 +447,8 @@ type Query {
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
   getAllSubtopics(topicId: String!): [Subtopic!]!
-  getAllTopics(courseId: String!): [Topic!]!
-  getCourse(id: String!): Course!
+  getAllTopics(courseId: ID!): [Topic!]!
+  getCourse(courseId: ID!): Course!
   getLastCourse: Course
 
   """
@@ -456,7 +456,7 @@ type Query {
   """
   getProfile: User!
   getSubtopic(id: String!): Subtopic!
-  getTopic(id: String!): Topic!
+  getTopic(topicId: ID!): Topic!
 
   """
   Check if a given activation link is valid and the user's email is activated.
@@ -679,8 +679,10 @@ type Topic {
   createdAt: DateTime!
   description: String
   id: ID!
+  isHasVideo: Boolean!
   name: String!
   progressPercents: Float!
+  totalSubtopics: Float!
   updatedAt: DateTime!
 }
 

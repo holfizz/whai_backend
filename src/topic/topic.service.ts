@@ -89,8 +89,11 @@ export class TopicService {
     // Round total time to the nearest whole hour
     const roundedTotalTime = Math.round(totalTime / 60); // Assuming completionTime is in minutes
 
-    // Update the progress percentage and completion time in the topic
+    const isHasVideo = lessons.some(lesson => lesson.types.includes("VIDEO"));
+
     return {
+      isHasVideo: isHasVideo,
+      totalSubtopics: subtopics.length,
       progressPercents: totalPercent || 0,
       completionTime: roundedTotalTime || 0,
     };

@@ -24,4 +24,12 @@ export class Topic extends BaseEntity {
   @Field(() => Number)
   @IsNumber()
   completionTime: number;
+
+  @Field(() => Number)
+  @IsNumber()
+  totalSubtopics: number;
+
+  @Field(() => Boolean)
+  @IsNumber()
+  isHasVideo: boolean;
 }
