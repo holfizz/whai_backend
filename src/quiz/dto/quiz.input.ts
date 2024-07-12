@@ -1,7 +1,7 @@
-import { Field, ID, InputType, Int, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -47,9 +47,10 @@ export class InteractionInput {
 
 @InputType()
 export class SideTypeInput {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  content: string;
+  @IsOptional()
+  content?: string;
 }
 
 @InputType()
@@ -84,9 +85,10 @@ export class QuestionInput {
   @IsString()
   stimulus?: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  prompt: string;
+  @IsOptional()
+  prompt?: string;
 
   @Field(() => [ChoiceInput], { nullable: true })
   @IsArray()
@@ -140,11 +142,6 @@ export class QuizInput {
   @IsUUID()
   subtopicId?: string;
 
-  @Field(() => Int, { nullable: true })
-  @IsNumber()
-  @IsOptional()
-  completionTime?: number;
-
   @Field(() => Boolean, { nullable: true })
   @IsBoolean()
   @IsOptional()
@@ -184,20 +181,26 @@ export class QuizWithAIInput {
 }
 
 @InputType()
-class UserAnswerInput {
+export class KeyValueInput {
+  @Field(() => [String])
+  value: string[];
+}
+
+@InputType()
+export class UserAnswerInput {
   @Field(() => ID)
   @IsUUID()
   questionId: string;
 
-  @Field(() => [String])
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
   @IsArray()
-  selectedAnswer: string[];
+  selectedAnswer?: string[];
 
-  @Field(() => Boolean)
-  @IsBoolean()
-  isCorrect: boolean;
+  @Field(() => [KeyValueInput], { nullable: true })
+  @IsOptional()
+  matchingAnswers?: KeyValueInput[];
 }
-
 @InputType()
 export class SaveQuizResultInput {
   @Field(() => ID)
@@ -213,28 +216,9 @@ export class SaveQuizResultInput {
   @IsUUID()
   subtopicId: string;
 
-  @Field(() => Int)
-  @IsNumber()
-  totalPercents: number;
-
-  @Field(() => Int)
-  @IsInt()
-  @Min(0)
-  correctAnswers: number;
-
-  @Field(() => Int)
-  @IsInt()
-  @Min(0)
-  wrongAnswers: number;
-
-  @Field(() => Int)
-  @IsInt()
-  @Min(0)
-  completionTime: number; // время выполнения в секундах
-
-  @Field(() => UserAnswerInput)
+  @Field(() => [UserAnswerInput])
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => UserAnswerInput)
-  userAnswer: UserAnswerInput;
+  userAnswers: [UserAnswerInput];
 }

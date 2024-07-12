@@ -1,6 +1,6 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
-import { Args, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
+import { Args, ID, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
 import { Quiz, QuizResult } from "./entities/quiz.entity";
@@ -17,21 +17,25 @@ export class QuizResolver {
       return payload.quizWithAIAnswer.conversation_id === variables.chatWithAIId;
     },
   })
+  @Auth("user")
   quizWithAIAnswer(@Args("chatWithAIId") chatWithAIId: string) {
     return pubSub.asyncIterator("quizWithAIAnswer");
   }
 
   @Mutation(() => Quiz)
+  @Auth("user")
   createQuiz(@Args("createQuizInput") createQuizInput: QuizInput) {
     return this.quizService.createQuiz(createQuizInput);
   }
 
   @Query(() => Quiz)
-  getQuiz(@CurrentUser("id") userId: string, @Args("quizId", { type: () => String }) quizId: string) {
+  @Auth("user")
+  getQuiz(@CurrentUser("id") userId: string, @Args("quizId", { type: () => ID }) quizId: string) {
     return this.quizService.getQuiz(quizId, userId);
   }
 
   @Query(() => [Quiz])
+  @Auth("user")
   getAllQuizzes(@Args("subtopicId", { type: () => String }) subtopicId: string) {
     return this.quizService.getAllQuizzes(subtopicId);
   }
@@ -68,7 +72,7 @@ export class QuizResolver {
     return true;
   }
 
-  @Mutation(() => QuizResult)
+  @Mutation(() => [QuizResult])
   @Auth("user")
   saveQuizResult(@CurrentUser("id") userId: string, @Args("saveQuizResultInput") input: SaveQuizResultInput) {
     return this.quizService.saveQuizResult(userId, input);

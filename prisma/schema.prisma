@@ -289,9 +289,11 @@ model Course {
 
 model Quiz {
   id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
   name           String
   description    String?
-  questions      Question[] // Связь с вопросами
+  questions      Question[]
   totalQuestions Int?         @default(0) @map("total_questions")
   subtopicId     String?      @map("subtopic_id")
   folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
@@ -354,34 +356,35 @@ model MatchingInteraction {
 }
 
 model QuizResult {
-  id             String      @id @default(uuid())
-  userId         String      @map("user_id")
-  quizId         String      @map("quiz_id")
-  courseId       String      @map("course_id")
-  userAnswerId   String      @map("user_answer_id")
-  subtopicId     String?     @map("subtopic_id")
-  totalPercents  Int         @map("total_percents")
-  correctAnswers Int         @map("correct_answers")
-  wrongAnswers   Int         @map("wrong_answers")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
-  user           User?       @relation(fields: [userId], references: [id])
-  quiz           Quiz?       @relation(fields: [quizId], references: [id])
-  course         Course?     @relation(fields: [courseId], references: [id])
-  userAnswer     UserAnswer? @relation(fields: [userAnswerId], references: [id])
-
-  subtopic Subtopic? @relation(fields: [subtopicId], references: [id])
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  quizId         String       @map("quiz_id")
+  courseId       String?      @map("course_id")
+  subtopicId     String?      @map("subtopic_id")
+  totalPercents  Int          @map("total_percents")
+  correctAnswers Int          @map("correct_answers")
+  wrongAnswers   Int          @map("wrong_answers")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User?        @relation(fields: [userId], references: [id])
+  quiz           Quiz?        @relation(fields: [quizId], references: [id])
+  course         Course?      @relation(fields: [courseId], references: [id])
+  subtopic       Subtopic?    @relation(fields: [subtopicId], references: [id])
+  userAnswers    UserAnswer[] @relation("QuizResultToUserAnswer") // Указываем связь с UserAnswer
 
   @@map("quiz_results")
 }
 
 model UserAnswer {
-  id             String       @id @default(uuid())
-  questionId     String       @map("question_id")
-  selectedAnswer String[]     @map("selected_answer")
-  isCorrect      Boolean      @map("is_correct")
-  quizResult     QuizResult[]
-  question       Question     @relation(fields: [questionId], references: [id])
+  id             String     @id @default(uuid())
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  questionId     String     @map("question_id")
+  selectedAnswer Json       @map("selected_answer")
+  isCorrect      Boolean    @map("is_correct")
+  quizResultId   String     @map("quiz_result_id")
+  quizResult     QuizResult @relation("QuizResultToUserAnswer", fields: [quizResultId], references: [id])
+  question       Question   @relation(fields: [questionId], references: [id])
 
   @@map("user_answers")
 }

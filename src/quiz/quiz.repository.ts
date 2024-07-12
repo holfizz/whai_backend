@@ -18,7 +18,7 @@ export class QuizRepository {
       data: {
         name: data.name,
         description: data.description,
-        subtopicId: data.subtopicId || null,
+        subtopicId: data.subtopicId,
         courseId: data.courseId,
         isPlan: data.isPlan || false,
       },
@@ -37,7 +37,6 @@ export class QuizRepository {
     const createdQuestion = await this.prisma.question.create({
       data: {
         questionType: question.questionType,
-        stimulus: question.stimulus,
         prompt: question.prompt,
         answers: question.answers,
         quiz: { connect: { id: quizId } },
@@ -68,7 +67,7 @@ export class QuizRepository {
       for (const choice of question.choices) {
         await this.prisma.choice.create({
           data: {
-            content: choice.content,
+            content: JSON.stringify(choice.content),
             correctAnswerDescription: choice.correctAnswerDescription,
             incorrectAnswerDescription: choice.incorrectAnswerDescription,
             question: { connect: { id: questionId } },
@@ -87,7 +86,7 @@ export class QuizRepository {
         for (const choice of interaction.choices || []) {
           await this.prisma.choice.create({
             data: {
-              content: choice.content,
+              content: JSON.stringify(choice.content),
               interaction: { connect: { id: createdInteraction.id } },
               question: { connect: { id: questionId } },
             },

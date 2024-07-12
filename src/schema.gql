@@ -139,6 +139,10 @@ input InteractionInput {
   choices: [ChoiceInput!]!
 }
 
+input KeyValueInput {
+  value: [String!]!
+}
+
 type LearningSession {
   createdAt: DateTime!
   id: ID!
@@ -393,7 +397,7 @@ type Mutation {
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
-  saveQuizResult(saveQuizResultInput: SaveQuizResultInput!): QuizResult!
+  saveQuizResult(saveQuizResultInput: SaveQuizResultInput!): [QuizResult!]!
 
   """
   Register a new user and return the user's fields and access and refresh tokens
@@ -458,7 +462,7 @@ type Query {
   Retrieves the profile of the currently authenticated user based on their unique identifier.
   """
   getProfile: User!
-  getQuiz(quizId: String!): Quiz!
+  getQuiz(quizId: ID!): Quiz!
   getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
 
@@ -478,7 +482,7 @@ type Question {
   id: ID!
   interactions: [Interaction!]
   matchingInteraction: MatchingInteraction
-  prompt: String!
+  prompt: String
   questionType: QuizQuestionType!
 }
 
@@ -487,7 +491,7 @@ input QuestionInput {
   choices: [ChoiceInput!]
   interactions: [InteractionInput!]
   matchingInteraction: MatchingInteractionInput
-  prompt: String!
+  prompt: String
   questionType: QuizQuestionType!
   stimulus: String
 }
@@ -500,13 +504,12 @@ type Quiz {
   isCompleted: Boolean
   name: String!
   questions: [Question!]!
-  quizResult: [QuizResult!]!
+  quizResult: QuizResult
   subtopicId: ID
   updatedAt: DateTime!
 }
 
 input QuizInput {
-  completionTime: Int
   courseId: ID!
   description: String
   isPlan: Boolean
@@ -530,7 +533,6 @@ enum QuizQuestionType {
 }
 
 type QuizResult {
-  completionTime: Int!
   correctAnswers: Int!
   courseId: ID!
   id: ID!
@@ -538,7 +540,7 @@ type QuizResult {
   quizId: ID!
   subtopicId: ID
   totalPercents: Int!
-  userAnswer: UserAnswer!
+  userAnswers: [UserAnswer!]!
   userId: ID!
   wrongAnswers: Int!
 }
@@ -573,14 +575,10 @@ input ResetPasswordInput {
 }
 
 input SaveQuizResultInput {
-  completionTime: Int!
-  correctAnswers: Int!
   courseId: ID!
   quizId: ID!
   subtopicId: ID
-  totalPercents: Int!
-  userAnswer: UserAnswerInput!
-  wrongAnswers: Int!
+  userAnswers: [UserAnswerInput!]!
 }
 
 type SessionDetails {
@@ -601,11 +599,10 @@ input SessionDetailsInput {
 
 type SideType {
   content: String!
-  id: String!
 }
 
 input SideTypeInput {
-  content: String!
+  content: String
 }
 
 type SignResponse {
@@ -803,13 +800,13 @@ type User {
 type UserAnswer {
   isCorrect: Boolean!
   questionId: ID!
-  selectedAnswer: [String!]!
+  selectedAnswer: [[String!]!]!
 }
 
 input UserAnswerInput {
-  isCorrect: Boolean!
+  matchingAnswers: [KeyValueInput!]
   questionId: ID!
-  selectedAnswer: [String!]!
+  selectedAnswer: [String!]
 }
 
 enum UserMode {

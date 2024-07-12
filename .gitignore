@@ -8,6 +8,7 @@ logs
 npm-debug.log*
 pnpm-debug.log*
 pnpm-debug.log*
+bun.lockb
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*

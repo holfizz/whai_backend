@@ -49,10 +49,6 @@ export class Interaction {
 export class SideType {
   @Field(() => String)
   @IsString()
-  id: string;
-
-  @Field(() => String)
-  @IsString()
   content: string;
 }
 
@@ -86,9 +82,10 @@ export class Question {
   @IsEnum(QuizQuestionType)
   questionType: QuizQuestionType;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  prompt: string;
+  @IsOptional()
+  prompt?: string;
 
   @Field(() => [Choice], { nullable: true })
   @IsArray()
@@ -114,53 +111,6 @@ export class Question {
   @IsOptional()
   @IsArray()
   answers?: string[];
-}
-
-@ObjectType()
-export class Quiz extends BaseEntity {
-  @Field(() => String)
-  @IsString()
-  name: string;
-
-  @Field(() => String)
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @Field(() => [Question])
-  @ValidateNested({ each: true })
-  @Type(() => Question)
-  questions: Question[];
-
-  @Field(() => [QuizResult])
-  @ValidateNested({ each: true })
-  @Type(() => QuizResult)
-  quizResult: QuizResult[];
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  subtopicId?: string;
-
-  @Field(() => Boolean, { nullable: true })
-  @IsOptional()
-  isCompleted?: boolean;
-
-  @Field(() => ID)
-  @IsUUID()
-  courseId: string;
-}
-
-@ObjectType()
-class UserAnswer {
-  @Field(() => ID)
-  questionId: string;
-
-  @Field(() => [String])
-  selectedAnswer: string[];
-
-  @Field(() => Boolean)
-  isCorrect: boolean;
 }
 
 @ObjectType()
@@ -197,10 +147,54 @@ export class QuizResult {
   @IsNumber()
   wrongAnswers: number;
 
-  @Field(() => Int)
-  @IsNumber()
-  completionTime: number;
+  @Field(() => [UserAnswer])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UserAnswer)
+  userAnswers: [UserAnswer];
+}
 
-  @Field(() => UserAnswer)
-  userAnswer: UserAnswer;
+@ObjectType()
+export class Quiz extends BaseEntity {
+  @Field(() => String)
+  @IsString()
+  name: string;
+
+  @Field(() => String)
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @Field(() => [Question])
+  @ValidateNested({ each: true })
+  @Type(() => Question)
+  questions: Question[];
+
+  @Field(() => QuizResult, { nullable: true })
+  quizResult: QuizResult;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  subtopicId?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  isCompleted?: boolean;
+
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+}
+
+@ObjectType()
+class UserAnswer {
+  @Field(() => ID)
+  questionId: string;
+
+  @Field(() => [[String]])
+  selectedAnswer: string[][];
+
+  @Field(() => Boolean)
+  isCorrect: boolean;
 }
