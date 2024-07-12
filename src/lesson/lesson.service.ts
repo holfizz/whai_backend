@@ -45,6 +45,24 @@ export class LessonService {
     });
   }
 
+  async getLesson(lessonId: string): Promise<any> {
+    const lesson = await this.lessonRepository.findLessonById(lessonId);
+
+    return {
+      ...lesson,
+      isHasLessonTask: lesson.lessonTasks && lesson.lessonTasks.length > 0,
+    };
+  }
+
+  async getAllLessons(subtopicId: string): Promise<any> {
+    const lessons = await this.lessonRepository.findAllLessons(subtopicId);
+
+    return lessons.map(lesson => ({
+      ...lesson,
+      isHasLessonTask: lesson.lessonTasks && lesson.lessonTasks.length > 0,
+    }));
+  }
+
   async findLessonById(lessonId: string): Promise<any> {
     return this.lessonRepository.findLessonById(lessonId);
   }

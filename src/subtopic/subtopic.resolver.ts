@@ -20,19 +20,19 @@ export class SubtopicResolver {
   }
 
   @Mutation(() => Subtopic)
-  deleteSubtopic(@Args("id", { type: () => ID }) id: string) {
-    return this.subtopicService.deleteSubtopic(id);
+  deleteSubtopic(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
+    return this.subtopicService.deleteSubtopic(subtopicId);
   }
 
   @Query(() => Subtopic)
   @Auth("user")
-  async getSubtopic(@Args("id") id: string) {
-    return this.subtopicService.getSubtopic(id);
+  async getSubtopic(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
+    return this.subtopicService.getSubtopic(subtopicId);
   }
 
   @Query(() => [Subtopic])
   @Auth("user")
-  async getAllSubtopics(@Args("topicId") topicId: string) {
+  async getAllSubtopics(@Args("topicId", { type: () => ID }) topicId: string) {
     return this.subtopicService.getAllSubtopics(topicId);
   }
 }

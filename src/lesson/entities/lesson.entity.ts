@@ -4,7 +4,7 @@ import { LessonTasks } from "@/lesson-tasks/entities/lesson-task.entity";
 import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(LessonTypeEnum, {
   name: "LessonTypeEnum",
@@ -44,7 +44,12 @@ export class Lesson extends BaseEntity {
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
   isCompleted?: boolean;
+
   @Field(() => Int)
   @IsNumber()
   completionTime: number;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isHasLessonTask: boolean;
 }

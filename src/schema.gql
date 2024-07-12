@@ -157,6 +157,7 @@ type Lesson {
   description: String
   id: ID!
   isCompleted: Boolean
+  isHasLessonTask: Boolean!
   lessonBlocks: [LessonBlock]
   lessonTasks: [LessonTasks]
   name: String!
@@ -360,7 +361,7 @@ type Mutation {
   """
   deleteMessage(id: String!): Message!
   deleteQuiz(id: String!): Quiz!
-  deleteSubtopic(id: ID!): Subtopic!
+  deleteSubtopic(subtopicId: ID!): Subtopic!
   deleteTopic(topicId: ID!): Topic!
 
   """
@@ -371,6 +372,8 @@ type Mutation {
   """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
   generateTelegramLink: TelegramLink!
+  getAllLessons(subtopicId: ID!): [Lesson!]!
+  getLesson(subtopicId: ID!): Lesson!
 
   """
   Refresh the access and refresh tokens for a user based on a valid refresh token.
@@ -436,7 +439,6 @@ type Notice {
 type Query {
   findAllLessons(subtopicId: ID!): [Lesson!]!
   findLessonById(lessonId: ID!): Lesson
-  findQuizById(id: String!): Quiz!
 
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
@@ -446,7 +448,8 @@ type Query {
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
-  getAllSubtopics(topicId: String!): [Subtopic!]!
+  getAllQuizzes(subtopicId: String!): [Quiz!]!
+  getAllSubtopics(topicId: ID!): [Subtopic!]!
   getAllTopics(courseId: ID!): [Topic!]!
   getCourse(courseId: ID!): Course!
   getLastCourse: Course
@@ -455,7 +458,8 @@ type Query {
   Retrieves the profile of the currently authenticated user based on their unique identifier.
   """
   getProfile: User!
-  getSubtopic(id: String!): Subtopic!
+  getQuiz(quizId: String!): Quiz!
+  getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
 
   """
@@ -476,7 +480,6 @@ type Question {
   matchingInteraction: MatchingInteraction
   prompt: String!
   questionType: QuizQuestionType!
-  stimulus: String
 }
 
 input QuestionInput {
@@ -490,7 +493,6 @@ input QuestionInput {
 }
 
 type Quiz {
-  completionTime: Int!
   courseId: ID!
   createdAt: DateTime!
   description: String!
@@ -498,8 +500,8 @@ type Quiz {
   isCompleted: Boolean
   name: String!
   questions: [Question!]!
+  quizResult: [QuizResult!]!
   subtopicId: ID
-  totalQuestions: Int!
   updatedAt: DateTime!
 }
 
@@ -525,8 +527,6 @@ enum QuizQuestionType {
   MATCH
   MCQ
   MRQ
-  NRQ
-  OEQ
 }
 
 type QuizResult {
@@ -537,8 +537,8 @@ type QuizResult {
   lessonId: ID
   quizId: ID!
   subtopicId: ID
-  totalQuestions: Int!
-  userAnswers: [UserAnswer!]!
+  totalPercents: Int!
+  userAnswer: UserAnswer!
   userId: ID!
   wrongAnswers: Int!
 }
@@ -576,11 +576,10 @@ input SaveQuizResultInput {
   completionTime: Int!
   correctAnswers: Int!
   courseId: ID!
-  lessonId: ID
   quizId: ID!
   subtopicId: ID
-  totalQuestions: Int!
-  userAnswers: [UserAnswerInput!]!
+  totalPercents: Int!
+  userAnswer: UserAnswerInput!
   wrongAnswers: Int!
 }
 
@@ -650,6 +649,7 @@ input SubtopicInput {
 }
 
 type SubtopicPlan {
+  completionTime: Float!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -661,6 +661,7 @@ type SubtopicPlan {
 }
 
 input SubtopicPlanInput {
+  completionTime: Float!
   description: String
   lessons: [LessonPlanInput!]
   name: String!
@@ -693,6 +694,7 @@ input TopicInput {
 }
 
 type TopicPlan {
+  completionTime: Float!
   courseId: ID!
   createdAt: DateTime!
   description: String
@@ -703,6 +705,7 @@ type TopicPlan {
 }
 
 input TopicPlanInput {
+  completionTime: Float!
   courseId: ID
   description: String
   name: String!

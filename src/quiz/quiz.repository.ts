@@ -21,7 +21,6 @@ export class QuizRepository {
         subtopicId: data.subtopicId || null,
         courseId: data.courseId,
         isPlan: data.isPlan || false,
-        completionTime: data.completionTime || 0,
       },
     });
 
@@ -124,15 +123,16 @@ export class QuizRepository {
     });
   }
 
-  async findAllQuizzes(): Promise<any> {
+  async findAllQuizzes(subtopicId: string): Promise<any> {
     return this.prisma.quiz.findMany({
+      where: { subtopicId },
       include: {
         questions: {
           include: {
             choices: true,
             interactions: {
               include: {
-                choices: true, // Убедитесь, что взаимодействия всегда включают choices
+                choices: true,
               },
             },
             matchingInteraction: true,

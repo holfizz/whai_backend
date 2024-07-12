@@ -27,8 +27,13 @@ export class QuizResolver {
   }
 
   @Query(() => Quiz)
-  findQuizById(@Args("id", { type: () => String }) id: string) {
-    return this.quizService.findQuizById(id);
+  getQuiz(@CurrentUser("id") userId: string, @Args("quizId", { type: () => String }) quizId: string) {
+    return this.quizService.getQuiz(quizId, userId);
+  }
+
+  @Query(() => [Quiz])
+  getAllQuizzes(@Args("subtopicId", { type: () => String }) subtopicId: string) {
+    return this.quizService.getAllQuizzes(subtopicId);
   }
 
   @Mutation(() => Quiz)

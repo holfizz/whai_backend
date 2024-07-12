@@ -71,6 +71,7 @@ export class CourseService {
   }
 
   async getCourseStats(courseId: string) {
+    // Fetch lessons, quizzes, and topics for the given course
     const lessons = await this.prisma.lesson.findMany({
       where: { courseId },
     });
@@ -80,18 +81,17 @@ export class CourseService {
     const topics = await this.prisma.topic.findMany({
       where: { courseId },
     });
+
     const completedLessons = lessons.filter(lesson => lesson.isCompleted).length;
     const completedQuizzes = quizzes.filter(quiz => quiz.isCompleted).length;
 
-    const totalLessonsTime = lessons.reduce((sum, lesson) => sum + lesson.completionTime, 0);
-    const totalQuizzesTime = quizzes.reduce((sum, quiz) => sum + quiz.completionTime, 0);
+    const totalTopicsTime = topics.reduce((sum, topic) => sum + (topic.completionTime || 0), 0);
 
     const totalItems = lessons.length + quizzes.length;
     const completedItems = completedLessons + completedQuizzes;
     const totalPercent = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+    const roundedTotalTime = Math.round(totalTopicsTime / 60);
 
-    const totalTime = totalLessonsTime + totalQuizzesTime;
-    const roundedTotalTime = Math.round(totalTime / 60);
     return {
       progressPercents: totalPercent || 0,
       totalTopics: topics.length || 0,

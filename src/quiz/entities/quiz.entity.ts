@@ -86,11 +86,6 @@ export class Question {
   @IsEnum(QuizQuestionType)
   questionType: QuizQuestionType;
 
-  @Field(() => String, { nullable: true })
-  @IsOptional()
-  @IsString()
-  stimulus?: string;
-
   @Field(() => String)
   @IsString()
   prompt: string;
@@ -137,14 +132,15 @@ export class Quiz extends BaseEntity {
   @Type(() => Question)
   questions: Question[];
 
+  @Field(() => [QuizResult])
+  @ValidateNested({ each: true })
+  @Type(() => QuizResult)
+  quizResult: QuizResult[];
+
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
   subtopicId?: string;
-
-  @Field(() => Int)
-  @IsOptional()
-  totalQuestions?: number;
 
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
@@ -153,10 +149,6 @@ export class Quiz extends BaseEntity {
   @Field(() => ID)
   @IsUUID()
   courseId: string;
-
-  @Field(() => Int)
-  @IsNumber()
-  completionTime: number;
 }
 
 @ObjectType()
@@ -194,18 +186,21 @@ export class QuizResult {
   subtopicId?: string;
 
   @Field(() => Int)
-  totalQuestions: number;
-
-  @Field(() => Int)
+  @IsNumber()
   correctAnswers: number;
 
   @Field(() => Int)
+  @IsOptional()
+  totalPercents?: number;
+
+  @Field(() => Int)
+  @IsNumber()
   wrongAnswers: number;
 
   @Field(() => Int)
   @IsNumber()
   completionTime: number;
 
-  @Field(() => [UserAnswer])
-  userAnswers: UserAnswer[];
+  @Field(() => UserAnswer)
+  userAnswer: UserAnswer;
 }

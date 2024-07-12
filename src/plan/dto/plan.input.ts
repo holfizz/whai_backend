@@ -1,7 +1,7 @@
 import { Field, ID, InputType, registerEnumType } from "@nestjs/graphql";
 import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(LessonTypeEnum, {
   name: "LessonTypeEnum",
@@ -95,6 +95,10 @@ export class SubtopicPlanInput {
   @IsArray()
   @Type(() => QuizPlanInput)
   quizzes?: QuizPlanInput[];
+
+  @Field(() => Number)
+  @IsNumber()
+  completionTime: number;
 }
 
 @InputType()
@@ -122,6 +126,10 @@ export class TopicPlanInput {
   @IsOptional()
   @Type(() => SubtopicPlanInput)
   subtopics?: SubtopicPlanInput[];
+
+  @Field(() => Number)
+  @IsNumber()
+  completionTime: number;
 }
 
 @InputType()

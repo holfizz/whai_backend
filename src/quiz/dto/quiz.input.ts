@@ -206,22 +206,16 @@ export class SaveQuizResultInput {
 
   @Field(() => ID)
   @IsUUID()
-  courseId?: string;
+  courseId: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  lessonId?: string;
-
-  @Field(() => ID, { nullable: true })
-  @IsOptional()
-  @IsUUID()
-  subtopicId?: string;
+  subtopicId: string;
 
   @Field(() => Int)
-  @IsInt()
-  @Min(0)
-  totalQuestions: number;
+  @IsNumber()
+  totalPercents: number;
 
   @Field(() => Int)
   @IsInt()
@@ -238,9 +232,9 @@ export class SaveQuizResultInput {
   @Min(0)
   completionTime: number; // время выполнения в секундах
 
-  @Field(() => [UserAnswerInput])
+  @Field(() => UserAnswerInput)
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => UserAnswerInput)
-  userAnswers: UserAnswerInput[];
+  userAnswer: UserAnswerInput;
 }

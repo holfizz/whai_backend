@@ -89,17 +89,8 @@ export class SubtopicService {
     const completedItems = completedLessons + completedQuizzes;
     const totalPercent = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
-    // Calculate total completion time
-    const totalLessonsTime = lessons.reduce((sum, lesson) => sum + (lesson.completionTime || 0), 0);
-    const totalQuizzesTime = quizzes.reduce((sum, quiz) => sum + (quiz.completionTime || 0), 0);
-    const totalTime = totalLessonsTime + totalQuizzesTime;
-
-    // Round total time to the nearest whole hour
-    const roundedTotalTime = Math.round(totalTime / 60);
-
     return {
       progressPercents: totalPercent || 0,
-      completionTime: roundedTotalTime || 0,
     };
   }
 }

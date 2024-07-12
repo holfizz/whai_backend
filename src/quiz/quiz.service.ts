@@ -1,7 +1,6 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { QuizResult } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
 import { QuizRepository } from "./quiz.repository";
@@ -35,12 +34,57 @@ export class QuizService {
     });
   }
 
-  async findAllQuizzes(): Promise<any> {
-    return await this.quizRepository.findAllQuizzes();
+  async getAllQuizzes(subtopicId: string): Promise<any> {
+    return await this.quizRepository.findAllQuizzes(subtopicId);
   }
 
-  async findQuizById(id: string): Promise<any> {
-    return await this.quizRepository.findQuizById(id);
+  async getQuiz(quizId: string, userId: string): Promise<any> {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        questions: {
+          include: {
+            choices: true,
+            interactions: true,
+            matchingInteraction: true,
+          },
+        },
+        quizResult: {
+          where: { userId },
+          include: {
+            userAnswer: true,
+          },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new Error(`Quiz with id ${quizId} not found.`);
+    }
+
+    // Assume there's only one quizResult per user per quiz
+    const quizResult = quiz.quizResult[0];
+
+    if (!quizResult) {
+      throw new Error(`No quiz result found for user ${userId}.`);
+    }
+
+    // Calculate quiz statistics
+    const totalQuestions = quiz.questions.length;
+    const correctAnswers = quizResult.userAnswer.isCorrect ? 1 : 0; // Assuming userAnswer is an object
+    const wrongAnswers = totalQuestions - correctAnswers;
+    const totalPercents = (correctAnswers / totalQuestions) * 100;
+
+    // Prepare the quiz response
+    return {
+      ...quiz,
+      quizResult: {
+        ...quizResult,
+        correctAnswers,
+        wrongAnswers,
+        totalPercents,
+      },
+    };
   }
 
   async deleteQuiz(id: string): Promise<any> {
@@ -129,7 +173,8 @@ export class QuizService {
     this.eduAiService.stopGeneration(conversationId);
   }
 
-  async saveQuizResult(userId: string, dto: SaveQuizResultInput): Promise<QuizResult> {
+  async saveQuizResult(userId: string, dto: SaveQuizResultInput): Promise<any> {
+    // Check if the user exists
     const userExists = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -152,52 +197,43 @@ export class QuizService {
       const subtopicExists = await this.prisma.subtopic.findUnique({
         where: { id: dto.subtopicId },
       });
-      console.log(subtopicExists);
       if (!subtopicExists) {
         throw new Error(`Subtopic with id ${dto.subtopicId} does not exist.`);
       }
     }
 
+    // Perform the transaction
     return await this.prisma.$transaction(async prisma => {
-      // Check if the user exists
+      // Create user answer
+      const userAnswer = await prisma.userAnswer.create({
+        data: {
+          questionId: dto.userAnswer.questionId,
+          selectedAnswer: dto.userAnswer.selectedAnswer,
+          isCorrect: dto.userAnswer.isCorrect,
+        },
+      });
 
-      // Create the quiz result
+      // Create the quiz result and link the user answer
       const quizResult = await prisma.quizResult.create({
         data: {
           userId: userId,
           quizId: dto.quizId,
           courseId: dto.courseId,
-          lessonId: dto.lessonId,
-          subtopicId: dto.subtopicId,
-          totalQuestions: dto.totalQuestions,
+          subtopicId: dto.subtopicId || null,
+          totalPercents: dto.totalPercents,
           correctAnswers: dto.correctAnswers,
           wrongAnswers: dto.wrongAnswers,
-          completionTime: dto.completionTime,
+          userAnswerId: userAnswer.id, // Link the user answer to the quiz result
+        },
+        include: {
+          userAnswer: true,
         },
       });
 
-      // Create user answers
-      const userAnswersPromises = dto.userAnswers.map(userAnswer =>
-        prisma.userAnswer.create({
-          data: {
-            quizResultId: quizResult.id,
-            questionId: userAnswer.questionId,
-            selectedAnswer: userAnswer.selectedAnswer,
-            isCorrect: userAnswer.isCorrect,
-          },
-        }),
-      );
-      await Promise.all(userAnswersPromises);
-
-      // Fetch saved user answers
-      const savedUserAnswers = await prisma.userAnswer.findMany({
-        where: { quizResultId: quizResult.id },
-      });
-
-      // Return the quiz result with saved user answers
+      // Return the quiz result with the saved user answer
       return {
         ...quizResult,
-        userAnswers: savedUserAnswers,
+        userAnswer,
       };
     });
   }

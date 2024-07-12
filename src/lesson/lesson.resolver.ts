@@ -31,6 +31,18 @@ export class LessonResolver {
     return this.lessonService.deleteLesson(id);
   }
 
+  @Mutation(() => Lesson)
+  @Auth("user")
+  async getLesson(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
+    return this.lessonService.getLesson(subtopicId);
+  }
+
+  @Mutation(() => [Lesson])
+  @Auth("user")
+  async getAllLessons(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
+    return this.lessonService.getAllLessons(subtopicId);
+  }
+
   @Query(() => Lesson, { nullable: true })
   @Auth("user")
   async findLessonById(@Args("lessonId", { type: () => ID }) lessonId: string) {

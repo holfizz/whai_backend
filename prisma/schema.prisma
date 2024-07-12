@@ -56,8 +56,6 @@ enum LessonBlockEnum {
 enum QuizQuestionType {
   MCQ
   MRQ
-  OEQ
-  NRQ
   CLOZE
   MATCH
 }
@@ -212,21 +210,19 @@ model LessonTask {
 }
 
 model Lesson {
-  id             String           @id @default(uuid())
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  name           String
-  description    String?
-  types          LessonTypeEnum[]
-  lessonBlocks   LessonBlock[]
-  lessonTasks    LessonTask[]
-  courseId       String
-  course         Course           @relation(fields: [courseId], references: [id])
-  isCompleted    Boolean          @default(false) @map("is_completed")
-  subtopic       Subtopic?        @relation(fields: [subtopicId], references: [id])
-  subtopicId     String           @map("subtopic_id")
-  quizResult     QuizResult[]
-  completionTime Int              @default(0) @map("completion_time")
+  id           String           @id @default(uuid())
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  name         String
+  description  String?
+  types        LessonTypeEnum[]
+  lessonBlocks LessonBlock[]
+  lessonTasks  LessonTask[]
+  courseId     String
+  course       Course           @relation(fields: [courseId], references: [id])
+  isCompleted  Boolean          @default(false) @map("is_completed")
+  subtopic     Subtopic?        @relation(fields: [subtopicId], references: [id])
+  subtopicId   String           @map("subtopic_id")
 
   @@map("lessons")
 }
@@ -234,29 +230,33 @@ model Lesson {
 //=========================== Subtopic / Models ==========================//
 
 model Subtopic {
-  id          String       @id @default(uuid())
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  name        String
-  description String?
-  quizzes     Quiz[]
-  lessons     Lesson[]
-  quizResult  QuizResult[]
-  topic       Topic?       @relation(fields: [topicId], references: [id])
-  topicId     String
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  name           String
+  description    String?
+  quizzes        Quiz[]
+  lessons        Lesson[]
+  quizResult     QuizResult[]
+  topic          Topic?       @relation(fields: [topicId], references: [id])
+  topicId        String
+  completionTime Int          @default(1) @map("completion_time")
+  Course         Course?      @relation(fields: [courseId], references: [id])
+  courseId       String?
 
   @@map("subtopics")
 }
 
 model Topic {
-  id          String     @id @default(uuid())
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  name        String
-  description String?
-  courseId    String     @map("course_id")
-  course      Course     @relation(fields: [courseId], references: [id])
-  subtopics   Subtopic[]
+  id             String     @id @default(uuid())
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  name           String
+  description    String?
+  courseId       String     @map("course_id")
+  course         Course     @relation(fields: [courseId], references: [id])
+  subtopics      Subtopic[]
+  completionTime Int        @default(1) @map("completion_time")
 
   @@map("topics")
 }
@@ -280,6 +280,7 @@ model Course {
   lessons     Lesson[]
   quizzes     Quiz[]
   topics      Topic[]
+  Subtopic    Subtopic[]
 
   @@map("courses")
 }
@@ -298,7 +299,6 @@ model Quiz {
   courseId       String
   course         Course?      @relation(fields: [courseId], references: [id])
   isCompleted    Boolean      @default(false) @map("is_completed")
-  completionTime Int          @default(0) @map("completion_time")
   isPlan         Boolean      @default(false)
 
   @@map("quizzes")
@@ -307,7 +307,6 @@ model Quiz {
 model Question {
   id                  String               @id @default(uuid())
   questionType        QuizQuestionType     @map("question_type")
-  stimulus            String?
   prompt              String?
   choices             Choice[]
   answers             String[]
@@ -355,36 +354,34 @@ model MatchingInteraction {
 }
 
 model QuizResult {
-  id             String       @id @default(uuid())
-  userId         String       @map("user_id")
-  quizId         String       @map("quiz_id")
-  courseId       String       @map("course_id")
-  lessonId       String?      @map("lesson_id")
-  subtopicId     String?      @map("subtopic_id")
-  totalQuestions Int          @map("total_questions")
-  correctAnswers Int          @map("correct_answers")
-  wrongAnswers   Int          @map("wrong_answers")
-  completionTime Int          @map("completion_time")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-  user           User?        @relation(fields: [userId], references: [id])
-  quiz           Quiz?        @relation(fields: [quizId], references: [id])
-  course         Course?      @relation(fields: [courseId], references: [id])
-  userAnswers    UserAnswer[]
-  lesson         Lesson?      @relation(fields: [lessonId], references: [id])
-  subtopic       Subtopic?    @relation(fields: [subtopicId], references: [id])
+  id             String      @id @default(uuid())
+  userId         String      @map("user_id")
+  quizId         String      @map("quiz_id")
+  courseId       String      @map("course_id")
+  userAnswerId   String      @map("user_answer_id")
+  subtopicId     String?     @map("subtopic_id")
+  totalPercents  Int         @map("total_percents")
+  correctAnswers Int         @map("correct_answers")
+  wrongAnswers   Int         @map("wrong_answers")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  user           User?       @relation(fields: [userId], references: [id])
+  quiz           Quiz?       @relation(fields: [quizId], references: [id])
+  course         Course?     @relation(fields: [courseId], references: [id])
+  userAnswer     UserAnswer? @relation(fields: [userAnswerId], references: [id])
+
+  subtopic Subtopic? @relation(fields: [subtopicId], references: [id])
 
   @@map("quiz_results")
 }
 
 model UserAnswer {
-  id             String      @id @default(uuid())
-  quizResultId   String      @map("quiz_result_id")
-  questionId     String      @map("question_id")
-  selectedAnswer String[]    @map("selected_answer")
-  isCorrect      Boolean     @map("is_correct")
-  quizResult     QuizResult? @relation(fields: [quizResultId], references: [id])
-  question       Question?   @relation(fields: [questionId], references: [id])
+  id             String       @id @default(uuid())
+  questionId     String       @map("question_id")
+  selectedAnswer String[]     @map("selected_answer")
+  isCorrect      Boolean      @map("is_correct")
+  quizResult     QuizResult[]
+  question       Question     @relation(fields: [questionId], references: [id])
 
   @@map("user_answers")
 }

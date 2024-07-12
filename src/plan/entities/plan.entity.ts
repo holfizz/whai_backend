@@ -2,7 +2,7 @@ import { BaseEntity } from "@/helpers/base.entity";
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(LessonTypeEnum, {
   name: "LessonTypeEnum",
@@ -88,6 +88,10 @@ export class SubtopicPlan extends BaseEntity {
   @ValidateNested()
   @Type(() => QuizzesPlan)
   quizzes?: QuizzesPlan[];
+
+  @Field(() => Number)
+  @IsNumber()
+  completionTime: number;
 }
 
 @ObjectType()
@@ -112,6 +116,10 @@ export class TopicPlan extends BaseEntity {
   @ValidateNested({ each: true })
   @Type(() => SubtopicPlan)
   subtopics: SubtopicPlan[];
+
+  @Field(() => Number)
+  @IsNumber()
+  completionTime: number;
 }
 
 @ObjectType()

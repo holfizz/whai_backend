@@ -54,6 +54,7 @@ export class PlanRepository {
           name: topicInput.name,
           description: topicInput.description,
           courseId: data.courseId,
+          completionTime: topicInput.completionTime,
         });
       }
 
@@ -62,6 +63,7 @@ export class PlanRepository {
           description: subtopicInput.description,
           name: subtopicInput.name,
           topicId: newTopic.id,
+          completionTime: subtopicInput.completionTime,
         });
 
         for (const lessonInput of subtopicInput.lessons) {
