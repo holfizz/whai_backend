@@ -198,3 +198,39 @@ class UserAnswer {
   @Field(() => Boolean)
   isCorrect: boolean;
 }
+
+@ObjectType()
+export class QuizDetails {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => ID)
+  subtopicId: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String, { nullable: true })
+  description?: string;
+
+  @Field(() => [Question])
+  questions: Question[];
+
+  @Field(() => QuizResult, { nullable: true })
+  quizResult?: QuizResult;
+}
+
+@ObjectType()
+export class QuizSummary {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String, { nullable: true })
+  description?: string;
+
+  @Field(() => Int, { nullable: true })
+  totalPercents?: number;
+}

@@ -3,7 +3,7 @@ import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
-import { Quiz, QuizResult } from "./entities/quiz.entity";
+import { Quiz, QuizDetails, QuizResult, QuizSummary } from "./entities/quiz.entity";
 import { QuizService } from "./quiz.service";
 
 const pubSub = new PubSub();
@@ -28,13 +28,13 @@ export class QuizResolver {
     return this.quizService.createQuiz(createQuizInput);
   }
 
-  @Query(() => Quiz)
+  @Query(() => QuizDetails)
   @Auth("user")
   getQuiz(@CurrentUser("id") userId: string, @Args("quizId", { type: () => ID }) quizId: string) {
     return this.quizService.getQuiz(quizId, userId);
   }
 
-  @Query(() => [Quiz])
+  @Query(() => [QuizSummary])
   @Auth("user")
   getAllQuizzes(@Args("subtopicId", { type: () => String }) subtopicId: string) {
     return this.quizService.getAllQuizzes(subtopicId);

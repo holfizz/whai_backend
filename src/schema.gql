@@ -452,7 +452,7 @@ type Query {
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
-  getAllQuizzes(subtopicId: String!): [Quiz!]!
+  getAllQuizzes(subtopicId: String!): [QuizSummary!]!
   getAllSubtopics(topicId: ID!): [Subtopic!]!
   getAllTopics(courseId: ID!): [Topic!]!
   getCourse(courseId: ID!): Course!
@@ -462,7 +462,7 @@ type Query {
   Retrieves the profile of the currently authenticated user based on their unique identifier.
   """
   getProfile: User!
-  getQuiz(quizId: ID!): Quiz!
+  getQuiz(quizId: ID!): QuizDetails!
   getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
 
@@ -509,6 +509,15 @@ type Quiz {
   updatedAt: DateTime!
 }
 
+type QuizDetails {
+  description: String
+  id: ID!
+  name: String!
+  questions: [Question!]!
+  quizResult: QuizResult
+  subtopicId: ID!
+}
+
 input QuizInput {
   courseId: ID!
   description: String
@@ -543,6 +552,13 @@ type QuizResult {
   userAnswers: [UserAnswer!]!
   userId: ID!
   wrongAnswers: Int!
+}
+
+type QuizSummary {
+  description: String
+  id: ID!
+  name: String!
+  totalPercents: Int
 }
 
 input QuizWithAIInput {

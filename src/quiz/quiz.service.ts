@@ -6,6 +6,7 @@ import { QuizInput, QuizWithAIInput, SaveQuizResultInput, UserAnswerInput } from
 import { QuizRepository } from "./quiz.repository";
 import { QuizUtils } from "./quiz.utils";
 import { AIDTO } from "@/edu-ai/types/ai.types";
+import { QuizSummary } from "@/quiz/entities/quiz.entity";
 
 @Injectable()
 export class QuizService {
@@ -32,17 +33,64 @@ export class QuizService {
     });
   }
 
-  async getAllQuizzes(subtopicId: string): Promise<any> {
-    return await this.quizRepository.findAllQuizzes(subtopicId);
+  async getAllQuizzes(subtopicId: string): Promise<QuizSummary[]> {
+    const quizzes = await this.prisma.quiz.findMany({
+      where: {
+        subtopicId,
+      },
+      include: {
+        quizResult: {
+          include: {
+            userAnswers: true,
+          },
+          orderBy: {
+            totalPercents: "desc",
+          },
+          take: 1, // Берем только лучший результат
+        },
+        questions: {
+          include: {
+            choices: true,
+          },
+        },
+      },
+    });
+
+    const quizSummaries = quizzes.map(quiz => {
+      let bestQuizResult = null;
+      if (quiz.quizResult.length > 0) {
+        bestQuizResult = quiz.quizResult[0];
+      }
+
+      let totalPercents = 0;
+
+      if (bestQuizResult) {
+        const totalQuestions = quiz.questions.length;
+        const correctAnswers = bestQuizResult.correctAnswers;
+        totalPercents = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+      }
+
+      return {
+        id: quiz.id,
+        name: quiz.name,
+        description: quiz.description,
+        totalPercents,
+      };
+    });
+
+    return quizSummaries;
   }
 
   async getQuiz(quizId: string, userId: string): Promise<any> {
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
-        questions: true,
+        questions: {
+          include: {
+            choices: true,
+          },
+        },
         quizResult: {
-          // Используем множественное число, если у викторины может быть несколько результатов
           where: { userId },
           include: {
             userAnswers: true,
@@ -58,55 +106,70 @@ export class QuizService {
       throw new Error(`Quiz with id ${quizId} not found.`);
     }
 
-    // Получаем все результаты викторины пользователя
     const quizResults = quiz.quizResult;
 
-    if (!quizResults || quizResults.length === 0) {
-      throw new Error(`No quiz results found for user ${userId} and quiz ${quizId}.`);
-    }
+    const bestQuizResult = quizResults.length > 0 ? quizResults[0] : null;
 
-    // Находим лучший результат (первый по убыванию totalPercents)
-    const bestQuizResult = quizResults[0];
-
-    // Рассчитываем статистику для лучшего результата
     const totalQuestions = quiz.questions.length;
     let correctAnswers = 0;
     let wrongAnswers = 0;
+    let userAnswers = [];
 
-    bestQuizResult.userAnswers.forEach(userAnswer => {
-      if (userAnswer.isCorrect) {
-        correctAnswers++;
-      } else {
-        wrongAnswers++;
-      }
-    });
+    if (bestQuizResult) {
+      bestQuizResult.userAnswers.forEach(userAnswer => {
+        if (userAnswer.isCorrect) {
+          correctAnswers++;
+        } else {
+          wrongAnswers++;
+        }
+
+        // Check if selectedAnswer is a string and parse it
+        let parsedSelectedAnswer: any;
+        if (typeof userAnswer.selectedAnswer === "string") {
+          parsedSelectedAnswer = JSON.parse(userAnswer.selectedAnswer);
+        } else {
+          parsedSelectedAnswer = userAnswer.selectedAnswer;
+        }
+
+        // Ensure selectedAnswer is an array
+        if (!Array.isArray(parsedSelectedAnswer)) {
+          parsedSelectedAnswer = [parsedSelectedAnswer];
+        }
+
+        userAnswers.push({
+          questionId: userAnswer.questionId,
+          selectedAnswer: parsedSelectedAnswer, // Handle different types of selectedAnswer
+          isCorrect: userAnswer.isCorrect,
+        });
+      });
+    }
 
     const totalPercents = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
-    // Возвращаем объект Quiz с информацией о лучшем результате
     return {
       id: quiz.id,
       name: quiz.name,
+      subtopicId: quiz.subtopicId,
       description: quiz.description,
       questions: quiz.questions.map(question => ({
         id: question.id,
-        answers: question.answers,
+        prompt: question.prompt,
         questionType: question.questionType,
+        choices: question.choices,
       })),
-      quizResult: {
-        id: bestQuizResult.id,
-        userId: bestQuizResult.userId,
-        quizId: bestQuizResult.quizId,
-        courseId: bestQuizResult.courseId,
-        totalPercents,
-        correctAnswers,
-        wrongAnswers,
-        userAnswers: bestQuizResult.userAnswers.map(userAnswer => ({
-          questionId: userAnswer.questionId,
-          selectedAnswer: userAnswer.selectedAnswer,
-          isCorrect: userAnswer.isCorrect,
-        })),
-      },
+      quizResult: bestQuizResult
+        ? {
+            id: bestQuizResult.id,
+            userId: bestQuizResult.userId,
+            quizId: bestQuizResult.quizId,
+            courseId: bestQuizResult.courseId,
+            subtopicId: bestQuizResult.subtopicId,
+            totalPercents,
+            correctAnswers,
+            wrongAnswers,
+            userAnswers,
+          }
+        : null,
     };
   }
 
@@ -133,6 +196,7 @@ export class QuizService {
         createdAt: "asc",
       },
     });
+
     const aiDto: AIDTO = {
       content: {
         createType: "Тест",
@@ -146,42 +210,47 @@ export class QuizService {
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
-    console.log(1, fullContent);
-    const quizJson = this.extractQuizJson(fullContent);
-    console.log(2, quizJson);
 
+    const quizJson = this.extractQuizJson(fullContent);
     const parsedContent = JSON.parse(quizJson);
-    console.log(3, parsedContent);
 
     const { questions, completionTime } = parsedContent;
 
     return this.createQuiz({
       name: dto.name,
       description: dto.description,
-      questions: JSON.parse(JSON.stringify(questions)),
+      questions: questions,
       subtopicId: dto.subtopicId,
       courseId: dto.courseId,
     });
   }
 
   private extractQuizJson(content: string): string {
+    // Patterns to match JSON content within specific markers
     const patterns = [/```quiz\n```json\n([\s\S]*?)\n```\n```/, /```json\n```quiz\n([\s\S]*?)\n```\n```/, /```quiz\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
+
     let match = null;
+
+    // Find the first matching pattern
     for (const pattern of patterns) {
       match = content.match(pattern);
       if (match && match.length >= 2) {
         break;
       }
     }
+
+    // If no match is found, throw an error
     if (!match || match.length < 2) {
       throw new Error("Cannot find quiz JSON in the provided content.");
     }
-    let quizJson = match[1];
-    console.log(quizJson);
-    if (quizJson.trim().startsWith("json")) {
-      quizJson = quizJson.replace(/^json\s*/, "");
-    }
-    console.log(JSON.parse(JSON.stringify(quizJson)));
+
+    let quizJson = match[1].trim();
+
+    // Clean up the string: remove any leading or trailing unnecessary characters
+    // This removes nested markers and unnecessary escapes
+    quizJson = quizJson.replace(/(^```(quiz|json)\n|```$)/g, "").trim();
+
+    // Try to parse the JSON to ensure it is valid
     try {
       JSON.parse(quizJson);
     } catch (e) {
