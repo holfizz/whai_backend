@@ -397,7 +397,7 @@ type Mutation {
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
-  saveQuizResult(saveQuizResultInput: SaveQuizResultInput!): [QuizResult!]!
+  saveQuizResult(saveQuizResultInput: SaveQuizResultInput!): QuizResult!
 
   """
   Register a new user and return the user's fields and access and refresh tokens

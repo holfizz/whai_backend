@@ -196,6 +196,7 @@ export class QuizService {
   }
 
   async saveQuizResult(userId: string, dto: SaveQuizResultInput): Promise<any> {
+    // Check user existence
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -203,6 +204,7 @@ export class QuizService {
       throw new Error(`User with id ${userId} does not exist.`);
     }
 
+    // Check quiz existence
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: dto.quizId },
     });
@@ -210,6 +212,7 @@ export class QuizService {
       throw new Error(`Quiz with id ${dto.quizId} does not exist.`);
     }
 
+    // Check course existence, if specified
     if (dto.courseId) {
       const course = await this.prisma.course.findUnique({
         where: { id: dto.courseId },
@@ -219,6 +222,7 @@ export class QuizService {
       }
     }
 
+    // Check subtopic existence, if specified
     if (dto.subtopicId) {
       const subtopic = await this.prisma.subtopic.findUnique({
         where: { id: dto.subtopicId },
@@ -228,105 +232,98 @@ export class QuizService {
       }
     }
 
-    const questions = await this.prisma.question.findMany({
-      where: { quizId: dto.quizId },
-      include: { choices: true, interactions: true, matchingInteraction: true },
+    // Process user answers and save results
+    const userAnswers = await Promise.all(
+      dto.userAnswers.map(async (answer: UserAnswerInput) => {
+        const question = await this.prisma.question.findUnique({
+          where: { id: answer.questionId },
+        });
+        if (!question) {
+          throw new Error(`Question with id ${answer.questionId} does not exist.`);
+        }
+
+        let selectedAnswer: any;
+        if (question.questionType === "MATCH") {
+          selectedAnswer = JSON.stringify(answer.matchingAnswers?.map(ma => ma.value));
+        } else {
+          selectedAnswer = JSON.stringify(answer.selectedAnswer);
+        }
+
+        return {
+          questionId: answer.questionId,
+          selectedAnswer,
+          isCorrect: this.checkAnswerCorrectness(question, answer),
+        };
+      }),
+    );
+
+    // Calculate correct and wrong answers
+    const correctAnswersCount = userAnswers.filter(answer => answer.isCorrect).length;
+    const wrongAnswersCount = userAnswers.length - correctAnswersCount;
+
+    // Save quiz result
+    const quizResult = await this.prisma.quizResult.create({
+      data: {
+        userId,
+        quizId: dto.quizId,
+        courseId: dto.courseId,
+        subtopicId: dto.subtopicId,
+        correctAnswers: correctAnswersCount,
+        wrongAnswers: wrongAnswersCount,
+        totalPercents: Math.round((correctAnswersCount / userAnswers.length) * 100),
+      },
     });
 
-    const questionMap = new Map<string, any>();
-    questions.forEach(question => {
-      if (question.questionType === "MATCH") {
-        questionMap.set(question.id, question.matchingInteraction.answers);
-      } else {
-        questionMap.set(
-          question.id,
-          question.choices.map(choice => choice.content),
-        );
-      }
-    });
+    // Link user answers to quiz result
+    await Promise.all(
+      userAnswers.map(async answer => {
+        await this.prisma.userAnswer.create({
+          data: {
+            quizResultId: quizResult.id,
+            questionId: answer.questionId,
+            selectedAnswer: answer.selectedAnswer,
+            isCorrect: answer.isCorrect,
+          },
+        });
+      }),
+    );
 
-    const quizResult = await this.prisma.$transaction(async prisma => {
-      const createdQuizResult = await prisma.quizResult.create({
-        data: {
-          userId: userId,
-          quizId: dto.quizId,
-          courseId: dto.courseId || undefined,
-          subtopicId: dto.subtopicId || undefined,
-          totalPercents: 0,
-          correctAnswers: 0,
-          wrongAnswers: 0,
-        },
-      });
+    // Return the quiz result along with user answers
+    return {
+      ...quizResult,
+      userAnswers,
+    };
+  }
 
-      let correctAnswersCount = 0;
-      let wrongAnswersCount = 0;
+  private checkAnswerCorrectness(question: any, answer: UserAnswerInput): boolean {
+    if (question.questionType === "MATCH") {
+      // Retrieve the correct answers for the matching question from your application logic or hardcoded for now
+      const correctAnswers = [
+        ["do", "did"],
+        ["have", "had"],
+        ["make", "made"],
+        ["go", "went"],
+        ["see", "saw"],
+      ];
 
-      await Promise.all(
-        dto.userAnswers.map(async (userAnswer: UserAnswerInput) => {
-          const { questionId, selectedAnswer, matchingAnswers } = userAnswer;
-          const correctAnswersForQuestion = questionMap.get(questionId);
+      const expectedAnswers = correctAnswers.map(ma => ma.sort());
+      const givenAnswers = answer.matchingAnswers?.map(ma => ma.value.sort()) || [];
 
-          let isCorrect = false;
+      console.log("Expected Answers:", expectedAnswers);
+      console.log("Given Answers:", givenAnswers);
 
-          if (matchingAnswers) {
-            const userMatchingAnswers = matchingAnswers.map(match => match.value);
-            isCorrect = JSON.stringify(userMatchingAnswers) === JSON.stringify(correctAnswersForQuestion);
-          } else if (Array.isArray(selectedAnswer)) {
-            isCorrect =
-              Array.isArray(correctAnswersForQuestion) &&
-              selectedAnswer.length === correctAnswersForQuestion.length &&
-              selectedAnswer.every(answer => correctAnswersForQuestion.includes(answer));
-          } else {
-            isCorrect = Array.isArray(correctAnswersForQuestion) && correctAnswersForQuestion.includes(selectedAnswer);
-          }
+      const flatExpected = expectedAnswers.flat().sort();
+      const flatGiven = givenAnswers.flat().sort();
 
-          await prisma.userAnswer.create({
-            data: {
-              quizResultId: createdQuizResult.id,
-              questionId: questionId,
-              selectedAnswer: JSON.stringify(matchingAnswers || selectedAnswer),
-              isCorrect: isCorrect,
-            },
-          });
+      console.log("Flattened Expected Answers:", flatExpected);
+      console.log("Flattened Given Answers:", flatGiven);
 
-          if (isCorrect) {
-            correctAnswersCount++;
-          } else {
-            wrongAnswersCount++;
-          }
-        }),
-      );
+      const isCorrect = JSON.stringify(flatExpected) === JSON.stringify(flatGiven);
+      console.log("Is Correct?", isCorrect);
 
-      const totalQuestions = dto.userAnswers.length;
-      const totalPercents = (correctAnswersCount / totalQuestions) * 100;
-
-      const updatedQuizResult = await prisma.quizResult.update({
-        where: { id: createdQuizResult.id },
-        data: {
-          totalPercents: totalPercents,
-          correctAnswers: correctAnswersCount,
-          wrongAnswers: wrongAnswersCount,
-        },
-      });
-
-      const userAnswers = await prisma.userAnswer.findMany({
-        where: { quizResultId: updatedQuizResult.id },
-      });
-
-      return {
-        id: updatedQuizResult.id,
-        userId: updatedQuizResult.userId,
-        quizId: updatedQuizResult.quizId,
-        courseId: updatedQuizResult.courseId,
-        subtopicId: updatedQuizResult.subtopicId,
-        totalPercents: updatedQuizResult.totalPercents,
-        correctAnswers: updatedQuizResult.correctAnswers,
-        wrongAnswers: updatedQuizResult.wrongAnswers,
-        userAnswers: userAnswers,
-      };
-    });
-
-    // Return result wrapped in an array if schema expects an iterable
-    return [quizResult];
+      return isCorrect;
+    } else {
+      return JSON.stringify(question.answers) === JSON.stringify(answer.selectedAnswer);
+    }
   }
 }

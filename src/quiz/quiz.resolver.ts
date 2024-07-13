@@ -72,7 +72,7 @@ export class QuizResolver {
     return true;
   }
 
-  @Mutation(() => [QuizResult])
+  @Mutation(() => QuizResult)
   @Auth("user")
   saveQuizResult(@CurrentUser("id") userId: string, @Args("saveQuizResultInput") input: SaveQuizResultInput) {
     return this.quizService.saveQuizResult(userId, input);
