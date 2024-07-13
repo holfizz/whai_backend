@@ -376,8 +376,6 @@ type Mutation {
   """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
   generateTelegramLink: TelegramLink!
-  getAllLessons(subtopicId: ID!): [Lesson!]!
-  getLesson(subtopicId: ID!): Lesson!
 
   """
   Refresh the access and refresh tokens for a user based on a valid refresh token.
@@ -448,6 +446,7 @@ type Query {
   getAllChats: [Chat!]!
   getAllChatsWithAI: [ChatWithAI!]!
   getAllCourses: [Course!]!
+  getAllLessons(subtopicId: ID!): [Lesson!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!
 
   """Retrieve all messages from a specific chat for the current user."""
@@ -457,6 +456,7 @@ type Query {
   getAllTopics(courseId: ID!): [Topic!]!
   getCourse(courseId: ID!): Course!
   getLastCourse: Course
+  getLesson(lessonId: ID!): Lesson!
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.

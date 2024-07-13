@@ -31,13 +31,13 @@ export class LessonResolver {
     return this.lessonService.deleteLesson(id);
   }
 
-  @Mutation(() => Lesson)
+  @Query(() => Lesson)
   @Auth("user")
-  async getLesson(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
-    return this.lessonService.getLesson(subtopicId);
+  async getLesson(@Args("lessonId", { type: () => ID }) lessonId: string) {
+    return this.lessonService.getLesson(lessonId);
   }
 
-  @Mutation(() => [Lesson])
+  @Query(() => [Lesson])
   @Auth("user")
   async getAllLessons(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
     return this.lessonService.getAllLessons(subtopicId);
