@@ -41,6 +41,11 @@ export class Lesson extends BaseEntity {
   @IsUUID()
   subtopicId: string;
 
+  @Field(() => ID)
+  @IsString()
+  @IsUUID()
+  courseId: string;
+
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
   isCompleted?: boolean;

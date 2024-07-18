@@ -176,7 +176,7 @@ export class CoursePlanWithAIInput {
   @IsString()
   @Field(() => ID)
   @IsUUID()
-  chatWithAIId: string;
+  courseAIHistoryId: string;
 
   @Field(() => ID)
   @IsUUID()

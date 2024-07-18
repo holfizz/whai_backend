@@ -14,48 +14,58 @@ export class MessageWithAiService {
     private readonly paginationService: PaginationService,
     private readonly eduAiService: EduAiService,
   ) {}
-  async getAIModelAnswer(userId: string, dto: MessageWithAIInput, pubSub: PubSub): Promise<any> {
+
+  async getChatAIMAnswers(userId: string, dto: MessageWithAIInput, pubSub: PubSub): Promise<any> {
     const chatWithAI = await this.prisma.chatWithAI.findUnique({
       where: { id: dto.chatWithAIId },
     });
+    if (!chatWithAI) {
+      throw new Error(`Chat with AI with ID ${dto.chatWithAIId} not found`);
+    }
+
     const messagesHistory = await this.prisma.messageWithAI.findMany({
       where: { chatWithAIId: dto.chatWithAIId },
-      orderBy: {
-        createdAt: "asc",
-      },
+      orderBy: { createdAt: "asc" },
     });
-    return this.eduAiService
-      .getAIModelAnswer(chatWithAI.id, userId, { messagesHistory: messagesHistory, content: dto.content }, "ChatAI", pubSub)
-      .then(async fullContent => {
-        if (fullContent.length > 0) {
-          try {
-            await this.prisma.messageWithAI.create({
-              data: {
-                chatWithAIId: chatWithAI.id,
-                content: dto.content,
-                role: MessageWithAIRole.USER,
-              },
-            });
-            const messageWithAI = await this.prisma.messageWithAI.create({
-              data: {
-                content: fullContent,
-                chatWithAIId: chatWithAI.id,
-                role: MessageWithAIRole.ASSISTANT,
-              },
-            });
-            console.log(messageWithAI);
-            return messageWithAI;
-          } catch (prismaError) {
-            throw prismaError;
-          }
-        } else {
-          return [];
-        }
-      })
-      .catch(error => {
-        console.error("Error: ", error);
-        throw error;
+
+    try {
+      const fullContent = await this.eduAiService.getAIModelAnswer(
+        chatWithAI.id,
+        userId,
+        {
+          messagesHistory: messagesHistory,
+          content: dto.content,
+        },
+        "EduAI",
+        pubSub,
+      );
+
+      if (!fullContent || fullContent.length === 0) {
+        throw new Error(`AI returned empty content for chatWithAI ID ${chatWithAI.id}`);
+      }
+
+      const userMessage = await this.prisma.messageWithAI.create({
+        data: {
+          chatWithAIId: chatWithAI.id,
+          content: dto.content, // Ensure content is correctly set
+          role: MessageWithAIRole.USER,
+        },
       });
+
+      const assistantMessage = await this.prisma.messageWithAI.create({
+        data: {
+          chatWithAIId: chatWithAI.id,
+          content: fullContent, // Ensure fullContent is correctly set
+          role: MessageWithAIRole.ASSISTANT,
+        },
+      });
+
+      console.log(assistantMessage);
+      return assistantMessage; // Assuming assistantMessage has content field correctly set
+    } catch (error) {
+      console.error("Error: ", error);
+      throw error;
+    }
   }
 
   async getAllMessagesInChatWithAI(userId: string, dto: GetAllMessagesInput) {
@@ -79,6 +89,22 @@ export class MessageWithAiService {
     }
   }
 
+  async getMessagesByCourseAIHistoryId(userId: string, courseAIHistoryId: string) {
+    try {
+      const courseAIHistory = await this.prisma.courseAIHistory.findUnique({ where: { id: courseAIHistoryId } });
+      if (!courseAIHistory) {
+        throw new Error(` Course AI History with ID ${courseAIHistoryId} not found`);
+      }
+      return this.prisma.messageWithAI.findMany({
+        where: { courseAIHistoryId },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+    } catch (error) {
+      throw new Error(`Error fetching messages for Course AI History: ${error.message}`);
+    }
+  }
   findOne(id: number) {
     return `This action returns a #${id} messageWithAi`;
   }

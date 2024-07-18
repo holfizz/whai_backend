@@ -36,12 +36,12 @@ export class QuizResolver {
 
   @Query(() => [QuizSummary])
   @Auth("user")
-  getAllQuizzes(@Args("subtopicId", { type: () => String }) subtopicId: string) {
+  getAllQuizzes(@Args("subtopicId", { type: () => ID }) subtopicId: string) {
     return this.quizService.getAllQuizzes(subtopicId);
   }
 
   @Mutation(() => Quiz)
-  deleteQuiz(@Args("id", { type: () => String }) id: string) {
+  deleteQuiz(@Args("id", { type: () => ID }) id: string) {
     return this.quizService.deleteQuiz(id);
   }
 

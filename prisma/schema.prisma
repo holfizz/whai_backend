@@ -94,6 +94,7 @@ model User {
   notice                  Notice[]
   sentNotices             Notice[]          @relation(name: "NoticeSender")
   quizResult              QuizResult[]
+  courseAIHistory         CourseAIHistory[]
 
   @@map("users")
 }
@@ -112,8 +113,9 @@ model TelegramLink {
 
 model ChatWithAI {
   id        String          @id @unique @default(uuid())
-  title     String          @default("New chat with ai")
-  userId    String?         @map("user_id")
+  title     String          @default("New AI Chat")
+  lessonId  String          @map("lesson_id")
+  userId    String          @map("user_id")
   createdAt DateTime        @default(now()) @map("created_at")
   updatedAt DateTime        @updatedAt @map("updated_at")
   user      User?           @relation(fields: [userId], references: [id])
@@ -122,16 +124,31 @@ model ChatWithAI {
   @@map("chats_with_ai")
 }
 
+model CourseAIHistory {
+  id        String          @id @unique @default(uuid())
+  courseId  String          @unique @map("course_id")
+  userId    String?         @map("user_id")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  user      User?           @relation(fields: [userId], references: [id])
+  messages  MessageWithAI[]
+  course    Course          @relation(fields: [courseId], references: [id])
+
+  @@map("cousre_ai_history")
+}
+
 model MessageWithAI {
-  id           String             @id @default(uuid())
-  file         String?
-  type         MessageTypeWithAI? @default(answer)
-  content      String
-  createdAt    DateTime           @default(now()) @map("created_at")
-  updatedAt    DateTime           @updatedAt @map("updated_at")
-  role         MessageWithAIRole  @default(USER)
-  chatWithAI   ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
-  chatWithAIId String?            @map("chat_with_ai_id")
+  id                String             @id @default(uuid())
+  file              String?
+  type              MessageTypeWithAI? @default(answer)
+  content           String
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  role              MessageWithAIRole  @default(USER)
+  chatWithAI        ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
+  chatWithAIId      String?            @map("chat_with_ai_id")
+  CourseAIHistory   CourseAIHistory?   @relation(fields: [courseAIHistoryId], references: [id])
+  courseAIHistoryId String?
 
   @@map("messages_with_ai")
 }
@@ -264,23 +281,24 @@ model Topic {
 //=========================== Course Models ==========================//
 
 model Course {
-  id          String           @id @default(uuid())
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-  name        String
-  description String?
-  ownerID     String           @map("owner_id")
-  publicUrl   String?          @map("public_url")
-  tags        String[]
-  level       CourseLevelEnum?
-  students    User[]
-  teacherIds  String[]         @map("teacher_ids")
-  studentsId  String[]         @map("students_id")
-  quizResult  QuizResult[]
-  lessons     Lesson[]
-  quizzes     Quiz[]
-  topics      Topic[]
-  Subtopic    Subtopic[]
+  id              String           @id @default(uuid())
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  name            String
+  description     String?
+  ownerID         String           @map("owner_id")
+  publicUrl       String?          @map("public_url")
+  tags            String[]
+  level           CourseLevelEnum?
+  students        User[]
+  teacherIds      String[]         @map("teacher_ids")
+  studentsId      String[]         @map("students_id")
+  quizResult      QuizResult[]
+  lessons         Lesson[]
+  quizzes         Quiz[]
+  topics          Topic[]
+  Subtopic        Subtopic[]
+  courseAIHistory CourseAIHistory?
 
   @@map("courses")
 }

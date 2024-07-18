@@ -72,6 +72,11 @@ export class LessonService {
   }
 
   async createLessonWithAI(userId: string, dto: LessonWithAIInput, pubSub: PubSub): Promise<any> {
+    const chatWithAI = await this.prisma.chatWithAI.findUnique({ where: { id: dto.chatWithAIId } });
+    if (!chatWithAI) {
+      throw new Error(`Chat with AI ID ${dto.chatWithAIId} not found.`);
+    }
+
     const messagesHistory = await this.prisma.messageWithAI.findMany({
       where: { chatWithAIId: dto.chatWithAIId },
       orderBy: {
@@ -154,6 +159,9 @@ export class LessonService {
       if (match && match.length >= 2) {
         break;
       }
+    }
+    if (!match || match.length < 2) {
+      throw new Error("Cannot find lesson JSON in the provided content.");
     }
     let lessonJson = match[1];
     console.log(lessonJson);

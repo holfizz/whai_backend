@@ -14,7 +14,6 @@ export class LessonRepository {
     if (!data.subtopicId) {
       throw new Error("Subtopic ID is required");
     }
-    // Add additional validation logic as necessary
   }
 
   async validateSubtopic(subtopicId: string): Promise<void> {
@@ -71,7 +70,14 @@ export class LessonRepository {
   async findLessonById(lessonId: string): Promise<any> {
     return this.prisma.lesson.findUnique({
       where: { id: lessonId },
-      include: { lessonBlocks: true, lessonTasks: true },
+      include: {
+        lessonBlocks: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        lessonTasks: true,
+      },
     });
   }
 

@@ -1,5 +1,4 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
-import { AIDTO } from "@/edu-ai/types/ai.types";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { PubSub } from "graphql-subscriptions";
@@ -7,6 +6,7 @@ import { CoursePlanInput, CoursePlanWithAIInput } from "./dto/plan.input";
 import { PlanRepository } from "./plan.repository";
 import { PlanUtils } from "./plan.utils";
 import { CoursePlan } from "@/plan/entities/plan.entity";
+import { AIDTO } from "@/edu-ai/types/ai.types";
 
 @Injectable()
 export class PlanService {
@@ -18,6 +18,13 @@ export class PlanService {
   ) {}
 
   async createPlan(data: CoursePlanInput): Promise<CoursePlan> {
+    await this.prisma.course.update({
+      where: { id: data.courseId },
+      data: {
+        name: data.name,
+        description: data.description,
+      },
+    });
     const newPlan = await this.planRepository.createFullPlan(data);
     if (!newPlan.topics || newPlan.topics.length === 0) {
       throw new Error("No topics found in the created plan");
@@ -43,7 +50,7 @@ export class PlanService {
 
   async createPlanWithAI(userId: string, dto: CoursePlanWithAIInput, pubSub: PubSub): Promise<any> {
     const messagesHistory = await this.prisma.messageWithAI.findMany({
-      where: { chatWithAIId: dto.chatWithAIId },
+      where: { courseAIHistoryId: dto.courseAIHistoryId },
       orderBy: {
         createdAt: "asc",
       },
@@ -60,13 +67,17 @@ export class PlanService {
       messagesHistory,
     };
 
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
     const planJson = this.extractPlanJson(fullContent);
-
     const parsedContent = JSON.parse(planJson);
     console.log("parsedContent", parsedContent);
-
+    await this.prisma.messageWithAI.create({
+      data: {
+        content: JSON.stringify(parsedContent),
+        courseAIHistoryId: dto.courseAIHistoryId,
+      },
+    });
     const plan = await this.createPlan({
       name: dto.name,
       description: dto.description,

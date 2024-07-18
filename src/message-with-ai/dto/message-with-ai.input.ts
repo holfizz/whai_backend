@@ -3,10 +3,15 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class MessageWithAIInput {
-  @IsString()
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  chatWithAIId: string;
+  @IsOptional()
+  chatWithAIId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  courseAIHistoryId?: string;
 
   @IsString()
   @IsNotEmpty()

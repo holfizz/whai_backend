@@ -21,7 +21,10 @@ export class CourseService {
   }
 
   async getCourse(userId: string, id: string) {
-    const course = await this.prisma.course.findUnique({ where: { id, ownerID: userId } });
+    const course = await this.prisma.course.findUnique({
+      where: { id, ownerID: userId },
+      include: { courseAIHistory: true },
+    });
     if (!course) {
       throw new NotFoundException(`Course with ID ${id} not found`);
     }

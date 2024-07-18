@@ -26,12 +26,14 @@ type ChatMember {
 type ChatWithAI {
   createdAt: DateTime!
   id: ID!
+  lessonId: ID
   title: String!
   updatedAt: DateTime!
   userId: String!
 }
 
 input ChatWithAIInput {
+  lessonId: ID
   title: String
 }
 
@@ -53,6 +55,7 @@ input ChoiceInput {
 
 type Course {
   completionTime: Float!
+  courseAIHistory: CourseAIHistory
   createdAt: DateTime!
   description: String
   id: ID!
@@ -63,6 +66,19 @@ type Course {
   publicUrl: String
   totalTopics: Float!
   updatedAt: DateTime!
+}
+
+type CourseAIHistory {
+  courseId: ID!
+  createdAt: DateTime!
+  id: ID!
+  messages: [MessageWithAI!]
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input CourseAIHistoryInput {
+  courseId: ID!
 }
 
 input CourseInput {
@@ -95,7 +111,7 @@ input CoursePlanInput {
 
 input CoursePlanWithAIInput {
   additionalParams: String
-  chatWithAIId: ID!
+  courseAIHistoryId: ID!
   courseId: ID!
   description: String
   isHasVideo: Boolean
@@ -157,6 +173,7 @@ input LearningSessionInput {
 
 type Lesson {
   completionTime: Int!
+  courseId: ID!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -320,8 +337,9 @@ type MessageWithAIData {
 }
 
 input MessageWithAIInput {
-  chatWithAIId: ID!
+  chatWithAIId: ID
   content: String!
+  courseAIHistoryId: ID
 }
 
 enum MessageWithAIRole {
@@ -332,8 +350,9 @@ enum MessageWithAIRole {
 type Mutation {
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
-  createChatWithAI(createChatInput: ChatWithAIInput): ChatWithAI!
+  createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
+  createCourseAIHistory(createChatInput: CourseAIHistoryInput!): CourseAIHistory!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
   createLessonFromAI(lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput!): Lesson!
@@ -344,7 +363,7 @@ type Mutation {
   Create a new message with the given content and associate it with the current user.
   """
   createMessage(createMessageInput: CreateMessageInput!): Message!
-  createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!, file: Upload): MessageWithAIData!
+  createMessageWithAI(chatWithAIRequestDto: MessageWithAIInput!): MessageWithAIData!
   createNotice(noticeDto: CreateNoticeInput!): Notice!
   createPlan(createPlanInput: CoursePlanInput!): CoursePlan!
   createPlanWithAI(CoursePlanWithAIInput: CoursePlanWithAIInput!): CoursePlan!
@@ -364,7 +383,7 @@ type Mutation {
   Delete a message. This can only be done by the author of the message or an admin.
   """
   deleteMessage(id: String!): Message!
-  deleteQuiz(id: String!): Quiz!
+  deleteQuiz(id: ID!): Quiz!
   deleteSubtopic(subtopicId: ID!): Subtopic!
   deleteTopic(topicId: ID!): Topic!
 
@@ -444,19 +463,23 @@ type Query {
 
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
-  getAllChatsWithAI: [ChatWithAI!]!
+  getAllChatsWithAI(lessonId: ID!): [ChatWithAI!]!
+  getAllCourseAIHistory(getAllCourseAIHistoryInput: CourseAIHistoryInput!): [CourseAIHistory!]!
   getAllCourses: [Course!]!
   getAllLessons(subtopicId: ID!): [Lesson!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!
 
   """Retrieve all messages from a specific chat for the current user."""
   getAllMessages(chatId: String!): [Message!]!
-  getAllQuizzes(subtopicId: String!): [QuizSummary!]!
+  getAllQuizzes(subtopicId: ID!): [QuizSummary!]!
   getAllSubtopics(topicId: ID!): [Subtopic!]!
   getAllTopics(courseId: ID!): [Topic!]!
+  getChatWithAI(chatWithAIID: ID!): ChatWithAI!
   getCourse(courseId: ID!): Course!
+  getCourseAIHistory(courseAIHistoryId: ID!): CourseAIHistory!
   getLastCourse: Course
   getLesson(lessonId: ID!): Lesson!
+  getMessagesByCourseAIHistoryId(courseAIHistoryId: ID!): [MessageWithAIData!]!
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.
@@ -775,6 +798,7 @@ input UpdateMessageInput {
 input UpdateMessageWithAiInput {
   chatWithAIId: ID
   content: String
+  courseAIHistoryId: ID
   id: Int!
 }
 
