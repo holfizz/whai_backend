@@ -101,7 +101,7 @@ export class MessageWithAiService {
       return this.prisma.messageWithAI.findMany({
         where: { courseAIHistoryId },
         orderBy: {
-          createdAt: "asc",
+          createdAt: "desc",
         },
       });
     } catch (error) {
