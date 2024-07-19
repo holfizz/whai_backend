@@ -1,5 +1,5 @@
-import { Field, ID, InputType } from "@nestjs/graphql";
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { Field, ID, InputType, Int } from "@nestjs/graphql";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class MessageWithAIInput {
@@ -21,18 +21,17 @@ export class MessageWithAIInput {
 
 @InputType()
 export class GetAllMessagesInput {
-  @IsString()
   @Field(() => ID)
   @IsUUID()
   chatId: string;
 
+  @Field(() => Int, { nullable: true })
   @IsOptional()
-  @IsString()
-  @Field(() => String, { nullable: true })
-  perPage?: string;
+  @IsNumber()
+  take?: number;
 
+  @Field(() => Int, { nullable: true })
   @IsOptional()
-  @IsString()
-  @Field(() => String, { nullable: true })
-  page?: string;
+  @IsNumber()
+  skip?: number;
 }

@@ -77,6 +77,9 @@ export class MessageWithAiService {
           messages: {
             take,
             skip,
+            orderBy: {
+              createdAt: "desc",
+            },
           },
         },
       });

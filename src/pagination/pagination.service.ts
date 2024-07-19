@@ -3,11 +3,9 @@ import { PaginationInput } from "./dto/pagination.input";
 
 @Injectable()
 export class PaginationService {
-  getPagination(dto: PaginationInput, defaultPerPage = 30) {
-    const page = dto.page ? +dto.page : 1;
-    const take = dto.perPage ? +dto.perPage : defaultPerPage;
-
-    const skip = (page - 1) * take;
+  getPagination(dto: PaginationInput, defaultTake = 30) {
+    const take = dto.take ? +dto.take : defaultTake;
+    const skip = dto.skip ? +dto.skip : 0;
 
     return { take, skip };
   }

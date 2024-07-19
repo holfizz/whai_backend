@@ -141,8 +141,8 @@ scalar DateTime
 
 input GetAllMessagesInput {
   chatId: ID!
-  page: String
-  perPage: String
+  skip: Int
+  take: Int
 }
 
 type Interaction {
