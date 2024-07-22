@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { MessageWithAIRole } from "@prisma/client";
 import { IsUUID } from "class-validator";
+
 registerEnumType(MessageWithAIRole, {
   name: "MessageWithAIRole",
 });

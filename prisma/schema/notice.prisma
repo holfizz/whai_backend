@@ -1,0 +1,17 @@
+// Models
+
+model Notice {
+  id          String   @id @unique @default(uuid())
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  userId      String   @map("user_id")
+  telegramId  String?  @map("telegram_id")
+  title       String
+  description String?
+  readStatus  Boolean  @default(false) @map("read_status")
+  user        User     @relation(fields: [userId], references: [id])
+  senderId    String?  @map("sender_id")
+  sender      User?    @relation(name: "NoticeSender", fields: [senderId], references: [id])
+
+  @@map("notices")
+}

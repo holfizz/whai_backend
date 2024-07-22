@@ -1,0 +1,56 @@
+enum LessonTypeEnum {
+  VIDEO
+}
+
+enum LessonBlockEnum {
+  TEXT
+  VIDEO
+  IMAGE
+  CODE
+}
+
+model LessonBlock {
+  id        String          @id @unique @default(uuid())
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  type      LessonBlockEnum @default(TEXT)
+  code      String?
+  text      String?
+  videoUrl  String?         @map("video_url")
+  imageUrl  String?         @map("image_url")
+  caption   String?
+  lessonId  String          @map("lesson_id")
+  lesson    Lesson          @relation(fields: [lessonId], references: [id])
+
+  @@map("lesson_blocks")
+}
+
+model LessonTask {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  name      String
+  isChecked Boolean  @default(false) @map("is_checked")
+  lessonId  String   @map("lesson_id")
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+
+  @@map("lesson_tasks")
+}
+
+model Lesson {
+  id           String           @id @unique @default(uuid())
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  name         String
+  description  String?
+  types        LessonTypeEnum[]
+  lessonBlocks LessonBlock[]
+  lessonTasks  LessonTask[]
+  courseId     String
+  course       Course           @relation(fields: [courseId], references: [id])
+  isCompleted  Boolean          @default(false) @map("is_completed")
+  subtopic     Subtopic?        @relation(fields: [subtopicId], references: [id])
+  subtopicId   String           @map("subtopic_id")
+
+  @@map("lessons")
+}

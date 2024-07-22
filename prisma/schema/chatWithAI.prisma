@@ -1,0 +1,56 @@
+// Enums
+
+enum MessageWithAIRole {
+  ASSISTANT
+  USER
+}
+
+enum MessageTypeWithAI {
+  answer
+  function_cal
+  tool_response
+  follow_up
+}
+
+//modelss
+model ChatWithAI {
+  id        String          @id @unique @default(uuid())
+  title     String          @default("New AI Chat")
+  lessonId  String          @map("lesson_id")
+  userId    String          @map("user_id")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  user      User?           @relation(fields: [userId], references: [id])
+  messages  MessageWithAI[]
+
+  @@map("chats_with_ai")
+}
+
+model CourseAIHistory {
+  id        String          @id @unique @default(uuid())
+  courseId  String          @unique @map("course_id")
+  userId    String?         @map("user_id")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  user      User?           @relation(fields: [userId], references: [id])
+  messages  MessageWithAI[]
+  course    Course          @relation(fields: [courseId], references: [id])
+
+  @@map("cousre_ai_history")
+}
+
+model MessageWithAI {
+  id                String             @id @unique @default(uuid())
+  file              String?
+  type              MessageTypeWithAI? @default(answer)
+  content           String
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  role              MessageWithAIRole  @default(USER)
+  chatWithAI        ChatWithAI?        @relation(fields: [chatWithAIId], references: [id])
+  chatWithAIId      String?            @map("chat_with_ai_id")
+  CourseAIHistory   CourseAIHistory?   @relation(fields: [courseAIHistoryId], references: [id])
+  courseAIHistoryId String?
+
+  @@map("messages_with_ai")
+}

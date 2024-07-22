@@ -74,8 +74,12 @@ export class EduAiService {
                   console.log(parsedData);
                   const messageData = {
                     id: randomUUID(),
+
                     event: parsedData.event,
-                    message: parsedData.message,
+                    message: {
+                      ...parsedData.message,
+                      role: "ASSISTANT",
+                    },
                     conversation_id: conversationId,
                     is_finish: parsedData.is_finish,
                   };

@@ -1,0 +1,11 @@
+// Models
+
+model TelegramLink {
+  id        String   @id @unique @default(uuid())
+  userId    String   @unique @map("user_id")
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("telegram_links")
+}

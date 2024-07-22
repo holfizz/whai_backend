@@ -1,0 +1,116 @@
+// Enums
+
+enum QuizQuestionType {
+  MCQ
+  MRQ
+  CLOZE
+  MATCH
+}
+
+enum InteractionType {
+  MATCHING
+}
+
+// Models
+
+model Quiz {
+  id             String       @id @unique @default(uuid())
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  name           String
+  description    String?
+  questions      Question[]
+  totalQuestions Int?         @default(0) @map("total_questions")
+  subtopicId     String?      @map("subtopic_id")
+  folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
+  quizResult     QuizResult[]
+  courseId       String
+  course         Course?      @relation(fields: [courseId], references: [id])
+  isCompleted    Boolean      @default(false) @map("is_completed")
+  isPlan         Boolean      @default(false)
+
+  @@map("quizzes")
+}
+
+model Question {
+  id                  String               @id @unique @default(uuid())
+  questionType        QuizQuestionType     @map("question_type")
+  prompt              String?
+  choices             Choice[]
+  answers             String[]
+  quiz                Quiz                 @relation(fields: [quizId], references: [id])
+  quizId              String               @map("quiz_id")
+  matchingInteraction MatchingInteraction?
+  interactions        Interaction[]
+  UserAnswer          UserAnswer[]
+
+  @@map("questions")
+}
+
+model Choice {
+  id                         String       @id @unique @default(uuid())
+  content                    String
+  correctAnswerDescription   String?      @map("correct_answer_description")
+  incorrectAnswerDescription String?      @map("incorrect_answer_description")
+  question                   Question     @relation(fields: [questionId], references: [id])
+  questionId                 String       @map("question_id")
+  interaction                Interaction? @relation(fields: [interactionId], references: [id])
+  interactionId              String?      @map("interaction_id")
+
+  @@map("choices")
+}
+
+model Interaction {
+  id         String    @id @unique @default(uuid())
+  choices    Choice[]
+  answers    String[]
+  question   Question? @relation(fields: [questionId], references: [id])
+  questionId String?   @map("question_id")
+
+  @@map("interactions")
+}
+
+model MatchingInteraction {
+  id         String   @id @unique @default(uuid())
+  left       Json
+  right      Json
+  answers    Json
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String   @unique @map("question_id")
+
+  @@map("matching_interactions")
+}
+
+model QuizResult {
+  id             String       @id @unique @default(uuid())
+  userId         String       @map("user_id")
+  quizId         String       @map("quiz_id")
+  courseId       String?      @map("course_id")
+  subtopicId     String?      @map("subtopic_id")
+  totalPercents  Int          @map("total_percents")
+  correctAnswers Int          @map("correct_answers")
+  wrongAnswers   Int          @map("wrong_answers")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User?        @relation(fields: [userId], references: [id])
+  quiz           Quiz?        @relation(fields: [quizId], references: [id])
+  course         Course?      @relation(fields: [courseId], references: [id])
+  subtopic       Subtopic?    @relation(fields: [subtopicId], references: [id])
+  userAnswers    UserAnswer[] @relation("QuizResultToUserAnswer") // Указываем связь с UserAnswer
+
+  @@map("quiz_results")
+}
+
+model UserAnswer {
+  id             String     @id @unique @default(uuid())
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  questionId     String     @map("question_id")
+  selectedAnswer Json       @map("selected_answer")
+  isCorrect      Boolean    @map("is_correct")
+  quizResultId   String     @map("quiz_result_id")
+  quizResult     QuizResult @relation("QuizResultToUserAnswer", fields: [quizResultId], references: [id])
+  question       Question   @relation(fields: [questionId], references: [id])
+
+  @@map("user_answers")
+}

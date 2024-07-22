@@ -1,0 +1,19 @@
+// Models
+
+model Subtopic {
+  id             String       @id @unique @default(uuid())
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  name           String
+  description    String?
+  quizzes        Quiz[]
+  lessons        Lesson[]
+  quizResult     QuizResult[]
+  topic          Topic?       @relation(fields: [topicId], references: [id])
+  topicId        String
+  completionTime Int          @default(1) @map("completion_time")
+  Course         Course?      @relation(fields: [courseId], references: [id])
+  courseId       String?
+
+  @@map("subtopics")
+}

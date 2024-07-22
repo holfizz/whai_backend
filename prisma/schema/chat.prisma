@@ -1,0 +1,51 @@
+// Enums
+
+enum MessageType {
+  VOICE
+  TEXT
+}
+
+// Models
+
+model Chat {
+  id        String   @id @unique @default(uuid())
+  title     String   @default("New chat")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ownerId   String   @map("owner_id")
+
+  inviteLink  String?       @unique @map("invite_link")
+  owner       User          @relation(fields: [ownerId], references: [id])
+  chatMembers ChatMembers[]
+  messages    Message[]
+
+  @@map("chats")
+}
+
+model ChatMembers {
+  id        String    @id @unique @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  userId    String    @map("user_id")
+  chatId    String    @map("chat_id")
+  chat      Chat      @relation(fields: [chatId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  message   Message[] @relation("ChatMembersToMessage")
+
+  @@map("chat_members")
+}
+
+model Message {
+  id          String        @id @unique @default(uuid())
+  userId      String        @map("user_id")
+  type        MessageType   @default(TEXT)
+  text        String
+  file        String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  chatId      String?       @map("chat_id")
+  chat        Chat?         @relation(fields: [chatId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  chatMembers ChatMembers[] @relation("ChatMembersToMessage")
+
+  @@map("messages")
+}

@@ -1,0 +1,23 @@
+// Models
+
+model Analytics {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  courseId  String   @unique @map("course_id")
+  data      Json
+  course    Course   @relation(fields: [courseId], references: [id])
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?  @unique
+
+  @@map("analytics")
+}
+
+model LearningSession {
+  id             String @id @unique @default(uuid())
+  User           User   @relation(fields: [userId], references: [id])
+  userId         String @map("user_id")
+  sessionDetails Json   @default("[]") @map("session_details")
+
+  @@map("learning_sessions")
+}
