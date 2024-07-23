@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { MessageWithAIRole } from "@prisma/client";
-import { IsUUID } from "class-validator";
+import { IsString, IsUUID } from "class-validator";
 
 registerEnumType(MessageWithAIRole, {
   name: "MessageWithAIRole",
@@ -38,4 +38,15 @@ export class MessageWithAI {
 
   @Field(() => Boolean)
   is_finish: boolean;
+}
+
+@ObjectType()
+export class GenerateTD {
+  @Field(() => String)
+  @IsString()
+  title: string;
+
+  @Field(() => String)
+  @IsString()
+  description: string;
 }

@@ -1,12 +1,11 @@
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { CourseAIHistoryInput } from "./dto/course_ai_history.Input";
 
 @Injectable()
 export default class CourseAIHistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createCourseAIHistory(userId: string, dto: CourseAIHistoryInput) {
+  async createCourseAIHistory(userId: string, courseId: string) {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -17,25 +16,24 @@ export default class CourseAIHistoryService {
       }
 
       const course = await this.prisma.course.findUnique({
-        where: { id: dto.courseId },
+        where: { id: courseId },
       });
 
       if (!course) {
-        throw new Error(`Course with ID ${dto.courseId} not found.`);
+        throw new Error(`Course with ID $courseId} not found.`);
       }
 
       const existingHistory = await this.prisma.courseAIHistory.findFirst({
-        where: { courseId: dto.courseId },
+        where: { courseId: courseId },
       });
 
       if (existingHistory) {
-        throw new Error(`Course with ID ${dto.courseId} already has a chat history.`);
+        throw new Error(`Course with ID ${courseId} already has a chat history.`);
       }
       return await this.prisma.$transaction(async prisma => {
         const courseAIHistory = await prisma.courseAIHistory.create({
           data: {
-            ...dto,
-            courseId: dto.courseId,
+            courseId,
           },
         });
 
@@ -60,18 +58,18 @@ export default class CourseAIHistoryService {
     }
   }
 
-  async getAllCourseAIHistory(userId: string, dto: CourseAIHistoryInput) {
+  async getAllCourseAIHistory(userId: string, courseId: string) {
     try {
-      const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
+      const course = await this.prisma.course.findUnique({ where: { id: courseId } });
       if (!course) {
-        throw new Error(`Course with ID ${dto.courseId} not found.`);
+        throw new Error(`Course with ID ${courseId} not found.`);
       }
 
       // Get chats with the specified lessonId
       const chatsWithLessonId = await this.prisma.courseAIHistory.findMany({
         where: {
           userId,
-          courseId: dto.courseId,
+          courseId: courseId,
         },
         orderBy: {
           createdAt: "asc",
@@ -82,7 +80,7 @@ export default class CourseAIHistoryService {
       const otherChats = await this.prisma.courseAIHistory.findMany({
         where: {
           userId,
-          courseId: dto.courseId,
+          courseId: courseId,
         },
         orderBy: {
           createdAt: "asc",

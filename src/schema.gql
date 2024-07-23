@@ -77,13 +77,9 @@ type CourseAIHistory {
   userId: String!
 }
 
-input CourseAIHistoryInput {
-  courseId: ID!
-}
-
 input CourseInput {
   description: String
-  name: String!
+  name: String
 }
 
 enum CourseLevelEnum {
@@ -138,6 +134,16 @@ input CreateNoticeInput {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type GenerateTD {
+  description: String!
+  title: String!
+}
+
+input GenerateTDInput {
+  conversationId: ID!
+  userRequest: String!
+}
 
 input GetAllMessagesInput {
   chatId: ID!
@@ -270,10 +276,11 @@ enum LessonTypeEnum {
 
 input LessonWithAIInput {
   additionalParams: String
-  chatWithAIId: ID!
   completionTime: Int
+  courseAIHistoryId: ID!
   courseId: ID!
   description: String
+  id: ID
   isHasAISearchImage: Boolean
   isHasVideo: Boolean
   name: String!
@@ -284,6 +291,7 @@ input LessonWithAITasksBlocksInput {
   completionTime: Int
   courseId: ID!
   description: String
+  id: ID
   lessonBlocks: [LessonBlockInput]
   lessonTasks: [LessonTasksInput]
   name: String!
@@ -352,7 +360,7 @@ type Mutation {
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!
   createCourse(createCourseData: CourseInput!): Course!
-  createCourseAIHistory(createChatInput: CourseAIHistoryInput!): CourseAIHistory!
+  createCourseAIHistory(courseId: ID!): CourseAIHistory!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
   createLessonFromAI(lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput!): Lesson!
@@ -394,6 +402,7 @@ type Mutation {
 
   """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
+  generateTD(dto: GenerateTDInput!): [GenerateTD!]!
   generateTelegramLink: TelegramLink!
 
   """
@@ -410,7 +419,6 @@ type Mutation {
   Authenticate the user and return the user's fields and access and refresh tokens.
   """
   login(loginInput: loginInput!): SignResponse!
-  removeMessageWithAi(id: Int!): MessageWithAIData!
 
   """Reset a user's password using a valid password reset token."""
   resetPassword(dto: ResetPasswordInput!): Boolean!
@@ -464,7 +472,7 @@ type Query {
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
   getAllChatsWithAI(lessonId: ID!): [ChatWithAI!]!
-  getAllCourseAIHistory(getAllCourseAIHistoryInput: CourseAIHistoryInput!): [CourseAIHistory!]!
+  getAllCourseAIHistory(courseId: ID!): [CourseAIHistory!]!
   getAllCourses: [Course!]!
   getAllLessons(subtopicId: ID!): [Lesson!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!

@@ -21,15 +21,15 @@ export class LessonBlockService {
     });
   }
 
-  async updateLessonBlock(id: string, data: UpdateLessonBlock) {
+  async updateLessonBlock(data: UpdateLessonBlock) {
     // Check if the lesson block exists
-    const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id } });
+    const lessonBlock = await this.prisma.lessonBlock.findUnique({ where: { id: data.id } });
     if (!lessonBlock) {
-      throw new NotFoundException(`LessonBlock with ID ${id} not found`);
+      throw new NotFoundException(`LessonBlock with ID ${data.id} not found`);
     }
 
     return this.prisma.lessonBlock.update({
-      where: { id },
+      where: { id: data.id },
       data,
     });
   }

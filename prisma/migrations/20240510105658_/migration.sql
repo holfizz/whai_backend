@@ -1,3 +1,3 @@
 -- AlterTable
-ALTER TABLE "Choice" ADD COLUMN     "correctAnswerDescription" TEXT,
+ALTER TABLE "ChoiceStep" ADD COLUMN     "correctAnswerDescription" TEXT,
 ADD COLUMN     "incorrectAnswerDescription" TEXT;

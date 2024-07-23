@@ -57,7 +57,7 @@ ADD COLUMN     "title" TEXT NOT NULL,
 ALTER COLUMN "questionType" DROP DEFAULT;
 
 -- CreateTable
-CREATE TABLE "Choice" (
+CREATE TABLE "ChoiceStep" (
     "id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "quiz-id" TEXT NOT NULL,
@@ -96,10 +96,10 @@ ALTER TABLE "Quiz" ADD CONSTRAINT "Quiz_folder_id_fkey" FOREIGN KEY ("folder_id"
 ALTER TABLE "Quiz" ADD CONSTRAINT "Quiz_matching_interaction_id_fkey" FOREIGN KEY ("matching_interaction_id") REFERENCES "MatchingInteraction"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Choice" ADD CONSTRAINT "Choice_quiz-id_fkey" FOREIGN KEY ("quiz-id") REFERENCES "Quiz"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ChoiceStep" ADD CONSTRAINT "Choice_quiz-id_fkey" FOREIGN KEY ("quiz-id") REFERENCES "Quiz"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Choice" ADD CONSTRAINT "Choice_interaction_id_fkey" FOREIGN KEY ("interaction_id") REFERENCES "Interaction"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ChoiceStep" ADD CONSTRAINT "Choice_interaction_id_fkey" FOREIGN KEY ("interaction_id") REFERENCES "Interaction"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Interaction" ADD CONSTRAINT "Interaction_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "Quiz"("id") ON DELETE SET NULL ON UPDATE CASCADE;

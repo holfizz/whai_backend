@@ -12,7 +12,7 @@ export class CourseResolver {
 
   @Mutation(() => Course)
   @Auth("user")
-  async createCourse(@CurrentUser("id") userId: string, @Args("createCourseData") createCourseData: CourseInput) {
+  async createCourse(@CurrentUser("id") userId: string, @Args("createCourseData") createCourseData?: CourseInput) {
     return this.courseService.createCourse(userId, createCourseData);
   }
 

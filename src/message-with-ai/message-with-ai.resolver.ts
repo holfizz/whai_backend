@@ -2,9 +2,9 @@ import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Int, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
-import { GetAllMessagesInput, MessageWithAIInput } from "./dto/message-with-ai.input";
+import { GenerateTDInput, GetAllMessagesInput, MessageWithAIInput } from "./dto/message-with-ai.input";
 import { UpdateMessageWithAiInput } from "./dto/update-message-with-ai.input";
-import { MessageWithAI, MessageWithAIData } from "./entities/message-with-ai.entity";
+import { GenerateTD, MessageWithAI, MessageWithAIData } from "./entities/message-with-ai.entity";
 import { MessageWithAiService } from "./message-with-ai.service";
 
 const pubSub = new PubSub();
@@ -58,8 +58,9 @@ export class MessageWithAiResolver {
     return this.messageWithAiService.update(updateMessageWithAiInput.id, updateMessageWithAiInput);
   }
 
-  @Mutation(() => MessageWithAIData)
-  removeMessageWithAi(@Args("id", { type: () => Int }) id: number) {
-    return this.messageWithAiService.remove(id);
+  @Mutation(() => [GenerateTD])
+  @Auth("user")
+  generateTD(@CurrentUser("id") userId: string, @Args("dto") dto: GenerateTDInput) {
+    return this.messageWithAiService.generateTitleAndDescription(dto, userId);
   }
 }

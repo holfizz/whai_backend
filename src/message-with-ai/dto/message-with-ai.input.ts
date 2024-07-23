@@ -35,3 +35,14 @@ export class GetAllMessagesInput {
   @IsNumber()
   skip?: number;
 }
+
+@InputType()
+export class GenerateTDInput {
+  @Field(() => ID)
+  @IsUUID()
+  conversationId: string;
+
+  @Field(() => String)
+  @IsString()
+  userRequest: string;
+}

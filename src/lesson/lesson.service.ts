@@ -39,7 +39,7 @@ export class LessonService {
 
   async updateLesson(id: string, data: UpdateLesson): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
-      await this.lessonRepository.updateLesson(id, data);
+      await this.lessonRepository.updateLesson(data);
 
       return this.lessonRepository.findLessonById(id);
     });
@@ -72,17 +72,10 @@ export class LessonService {
   }
 
   async createLessonWithAI(userId: string, dto: LessonWithAIInput, pubSub: PubSub): Promise<any> {
-    const chatWithAI = await this.prisma.chatWithAI.findUnique({ where: { id: dto.chatWithAIId } });
-    if (!chatWithAI) {
-      throw new Error(`Chat with AI ID ${dto.chatWithAIId} not found.`);
+    const courseAIHistoryId = await this.prisma.courseAIHistory.findUnique({ where: { id: dto.courseAIHistoryId } });
+    if (!courseAIHistoryId) {
+      throw new Error(`Chat with AI ID ${dto.courseAIHistoryId} not found.`);
     }
-
-    const messagesHistory = await this.prisma.messageWithAI.findMany({
-      where: { chatWithAIId: dto.chatWithAIId },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
     const aiDto: AIDTO = {
       content: {
         createType: "Урок",
@@ -93,9 +86,8 @@ export class LessonService {
         isHasVideo: dto.isHasVideo,
         isHasAISearchImage: dto.isHasAISearchImage,
       },
-      messagesHistory,
     };
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
     const lessonJson = this.extractLessonJson(fullContent);
 
@@ -105,6 +97,7 @@ export class LessonService {
     await this.lessonRepository.validateSubtopic(dto.subtopicId);
 
     return await this.createLessonFromAI({
+      id: dto.id,
       name: dto.description,
       description: dto.description,
       courseId: dto.courseId,
@@ -116,15 +109,14 @@ export class LessonService {
   async createLessonFromAI(data: LessonWithAITasksBlocksInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
       await this.lessonRepository.validateLesson(data);
-
-      const newLesson = await this.lessonRepository.createLesson(data);
+      const currentLesson = data.id ? await this.lessonRepository.updateLesson(data) : await this.lessonRepository.createLesson(data);
 
       const lessonBlocks = [];
       if (data.lessonBlocks) {
         for (const lessonBlock of data.lessonBlocks) {
           const newLessonBlock = await this.lessonBlockService.createLessonBlock({
             ...lessonBlock,
-            lessonId: newLesson.id,
+            lessonId: currentLesson.id,
           });
           lessonBlocks.push(newLessonBlock);
         }
@@ -135,17 +127,17 @@ export class LessonService {
         for (const lessonTask of data.lessonTasks) {
           const newLessonTask = await this.lessonTasksService.createLessonTask({
             name: lessonTask.name,
-            lessonId: newLesson.id,
+            lessonId: currentLesson.id,
           });
           lessonTasks.push(newLessonTask);
         }
       }
 
-      const lessonStats = await this.lessonUtils.calculateLessonStats(newLesson.id);
+      const lessonStats = await this.lessonUtils.calculateLessonStats(currentLesson.id);
       console.log(`Total Blocks: ${lessonStats.totalBlocks}`);
 
       // Fetch the newly created lesson with lessonBlocks and tasks
-      const createdLesson = await this.lessonRepository.findLessonById(newLesson.id);
+      const createdLesson = await this.lessonRepository.findLessonById(currentLesson.id);
 
       return createdLesson;
     });

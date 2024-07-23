@@ -52,14 +52,24 @@ export class LessonWithAITasksBlocksInput extends LessonInput {
   @IsNumber()
   @IsOptional()
   completionTime?: number;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  id?: string;
 }
 
 @InputType()
 export class LessonWithAIInput {
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
   @IsString()
   @Field(() => ID)
   @IsUUID()
-  chatWithAIId: string;
+  courseAIHistoryId: string;
 
   @Field(() => ID)
   @IsUUID()

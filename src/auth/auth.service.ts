@@ -22,13 +22,11 @@ export class AuthService {
     try {
       const data = { id: userId };
 
-      const accessToken = this.jwt.sign(data, {
-        expiresIn: "1d",
-      });
+      const accessTokenOptions = process.env.NODE_ENV === "development" ? {} : { expiresIn: "1d" };
+      const refreshTokenOptions = process.env.NODE_ENV === "development" ? {} : { expiresIn: "7d" };
 
-      const refreshToken = this.jwt.sign(data, {
-        expiresIn: "7d",
-      }) as string;
+      const accessToken = this.jwt.sign(data, accessTokenOptions);
+      const refreshToken = this.jwt.sign(data, refreshTokenOptions) as string;
 
       return { accessToken, refreshToken };
     } catch (error) {

@@ -3,10 +3,11 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class CourseInput {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsString()
-  @IsNotEmpty()
-  name: string;
+  @IsOptional()
+  name?: string;
+  w;
 
   @Field(() => String, { nullable: true })
   @IsOptional()

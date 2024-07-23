@@ -190,13 +190,6 @@ export class QuizService {
   }
 
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<any> {
-    const messagesHistory = await this.prisma.messageWithAI.findMany({
-      where: { chatWithAIId: dto.chatWithAIId },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
-
     const aiDto: AIDTO = {
       content: {
         createType: "Тест",
@@ -205,7 +198,6 @@ export class QuizService {
         quizDescription: dto.description,
         additionalParams: dto.additionalParams,
       },
-      messagesHistory,
     };
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);

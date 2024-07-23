@@ -15,7 +15,7 @@ export class LessonBlockResolver {
 
   @Mutation(() => LessonBlock)
   async updateLessonBlock(@Args("id") id: string, @Args("updateLessonBlock") updateLessonBlock: UpdateLessonBlock) {
-    return this.lessonBlockService.updateLessonBlock(id, updateLessonBlock);
+    return this.lessonBlockService.updateLessonBlock(updateLessonBlock);
   }
 
   @Mutation(() => LessonBlock)

@@ -4,7 +4,7 @@
   - You are about to drop the `Chat` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `ChatMembers` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `ChatWithAI` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Choice` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `ChoiceStep` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `Course` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `Folder` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `Interaction` table. If the table is not empty, all the data it contains will be lost.
@@ -43,10 +43,10 @@ ALTER TABLE "ChatMembers" DROP CONSTRAINT "ChatMembers_user_id_fkey";
 ALTER TABLE "ChatWithAI" DROP CONSTRAINT "ChatWithAI_user_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Choice" DROP CONSTRAINT "Choice_interaction_id_fkey";
+ALTER TABLE "ChoiceStep" DROP CONSTRAINT "Choice_interaction_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Choice" DROP CONSTRAINT "Choice_question_id_fkey";
+ALTER TABLE "ChoiceStep" DROP CONSTRAINT "Choice_question_id_fkey";
 
 -- DropForeignKey
 ALTER TABLE "Folder" DROP CONSTRAINT "Folder_courseId_fkey";
@@ -157,7 +157,7 @@ DROP TABLE "ChatMembers";
 DROP TABLE "ChatWithAI";
 
 -- DropTable
-DROP TABLE "Choice";
+DROP TABLE "ChoiceStep";
 
 -- DropTable
 DROP TABLE "Course";

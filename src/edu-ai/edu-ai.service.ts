@@ -4,15 +4,27 @@ import { randomUUID } from "crypto";
 import { PubSub } from "graphql-subscriptions";
 import { catchError, tap, throwError } from "rxjs";
 import { AIDTO } from "./types/ai.types";
+import { PrismaService } from "@/prisma.service";
 
 @Injectable()
 export class EduAiService {
   private abortControllers: Map<string, AbortController> = new Map();
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private prisma: PrismaService,
+  ) {}
 
-  async getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub: PubSub): Promise<any> {
-    const messagesHistory = dto.messagesHistory;
+  async getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub?: PubSub): Promise<any> {
+    const messagesHistory = await this.prisma.messageWithAI.findMany({
+      where: {
+        OR: [{ chatWithAIId: conversationId }, { courseAIHistoryId: conversationId }],
+      },
+    });
+    console.log("HISTORY", messagesHistory.slice(1, 4));
+    if (!messagesHistory) {
+      throw new Error("messagesHistory not found");
+    }
     let botId: string;
 
     switch (botMode) {
@@ -84,9 +96,11 @@ export class EduAiService {
                     is_finish: parsedData.is_finish,
                   };
                   messages.push(messageData);
-                  pubSub.publish("chatWithAIAnswer", {
-                    chatWithAIAnswer: messageData,
-                  });
+                  if (pubSub) {
+                    pubSub.publish("chatWithAIAnswer", {
+                      chatWithAIAnswer: messageData,
+                    });
+                  }
                 } catch (error) {
                   console.error("Error parsing JSON:", error);
                 }

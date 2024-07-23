@@ -49,12 +49,6 @@ export class PlanService {
   }
 
   async createPlanWithAI(userId: string, dto: CoursePlanWithAIInput, pubSub: PubSub): Promise<any> {
-    const messagesHistory = await this.prisma.messageWithAI.findMany({
-      where: { courseAIHistoryId: dto.courseAIHistoryId },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
     const aiDto: AIDTO = {
       content: {
         createType: "План",
@@ -64,7 +58,6 @@ export class PlanService {
         isHasVideo: dto.isHasVideo,
         additionalParams: dto.additionalParams,
       },
-      messagesHistory,
     };
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);

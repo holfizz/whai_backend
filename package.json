@@ -53,7 +53,7 @@
     "graphql-type-json": "^0.3.2",
     "graphql-upload": "^16.0.2",
     "graphql-upload-ts": "^2.1.2",
-    "graphql-ws": "^5.15.0",
+    "graphql-ws": "^5.16.0",
     "joi": "^17.13.0",
     "langchain": "^0.1.36",
     "lucide-react": "^0.399.0",
@@ -71,9 +71,9 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.5",
-    "subscriptions-transport-ws": "^0.11.0",
     "telegraf": "^4.16.3",
-    "telegraf-session-local": "^2.1.1"
+    "telegraf-session-local": "^2.1.1",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

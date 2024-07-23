@@ -1,7 +1,7 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { CourseAIHistoryInput } from "./dto/course_ai_history.Input";
+
 import CourseAIHistoryService from "./course_ai_history.service";
 import { CourseAIHistory } from "./entities/course_ai_history.entity";
 
@@ -11,18 +11,18 @@ export class CourseAIHistoryResolver {
 
   @Mutation(() => CourseAIHistory)
   @Auth("user")
-  async createCourseAIHistory(@CurrentUser("id") userId: string, @Args("createChatInput") createChatInput: CourseAIHistoryInput) {
-    return this.courseAIHistoryService.createCourseAIHistory(userId, createChatInput);
+  async createCourseAIHistory(@CurrentUser("id") userId: string, @Args("courseId", { type: () => ID }) courseId: string) {
+    return this.courseAIHistoryService.createCourseAIHistory(userId, courseId);
   }
 
   @Query(() => [CourseAIHistory])
   @Auth("user")
   async getAllCourseAIHistory(
     @CurrentUser("id") userId: string,
-    @Args("getAllCourseAIHistoryInput")
-    dto: CourseAIHistoryInput,
+    @Args("courseId", { type: () => ID })
+    courseId: string,
   ) {
-    return this.courseAIHistoryService.getAllCourseAIHistory(userId, dto);
+    return this.courseAIHistoryService.getAllCourseAIHistory(userId, courseId);
   }
 
   @Query(() => CourseAIHistory)

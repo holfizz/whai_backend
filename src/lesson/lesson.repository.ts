@@ -63,8 +63,19 @@ export class LessonRepository {
     await this.prisma.lesson.delete({ where: { id } });
   }
 
-  async updateLesson(id: string, data: UpdateLesson): Promise<any> {
-    await this.prisma.lesson.update({ where: { id }, data });
+  async updateLesson(data: UpdateLesson): Promise<any> {
+    if (!data.courseId) {
+      throw new BadRequestException("courseId must be provided");
+    }
+
+    return this.prisma.lesson.update({
+      where: { id: data.id },
+      data: {
+        name: data.name,
+        description: data.description,
+        types: data.types,
+      },
+    });
   }
 
   async findLessonById(lessonId: string): Promise<any> {

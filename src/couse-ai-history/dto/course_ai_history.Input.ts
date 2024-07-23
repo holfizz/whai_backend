@@ -1,9 +1,4 @@
-import { Field, ID, InputType } from "@nestjs/graphql";
-import { IsUUID } from "class-validator";
+import { InputType } from "@nestjs/graphql";
 
 @InputType()
-export class CourseAIHistoryInput {
-  @Field(() => ID)
-  @IsUUID()
-  courseId: string;
-}
+export class CourseAIHistoryInput {}
