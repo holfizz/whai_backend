@@ -448,7 +448,7 @@ type Mutation {
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
-  updateQuiz(id: String!, updateQuizData: QuizInput!): Quiz!
+  updateQuiz(updateQuizData: QuizInput!): Quiz!
   updateSubtopic(updateSubtopicInput: UpdateSubtopicInput!): Subtopic!
   updateTopic(updateTopicInput: UpdateTopicInput!): Topic!
 }
@@ -594,9 +594,10 @@ type QuizSummary {
 
 input QuizWithAIInput {
   additionalParams: String
-  chatWithAIId: ID!
+  courseAIHistory: ID!
   courseId: ID!
   description: String
+  id: ID!
   name: String!
   subtopicId: ID
 }

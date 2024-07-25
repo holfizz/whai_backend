@@ -1,6 +1,7 @@
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { QuestionInput, QuizInput } from "./dto/quiz.input";
+import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
 
 @Injectable()
 export class QuizRepository {
@@ -152,7 +153,7 @@ export class QuizRepository {
     await this.prisma.quiz.delete({ where: { id: quizId } });
   }
 
-  async updateQuiz(id: string, data: QuizInput): Promise<any> {
+  async updateQuiz(id: string, data: UpdateQuizInput): Promise<any> {
     const existingQuiz = await this.prisma.quiz.findUnique({ where: { id } });
     if (!existingQuiz) throw new Error("Quiz not found.");
 

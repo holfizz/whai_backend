@@ -7,6 +7,7 @@ import { QuizRepository } from "./quiz.repository";
 import { QuizUtils } from "./quiz.utils";
 import { AIDTO } from "@/edu-ai/types/ai.types";
 import { QuizSummary } from "@/quiz/entities/quiz.entity";
+import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
 
 @Injectable()
 export class QuizService {
@@ -16,6 +17,28 @@ export class QuizService {
     private readonly quizRepository: QuizRepository,
     private readonly quizUtils: QuizUtils,
   ) {}
+
+  async createQuizFromAI(data: UpdateQuizInput): Promise<any> {
+    console.log("createQuizFromAI - data:", data); // Log input data
+
+    return await this.prisma.$transaction(async prisma => {
+      if (!data.id || !data.id) {
+        throw new Error("Failed to update quiz or quiz ID is missing.");
+      }
+
+      if (data.questions) {
+        for (const question of data.questions) {
+          console.log("createQuizFromAI - Creating question:", question);
+          await this.quizRepository.createQuestion(question, data.id);
+        }
+      }
+
+      const quizStats = await this.quizUtils.calculateQuizStats(data.id);
+      await this.quizRepository.updateQuizStats(data.id, quizStats);
+
+      return this.quizRepository.findQuizById(data.id);
+    });
+  }
 
   async createQuiz(data: QuizInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
@@ -183,13 +206,15 @@ export class QuizService {
       });
   }
 
-  async updateQuiz(id: string, data: QuizInput): Promise<any> {
+  async updateQuiz(data: UpdateQuizInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
-      await this.quizRepository.updateQuiz(id, data);
+      await this.quizRepository.updateQuiz(data.id, data);
     });
   }
 
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<any> {
+    const quiz = await this.prisma.quiz.findUnique({ where: { id: dto.id } });
+    if (!quiz) throw new Error(`Quiz with id ${dto.id} not found.`);
     const aiDto: AIDTO = {
       content: {
         createType: "Тест",
@@ -200,7 +225,7 @@ export class QuizService {
       },
     };
 
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.chatWithAIId, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistory, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const quizJson = this.extractQuizJson(fullContent);
@@ -208,7 +233,8 @@ export class QuizService {
 
     const { questions, completionTime } = parsedContent;
 
-    return this.createQuiz({
+    return this.createQuizFromAI({
+      id: dto.id,
       name: dto.name,
       description: dto.description,
       questions: questions,

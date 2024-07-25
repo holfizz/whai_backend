@@ -25,6 +25,13 @@ export class EduAiService {
     if (!messagesHistory) {
       throw new Error("messagesHistory not found");
     }
+    const transformedMessages = messagesHistory.map(message => ({
+      role: message.role.toLowerCase(),
+      content: message.content,
+      ...(message.role === "USER" && { content_type: "text" }),
+      ...(message.type && { type: message.type }),
+    }));
+    console.log(transformedMessages);
     let botId: string;
 
     switch (botMode) {
@@ -55,7 +62,7 @@ export class EduAiService {
             query: JSON.stringify(dto.content),
             content_type: "answer",
             stream: true,
-            chat_history: messagesHistory,
+            chat_history: transformedMessages,
           },
           {
             headers: {

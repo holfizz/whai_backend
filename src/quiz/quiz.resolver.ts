@@ -46,8 +46,8 @@ export class QuizResolver {
   }
 
   @Mutation(() => Quiz)
-  updateQuiz(@Args("id", { type: () => String }) id: string, @Args("updateQuizData") updateQuizData: QuizInput) {
-    return this.quizService.updateQuiz(id, updateQuizData);
+  updateQuiz(@Args("updateQuizData") updateQuizData: QuizInput) {
+    return this.quizService.updateQuiz(updateQuizData);
   }
 
   @Subscription(() => Quiz, {
