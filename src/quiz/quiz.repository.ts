@@ -1,7 +1,7 @@
 import { PrismaService } from "@/prisma.service";
+import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
 import { Injectable } from "@nestjs/common";
 import { QuestionInput, QuizInput } from "./dto/quiz.input";
-import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
 
 @Injectable()
 export class QuizRepository {
@@ -108,6 +108,7 @@ export class QuizRepository {
     return this.prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
+        quizResult: true,
         questions: {
           include: {
             choices: true,

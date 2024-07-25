@@ -1,13 +1,13 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
+import { AIDTO } from "@/edu-ai/types/ai.types";
 import { PrismaService } from "@/prisma.service";
+import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
+import { QuizSummary } from "@/quiz/entities/quiz.entity";
 import { Injectable } from "@nestjs/common";
 import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput, SaveQuizResultInput, UserAnswerInput } from "./dto/quiz.input";
 import { QuizRepository } from "./quiz.repository";
 import { QuizUtils } from "./quiz.utils";
-import { AIDTO } from "@/edu-ai/types/ai.types";
-import { QuizSummary } from "@/quiz/entities/quiz.entity";
-import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
 
 @Injectable()
 export class QuizService {
@@ -74,6 +74,8 @@ export class QuizService {
         questions: {
           include: {
             choices: true,
+            matchingInteraction: true,
+            interactions: true,
           },
         },
       },
@@ -94,9 +96,7 @@ export class QuizService {
       }
 
       return {
-        id: quiz.id,
-        name: quiz.name,
-        description: quiz.description,
+        ...quiz,
         totalPercents,
       };
     });
@@ -111,6 +111,8 @@ export class QuizService {
         questions: {
           include: {
             choices: true,
+            matchingInteraction: true,
+            interactions: true,
           },
         },
         quizResult: {
@@ -170,16 +172,7 @@ export class QuizService {
     const totalPercents = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
     return {
-      id: quiz.id,
-      name: quiz.name,
-      subtopicId: quiz.subtopicId,
-      description: quiz.description,
-      questions: quiz.questions.map(question => ({
-        id: question.id,
-        prompt: question.prompt,
-        questionType: question.questionType,
-        choices: question.choices,
-      })),
+      ...quiz,
       quizResult: bestQuizResult
         ? {
             id: bestQuizResult.id,
