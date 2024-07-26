@@ -161,10 +161,6 @@ input InteractionInput {
   choices: [ChoiceInput!]!
 }
 
-input KeyValueInput {
-  value: [String!]!
-}
-
 type LearningSession {
   createdAt: DateTime!
   id: ID!
@@ -297,6 +293,16 @@ input LessonWithAITasksBlocksInput {
   name: String!
   subtopicId: ID!
   types: [LessonTypeEnum!]
+}
+
+type MatchingAnswer {
+  left: String!
+  right: String!
+}
+
+input MatchingAnswerInput {
+  left: String!
+  right: String!
 }
 
 type MatchingInteraction {
@@ -535,17 +541,18 @@ type Quiz {
   isCompleted: Boolean
   name: String!
   questions: [Question!]!
-  quizResult: QuizResult
+  quizResult: [QuizResult!]
   subtopicId: ID
   updatedAt: DateTime!
 }
 
 type QuizDetails {
+  courseId: ID!
   description: String
   id: ID!
   name: String!
   questions: [Question!]!
-  quizResult: QuizResult
+  quizResult: [QuizResult!]
   subtopicId: ID!
 }
 
@@ -573,16 +580,16 @@ enum QuizQuestionType {
 }
 
 type QuizResult {
-  correctAnswers: Int!
+  correctAnswers: Int
   courseId: ID!
   id: ID!
   lessonId: ID
   quizId: ID!
   subtopicId: ID
-  totalPercents: Int!
+  totalPercents: Float!
   userAnswers: [UserAnswer!]!
   userId: ID!
-  wrongAnswers: Int!
+  wrongAnswers: Int
 }
 
 type QuizSummary {
@@ -594,7 +601,7 @@ type QuizSummary {
 
 input QuizWithAIInput {
   additionalParams: String
-  courseAIHistory: ID!
+  courseAIHistoryId: ID!
   courseId: ID!
   description: String
   id: ID!
@@ -847,15 +854,19 @@ type User {
 }
 
 type UserAnswer {
-  isCorrect: Boolean!
+  correctAnswers: [String!]!
+  correctAnswersDescription: String!
+  correctnessPercentage: Float!
+  incorrectAnswersDescription: String!
+  matchingAnswers: [MatchingAnswer!]
   questionId: ID!
-  selectedAnswer: [[String!]!]!
+  selectedAnswer: [String!]
 }
 
 input UserAnswerInput {
-  matchingAnswers: [KeyValueInput!]
+  matchingAnswers: [MatchingAnswerInput!]
   questionId: ID!
-  selectedAnswer: [String!]
+  selectedAnswers: [String!]
 }
 
 enum UserMode {

@@ -2,8 +2,9 @@ import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { AIDTO } from "@/edu-ai/types/ai.types";
 import { PrismaService } from "@/prisma.service";
 import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
-import { QuizSummary } from "@/quiz/entities/quiz.entity";
+import { Quiz, QuizSummary } from "@/quiz/entities/quiz.entity";
 import { Injectable } from "@nestjs/common";
+import { QuizQuestionType } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import { QuizInput, QuizWithAIInput, SaveQuizResultInput, UserAnswerInput } from "./dto/quiz.input";
 import { QuizRepository } from "./quiz.repository";
@@ -18,11 +19,11 @@ export class QuizService {
     private readonly quizUtils: QuizUtils,
   ) {}
 
-  async createQuizFromAI(data: UpdateQuizInput): Promise<any> {
-    console.log("createQuizFromAI - data:", data); // Log input data
+  async createQuizFromAI(data: UpdateQuizInput): Promise<Quiz> {
+    console.log("createQuizFromAI - data:", data);
 
     return await this.prisma.$transaction(async prisma => {
-      if (!data.id || !data.id) {
+      if (!data.id) {
         throw new Error("Failed to update quiz or quiz ID is missing.");
       }
 
@@ -39,8 +40,38 @@ export class QuizService {
       return this.quizRepository.findQuizById(data.id);
     });
   }
+  async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<Quiz> {
+    const quiz = await this.prisma.quiz.findUnique({ where: { id: dto.id } });
+    if (!quiz) throw new Error(`Quiz with id ${dto.id} not found.`);
 
-  async createQuiz(data: QuizInput): Promise<any> {
+    const aiDto: AIDTO = {
+      content: {
+        createType: "Тест",
+        descriptionType: "Создай тест",
+        quizTitle: dto.name,
+        quizDescription: dto.description,
+        additionalParams: dto.additionalParams,
+      },
+    };
+
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
+    if (!fullContent) throw new Error("Failed to get content from AI service.");
+
+    const quizJson = this.extractQuizJson(fullContent);
+    const parsedContent = JSON.parse(quizJson);
+
+    const { questions, completionTime } = parsedContent;
+
+    return this.createQuizFromAI({
+      id: quiz.id,
+      name: dto.name,
+      description: dto.description,
+      questions: questions,
+      subtopicId: dto.subtopicId,
+      courseId: dto.courseId,
+    });
+  }
+  async createQuiz(data: QuizInput): Promise<Quiz> {
     return await this.prisma.$transaction(async prisma => {
       const newQuiz = await this.quizRepository.createQuiz(data);
 
@@ -58,18 +89,12 @@ export class QuizService {
 
   async getAllQuizzes(subtopicId: string): Promise<QuizSummary[]> {
     const quizzes = await this.prisma.quiz.findMany({
-      where: {
-        subtopicId,
-      },
+      where: { subtopicId },
       include: {
         quizResult: {
-          include: {
-            userAnswers: true,
-          },
-          orderBy: {
-            totalPercents: "desc",
-          },
-          take: 1, // Берем только лучший результат
+          include: { userAnswers: true },
+          orderBy: { totalPercents: "desc" },
+          take: 1,
         },
         questions: {
           include: {
@@ -81,27 +106,37 @@ export class QuizService {
       },
     });
 
-    const quizSummaries = quizzes.map(quiz => {
-      let bestQuizResult = null;
-      if (quiz.quizResult.length > 0) {
-        bestQuizResult = quiz.quizResult[0];
-      }
-
-      let totalPercents = 0;
+    return quizzes.map(quiz => {
+      let bestQuizResult = quiz.quizResult.length > 0 ? quiz.quizResult[0] : null;
 
       if (bestQuizResult) {
         const totalQuestions = quiz.questions.length;
-        const correctAnswers = bestQuizResult.correctAnswers;
-        totalPercents = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+        const userAnswers = bestQuizResult.userAnswers;
+
+        const correctAnswersCount = userAnswers.filter(ua => ua.correctnessPercentage === 100).length;
+        const wrongAnswersCount = userAnswers.length - correctAnswersCount;
+
+        const totalPercents = totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
+
+        return {
+          id: quiz.id,
+          name: quiz.name,
+          description: quiz.description,
+          totalPercents,
+          correctAnswers: correctAnswersCount,
+          wrongAnswers: wrongAnswersCount,
+        };
       }
 
       return {
-        ...quiz,
-        totalPercents,
+        id: quiz.id,
+        name: quiz.name,
+        description: quiz.description,
+        totalPercents: 0,
+        correctAnswers: 0,
+        wrongAnswers: 0,
       };
     });
-
-    return quizSummaries;
   }
 
   async getQuiz(quizId: string, userId: string): Promise<any> {
@@ -117,12 +152,8 @@ export class QuizService {
         },
         quizResult: {
           where: { userId },
-          include: {
-            userAnswers: true,
-          },
-          orderBy: {
-            totalPercents: "desc",
-          },
+          include: { userAnswers: true },
+          orderBy: { totalPercents: "desc" },
         },
       },
     });
@@ -131,48 +162,40 @@ export class QuizService {
       throw new Error(`Quiz with id ${quizId} not found.`);
     }
 
-    const quizResults = quiz.quizResult;
+    const bestQuizResult = quiz.quizResult.length > 0 ? quiz.quizResult[0] : null;
 
-    const bestQuizResult = quizResults.length > 0 ? quizResults[0] : null;
+    let correctAnswersCount = 0;
+    let wrongAnswersCount = 0;
 
-    const totalQuestions = quiz.questions.length;
-    let correctAnswers = 0;
-    let wrongAnswers = 0;
     let userAnswers = [];
 
     if (bestQuizResult) {
-      bestQuizResult.userAnswers.forEach(userAnswer => {
-        if (userAnswer.isCorrect) {
-          correctAnswers++;
-        } else {
-          wrongAnswers++;
-        }
+      userAnswers = await Promise.all(
+        bestQuizResult.userAnswers.map(async userAnswer => {
+          const question = await this.prisma.question.findUnique({ where: { id: userAnswer.questionId } });
+          if (!question) {
+            throw new Error(`Question with id ${userAnswer.questionId} not found.`);
+          }
 
-        // Check if selectedAnswer is a string and parse it
-        let parsedSelectedAnswer: any;
-        if (typeof userAnswer.selectedAnswer === "string") {
-          parsedSelectedAnswer = JSON.parse(userAnswer.selectedAnswer);
-        } else {
-          parsedSelectedAnswer = userAnswer.selectedAnswer;
-        }
+          // const isAnswerCorrect = await this.checkAnswerCorrectness(userAnswer.questionId, userAnswer as any);
 
-        // Ensure selectedAnswer is an array
-        if (!Array.isArray(parsedSelectedAnswer)) {
-          parsedSelectedAnswer = [parsedSelectedAnswer];
-        }
-
-        userAnswers.push({
-          questionId: userAnswer.questionId,
-          selectedAnswer: parsedSelectedAnswer, // Handle different types of selectedAnswer
-          isCorrect: userAnswer.isCorrect,
-        });
-      });
+          return {
+            questionId: userAnswer.questionId,
+            selectedAnswers: userAnswer.selectedAnswers,
+            // correctnessPercentage: isAnswerCorrect,
+            correctAnswers: userAnswer.correctAnswers,
+          };
+        }),
+      );
     }
 
-    const totalPercents = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
-
     return {
-      ...quiz,
+      id: quiz.id,
+      name: quiz.name,
+      description: quiz.description,
+      subtopicId: quiz.subtopicId,
+      courseId: quiz.courseId,
+      questions: quiz.questions,
       quizResult: bestQuizResult
         ? {
             id: bestQuizResult.id,
@@ -180,9 +203,9 @@ export class QuizService {
             quizId: bestQuizResult.quizId,
             courseId: bestQuizResult.courseId,
             subtopicId: bestQuizResult.subtopicId,
-            totalPercents,
-            correctAnswers,
-            wrongAnswers,
+            correctAnswers: correctAnswersCount,
+            wrongAnswers: wrongAnswersCount,
+            totalPercents: bestQuizResult.totalPercents,
             userAnswers,
           }
         : null,
@@ -202,37 +225,6 @@ export class QuizService {
   async updateQuiz(data: UpdateQuizInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
       await this.quizRepository.updateQuiz(data.id, data);
-    });
-  }
-
-  async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<any> {
-    const quiz = await this.prisma.quiz.findUnique({ where: { id: dto.id } });
-    if (!quiz) throw new Error(`Quiz with id ${dto.id} not found.`);
-    const aiDto: AIDTO = {
-      content: {
-        createType: "Тест",
-        descriptionType: "Создай тест",
-        quizTitle: dto.name,
-        quizDescription: dto.description,
-        additionalParams: dto.additionalParams,
-      },
-    };
-
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistory, userId, aiDto, "EduAI", pubSub);
-    if (!fullContent) throw new Error("Failed to get content from AI service.");
-
-    const quizJson = this.extractQuizJson(fullContent);
-    const parsedContent = JSON.parse(quizJson);
-
-    const { questions, completionTime } = parsedContent;
-
-    return this.createQuizFromAI({
-      id: dto.id,
-      name: dto.name,
-      description: dto.description,
-      questions: questions,
-      subtopicId: dto.subtopicId,
-      courseId: dto.courseId,
     });
   }
 
@@ -274,136 +266,124 @@ export class QuizService {
   async stopGeneration(conversationId: string): Promise<void> {
     this.eduAiService.stopGeneration(conversationId);
   }
+  async saveQuizResult(userId: string, saveQuizResultInput: SaveQuizResultInput): Promise<any> {
+    const { quizId, courseId, subtopicId, userAnswers } = saveQuizResultInput;
 
-  async saveQuizResult(userId: string, dto: SaveQuizResultInput): Promise<any> {
-    // Check user existence
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!user) {
-      throw new Error(`User with id ${userId} does not exist.`);
-    }
+    return await this.prisma.$transaction(async prisma => {
+      const quiz = await this.quizRepository.findQuizById(quizId);
+      if (!quiz) throw new Error(`Quiz with id ${quizId} not found.`);
 
-    // Check quiz existence
-    const quiz = await this.prisma.quiz.findUnique({
-      where: { id: dto.quizId },
-    });
-    if (!quiz) {
-      throw new Error(`Quiz with id ${dto.quizId} does not exist.`);
-    }
+      const userAnswerEntities = [];
+      let totalCorrectness = 0;
 
-    // Check course existence, if specified
-    if (dto.courseId) {
-      const course = await this.prisma.course.findUnique({
-        where: { id: dto.courseId },
-      });
-      if (!course) {
-        throw new Error(`Course with id ${dto.courseId} does not exist.`);
-      }
-    }
-
-    // Check subtopic existence, if specified
-    if (dto.subtopicId) {
-      const subtopic = await this.prisma.subtopic.findUnique({
-        where: { id: dto.subtopicId },
-      });
-      if (!subtopic) {
-        throw new Error(`Subtopic with id ${dto.subtopicId} does not exist.`);
-      }
-    }
-
-    // Process user answers and save results
-    const userAnswers = await Promise.all(
-      dto.userAnswers.map(async (answer: UserAnswerInput) => {
+      for (const userAnswer of userAnswers) {
         const question = await this.prisma.question.findUnique({
-          where: { id: answer.questionId },
-        });
-        if (!question) {
-          throw new Error(`Question with id ${answer.questionId} does not exist.`);
-        }
-
-        let selectedAnswer: any;
-        if (question.questionType === "MATCH") {
-          selectedAnswer = JSON.stringify(answer.matchingAnswers?.map(ma => ma.value));
-        } else {
-          selectedAnswer = JSON.stringify(answer.selectedAnswer);
-        }
-
-        return {
-          questionId: answer.questionId,
-          selectedAnswer,
-          isCorrect: this.checkAnswerCorrectness(question, answer),
-        };
-      }),
-    );
-
-    // Calculate correct and wrong answers
-    const correctAnswersCount = userAnswers.filter(answer => answer.isCorrect).length;
-    const wrongAnswersCount = userAnswers.length - correctAnswersCount;
-
-    // Save quiz result
-    const quizResult = await this.prisma.quizResult.create({
-      data: {
-        userId,
-        quizId: dto.quizId,
-        courseId: dto.courseId,
-        subtopicId: dto.subtopicId,
-        correctAnswers: correctAnswersCount,
-        wrongAnswers: wrongAnswersCount,
-        totalPercents: Math.round((correctAnswersCount / userAnswers.length) * 100),
-      },
-    });
-
-    // Link user answers to quiz result
-    await Promise.all(
-      userAnswers.map(async answer => {
-        await this.prisma.userAnswer.create({
-          data: {
-            quizResultId: quizResult.id,
-            questionId: answer.questionId,
-            selectedAnswer: answer.selectedAnswer,
-            isCorrect: answer.isCorrect,
+          where: { id: userAnswer.questionId },
+          include: {
+            choices: true,
+            matchingInteraction: true,
+            interactions: true,
           },
         });
-      }),
-    );
 
-    // Return the quiz result along with user answers
-    return {
-      ...quizResult,
-      userAnswers,
-    };
+        if (!question) throw new Error(`Question with id ${userAnswer.questionId} not found.`);
+
+        const { correctnessPercentage, correctAnswers } = this.calculateCorrectness(question, userAnswer);
+
+        userAnswerEntities.push({
+          questionId: userAnswer.questionId,
+          selectedAnswers: userAnswer.selectedAnswers || [],
+          matchingAnswers: userAnswer.matchingAnswers || [],
+          correctnessPercentage,
+          correctAnswers, // Storing as array
+        });
+
+        totalCorrectness += correctnessPercentage; // Accumulate correctness percentages
+      }
+
+      const totalQuestions = userAnswers.length;
+      const averageCorrectnessPercentage = totalQuestions > 0 ? totalCorrectness / totalQuestions : 0; // Calculate average percentage
+
+      const quizResult = await this.prisma.quizResult.create({
+        data: {
+          userId,
+          quizId,
+          courseId,
+          subtopicId,
+          totalPercents: averageCorrectnessPercentage, // Use average percentage
+          userAnswers: {
+            create: userAnswerEntities,
+          },
+        },
+        include: {
+          userAnswers: true,
+        },
+      });
+
+      return quizResult;
+    });
   }
 
-  private checkAnswerCorrectness(question: any, answer: UserAnswerInput): boolean {
-    if (question.questionType === "MATCH") {
-      // Retrieve the correct answers for the matching question from your application logic or hardcoded for now
-      const correctAnswers = [
-        ["do", "did"],
-        ["have", "had"],
-        ["make", "made"],
-        ["go", "went"],
-        ["see", "saw"],
-      ];
+  private calculateCorrectness(question, userAnswer: UserAnswerInput) {
+    let correctnessPercentage = 0;
+    let correctAnswers: string[] = [];
+    console.log("Question Type:", question.questionType);
+    switch (question.questionType) {
+      case QuizQuestionType.MCQ:
+        correctnessPercentage = question.answers.includes(userAnswer.selectedAnswers[0]) ? 100 : 0;
+        correctAnswers = question.answers;
+        break;
 
-      const expectedAnswers = correctAnswers.map(ma => ma.sort());
-      const givenAnswers = answer.matchingAnswers?.map(ma => ma.value.sort()) || [];
+      case QuizQuestionType.CLOZE:
+      case QuizQuestionType.MRQ:
+        const correctCount = userAnswer.selectedAnswers.filter(ans => question.answers.includes(ans)).length;
+        const totalAnswers = question.answers.length;
+        correctnessPercentage = (correctCount / totalAnswers) * 100;
+        correctAnswers = question.answers;
+        break;
 
-      console.log("Expected Answers:", expectedAnswers);
-      console.log("Given Answers:", givenAnswers);
+      case QuizQuestionType.MATCH:
+        console.log("Question Type: MATCH");
+        console.log("userAnswer", userAnswer.matchingAnswers);
 
-      const flatExpected = expectedAnswers.flat().sort();
-      const flatGiven = givenAnswers.flat().sort();
+        if (Array.isArray(userAnswer.matchingAnswers)) {
+          console.log(2);
+          const matchAnswers = userAnswer.matchingAnswers;
+          const correctAnswers = question.matchingInteraction.answers.map(([left, right]) => ({ left, right }));
 
-      console.log("Flattened Expected Answers:", flatExpected);
-      console.log("Flattened Given Answers:", flatGiven);
+          console.log("matchAnswers", matchAnswers);
+          console.log("correctAnswers", correctAnswers);
 
-      const isCorrect = JSON.stringify(flatExpected) === JSON.stringify(flatGiven);
-      console.log("Is Correct?", isCorrect);
+          if (correctAnswers.length === 0) {
+            console.warn("Warning: correctAnswers is empty.");
+            correctnessPercentage = 0;
+            break;
+          }
 
-      return isCorrect;
-    } else {
-      return JSON.stringify(question.answers) === JSON.stringify(answer.selectedAnswer);
+          // Total number of correct answer pairs
+          const totalPairs = correctAnswers.length;
+          console.log("totalPairs", totalPairs);
+
+          // Count correct pairs
+          const correctPairs = matchAnswers.reduce((count, answer) => {
+            const isCorrect = correctAnswers.some(correctAnswer => correctAnswer.left === answer.left && correctAnswer.right === answer.right);
+            return count + (isCorrect ? 1 : 0);
+          }, 0);
+
+          console.log("correctAnswers!", correctAnswers);
+          console.log("correctPairs", correctPairs);
+
+          // Calculate percentage
+          correctnessPercentage = totalPairs > 0 ? (correctPairs / totalPairs) * 100 : 0;
+          console.log("correctnessPercentage", correctnessPercentage);
+        } else {
+          correctnessPercentage = 0;
+        }
+        break;
+
+        throw new Error(`Unknown question type: ${question.questionType}`);
     }
+
+    return { correctnessPercentage, correctAnswers };
   }
 }

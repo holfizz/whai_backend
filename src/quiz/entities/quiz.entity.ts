@@ -1,5 +1,5 @@
 import { BaseEntity } from "@/helpers/base.entity";
-import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { Field, Float, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
@@ -135,17 +135,19 @@ export class QuizResult {
   @IsUUID()
   subtopicId?: string;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @IsNumber()
-  correctAnswers: number;
+  @IsOptional()
+  correctAnswers?: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @IsOptional()
   totalPercents?: number;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @IsNumber()
-  wrongAnswers: number;
+  @IsOptional()
+  wrongAnswers?: number;
 
   @Field(() => [UserAnswer])
   @IsArray()
@@ -170,8 +172,8 @@ export class Quiz extends BaseEntity {
   @Type(() => Question)
   questions: Question[];
 
-  @Field(() => QuizResult, { nullable: true })
-  quizResult: QuizResult;
+  @Field(() => [QuizResult], { nullable: true })
+  quizResult?: QuizResult[];
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -188,15 +190,40 @@ export class Quiz extends BaseEntity {
 }
 
 @ObjectType()
-class UserAnswer {
+export class MatchingAnswer {
+  @Field(() => String)
+  left: string;
+
+  @Field(() => String)
+  right: string;
+}
+
+@ObjectType()
+export class UserAnswer {
   @Field(() => ID)
   questionId: string;
 
-  @Field(() => [[String]])
-  selectedAnswer: string[][];
+  @Field(() => [MatchingAnswer], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  matchingAnswers?: MatchingAnswer[];
 
-  @Field(() => Boolean)
-  isCorrect: boolean;
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  selectedAnswer?: string[];
+
+  @Field(() => Float)
+  correctnessPercentage: number;
+
+  @Field(() => String)
+  correctAnswersDescription: string;
+
+  @Field(() => String)
+  incorrectAnswersDescription: string;
+
+  @Field(() => [String])
+  correctAnswers: string[];
 }
 
 @ObjectType()
@@ -207,6 +234,10 @@ export class QuizDetails {
   @Field(() => ID)
   subtopicId: string;
 
+  @Field(() => ID)
+  @IsUUID()
+  courseId: string;
+
   @Field(() => String)
   name: string;
 
@@ -216,8 +247,8 @@ export class QuizDetails {
   @Field(() => [Question])
   questions: Question[];
 
-  @Field(() => QuizResult, { nullable: true })
-  quizResult?: QuizResult;
+  @Field(() => [QuizResult], { nullable: true })
+  quizResult?: QuizResult[];
 }
 
 @ObjectType()

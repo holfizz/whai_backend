@@ -114,7 +114,7 @@ export class QuizRepository {
             choices: true,
             interactions: {
               include: {
-                choices: true, // Убедитесь, что взаимодействия всегда включают choices
+                choices: true,
               },
             },
             matchingInteraction: true,

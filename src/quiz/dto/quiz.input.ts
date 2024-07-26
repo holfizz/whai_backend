@@ -172,7 +172,7 @@ export class QuizWithAIInput {
   @IsString()
   @Field(() => ID)
   @IsUUID()
-  courseAIHistory: string;
+  courseAIHistoryId: string;
 
   @Field(() => ID)
   @IsUUID()
@@ -185,9 +185,12 @@ export class QuizWithAIInput {
 }
 
 @InputType()
-export class KeyValueInput {
-  @Field(() => [String])
-  value: string[];
+export class MatchingAnswerInput {
+  @Field(() => String)
+  left: string;
+
+  @Field(() => String)
+  right: string;
 }
 
 @InputType()
@@ -199,11 +202,12 @@ export class UserAnswerInput {
   @Field(() => [String], { nullable: true })
   @IsOptional()
   @IsArray()
-  selectedAnswer?: string[];
+  selectedAnswers?: string[];
 
-  @Field(() => [KeyValueInput], { nullable: true })
+  @Field(() => [MatchingAnswerInput], { nullable: true })
   @IsOptional()
-  matchingAnswers?: KeyValueInput[];
+  @IsArray()
+  matchingAnswers?: MatchingAnswerInput[];
 }
 @InputType()
 export class SaveQuizResultInput {
@@ -218,11 +222,11 @@ export class SaveQuizResultInput {
   @Field(() => ID, { nullable: true })
   @IsOptional()
   @IsUUID()
-  subtopicId: string;
+  subtopicId?: string;
 
   @Field(() => [UserAnswerInput])
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => UserAnswerInput)
-  userAnswers: [UserAnswerInput];
+  userAnswers: UserAnswerInput[];
 }
