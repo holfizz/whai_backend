@@ -93,8 +93,6 @@ export class QuizService {
       include: {
         quizResult: {
           include: { userAnswers: true },
-          orderBy: { totalPercents: "desc" },
-          take: 1,
         },
         questions: {
           include: {
@@ -107,7 +105,8 @@ export class QuizService {
     });
 
     return quizzes.map(quiz => {
-      let bestQuizResult = quiz.quizResult.length > 0 ? quiz.quizResult[0] : null;
+      // Find the best result based on highest totalPercents
+      const bestQuizResult = quiz.quizResult.reduce((best, current) => (current.totalPercents > (best?.totalPercents ?? 0) ? current : best), null);
 
       if (bestQuizResult) {
         const totalQuestions = quiz.questions.length;
@@ -162,10 +161,29 @@ export class QuizService {
       throw new Error(`Quiz with id ${quizId} not found.`);
     }
 
-    const bestQuizResult = quiz.quizResult.length > 0 ? quiz.quizResult[0] : null;
+    console.log("Quiz:", quiz);
 
-    let correctAnswersCount = 0;
-    let wrongAnswersCount = 0;
+    const quizResults = quiz.quizResult;
+    console.log("Quiz Results:", quizResults);
+
+    // Проверка наличия результатов
+    if (!quizResults || quizResults.length === 0) {
+      console.log("No results found for this user and quiz.");
+      return {
+        id: quiz.id,
+        name: quiz.name,
+        description: quiz.description,
+        subtopicId: quiz.subtopicId,
+        courseId: quiz.courseId,
+        questions: quiz.questions,
+        quizResult: null,
+      };
+    }
+
+    // Получение лучшего результата
+    const bestQuizResult = quizResults.reduce((best, current) => (current.totalPercents > (best?.totalPercents ?? 0) ? current : best), null);
+
+    console.log("Best Quiz Result:", bestQuizResult);
 
     let userAnswers = [];
 
@@ -177,12 +195,9 @@ export class QuizService {
             throw new Error(`Question with id ${userAnswer.questionId} not found.`);
           }
 
-          // const isAnswerCorrect = await this.checkAnswerCorrectness(userAnswer.questionId, userAnswer as any);
-
           return {
             questionId: userAnswer.questionId,
             selectedAnswers: userAnswer.selectedAnswers,
-            // correctnessPercentage: isAnswerCorrect,
             correctAnswers: userAnswer.correctAnswers,
           };
         }),
@@ -203,8 +218,7 @@ export class QuizService {
             quizId: bestQuizResult.quizId,
             courseId: bestQuizResult.courseId,
             subtopicId: bestQuizResult.subtopicId,
-            correctAnswers: correctAnswersCount,
-            wrongAnswers: wrongAnswersCount,
+
             totalPercents: bestQuizResult.totalPercents,
             userAnswers,
           }
@@ -275,6 +289,7 @@ export class QuizService {
 
       const userAnswerEntities = [];
       let totalCorrectness = 0;
+      console.log("userAnswer.selectedAnswers", userAnswers);
 
       for (const userAnswer of userAnswers) {
         const question = await this.prisma.question.findUnique({
@@ -290,9 +305,10 @@ export class QuizService {
 
         const { correctnessPercentage, correctAnswers } = this.calculateCorrectness(question, userAnswer);
 
+        console.log("userAnswer.selectedAnswers", userAnswer.selectedAnswers);
         userAnswerEntities.push({
           questionId: userAnswer.questionId,
-          selectedAnswers: userAnswer.selectedAnswers || [],
+          selectedAnswers: userAnswer.selectedAnswers,
           matchingAnswers: userAnswer.matchingAnswers || [],
           correctnessPercentage,
           correctAnswers, // Storing as array
@@ -327,7 +343,6 @@ export class QuizService {
   private calculateCorrectness(question, userAnswer: UserAnswerInput) {
     let correctnessPercentage = 0;
     let correctAnswers: string[] = [];
-    console.log("Question Type:", question.questionType);
     switch (question.questionType) {
       case QuizQuestionType.MCQ:
         correctnessPercentage = question.answers.includes(userAnswer.selectedAnswers[0]) ? 100 : 0;
@@ -343,47 +358,52 @@ export class QuizService {
         break;
 
       case QuizQuestionType.MATCH:
-        console.log("Question Type: MATCH");
-        console.log("userAnswer", userAnswer.matchingAnswers);
-
         if (Array.isArray(userAnswer.matchingAnswers)) {
-          console.log(2);
           const matchAnswers = userAnswer.matchingAnswers;
           const correctAnswers = question.matchingInteraction.answers.map(([left, right]) => ({ left, right }));
-
-          console.log("matchAnswers", matchAnswers);
-          console.log("correctAnswers", correctAnswers);
 
           if (correctAnswers.length === 0) {
             console.warn("Warning: correctAnswers is empty.");
             correctnessPercentage = 0;
             break;
           }
-
-          // Total number of correct answer pairs
           const totalPairs = correctAnswers.length;
           console.log("totalPairs", totalPairs);
-
-          // Count correct pairs
           const correctPairs = matchAnswers.reduce((count, answer) => {
             const isCorrect = correctAnswers.some(correctAnswer => correctAnswer.left === answer.left && correctAnswer.right === answer.right);
             return count + (isCorrect ? 1 : 0);
           }, 0);
-
-          console.log("correctAnswers!", correctAnswers);
-          console.log("correctPairs", correctPairs);
-
-          // Calculate percentage
           correctnessPercentage = totalPairs > 0 ? (correctPairs / totalPairs) * 100 : 0;
-          console.log("correctnessPercentage", correctnessPercentage);
         } else {
           correctnessPercentage = 0;
         }
-        break;
 
-        throw new Error(`Unknown question type: ${question.questionType}`);
+        break;
     }
 
     return { correctnessPercentage, correctAnswers };
+  }
+  async getLastSaveQuizResult(userId: string, quizId: string) {
+    const quiz = await this.prisma.quiz.findUnique({ where: { id: quizId } });
+    if (!quiz) {
+      throw new Error(`Quiz with id ${quizId} does not exist`);
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(`User with id ${userId} does not exist`);
+    }
+    const quizResult = await this.prisma.quizResult.findFirst({
+      where: {
+        userId,
+        quizId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        userAnswers: true,
+      },
+    });
+    return quizResult;
   }
 }

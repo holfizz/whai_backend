@@ -2,7 +2,7 @@ import { BaseEntity } from "@/helpers/base.entity";
 import { Field, Float, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { QuizQuestionType } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(QuizQuestionType, {
   name: "QuizQuestionType",
@@ -135,19 +135,9 @@ export class QuizResult {
   @IsUUID()
   subtopicId?: string;
 
-  @Field(() => Int, { nullable: true })
-  @IsNumber()
-  @IsOptional()
-  correctAnswers?: number;
-
   @Field(() => Float)
   @IsOptional()
   totalPercents?: number;
-
-  @Field(() => Int, { nullable: true })
-  @IsNumber()
-  @IsOptional()
-  wrongAnswers?: number;
 
   @Field(() => [UserAnswer])
   @IsArray()
@@ -211,16 +201,10 @@ export class UserAnswer {
   @Field(() => [String], { nullable: true })
   @IsOptional()
   @IsArray()
-  selectedAnswer?: string[];
+  selectedAnswers?: string[];
 
   @Field(() => Float)
   correctnessPercentage: number;
-
-  @Field(() => String)
-  correctAnswersDescription: string;
-
-  @Field(() => String)
-  incorrectAnswersDescription: string;
 
   @Field(() => [String])
   correctAnswers: string[];
@@ -247,8 +231,8 @@ export class QuizDetails {
   @Field(() => [Question])
   questions: Question[];
 
-  @Field(() => [QuizResult], { nullable: true })
-  quizResult?: QuizResult[];
+  @Field(() => QuizResult, { nullable: true })
+  quizResult?: QuizResult;
 }
 
 @ObjectType()

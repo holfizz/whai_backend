@@ -492,6 +492,7 @@ type Query {
   getCourse(courseId: ID!): Course!
   getCourseAIHistory(courseAIHistoryId: ID!): CourseAIHistory!
   getLastCourse: Course
+  getLastSaveQuizResult(quizResultId: ID!): QuizResult
   getLesson(lessonId: ID!): Lesson!
   getMessagesByCourseAIHistoryId(courseAIHistoryId: ID!): [MessageWithAIData!]!
 
@@ -552,7 +553,7 @@ type QuizDetails {
   id: ID!
   name: String!
   questions: [Question!]!
-  quizResult: [QuizResult!]
+  quizResult: QuizResult
   subtopicId: ID!
 }
 
@@ -580,7 +581,6 @@ enum QuizQuestionType {
 }
 
 type QuizResult {
-  correctAnswers: Int
   courseId: ID!
   id: ID!
   lessonId: ID
@@ -589,7 +589,6 @@ type QuizResult {
   totalPercents: Float!
   userAnswers: [UserAnswer!]!
   userId: ID!
-  wrongAnswers: Int
 }
 
 type QuizSummary {
@@ -855,12 +854,10 @@ type User {
 
 type UserAnswer {
   correctAnswers: [String!]!
-  correctAnswersDescription: String!
   correctnessPercentage: Float!
-  incorrectAnswersDescription: String!
   matchingAnswers: [MatchingAnswer!]
   questionId: ID!
-  selectedAnswer: [String!]
+  selectedAnswers: [String!]
 }
 
 input UserAnswerInput {

@@ -77,4 +77,10 @@ export class QuizResolver {
   saveQuizResult(@CurrentUser("id") userId: string, @Args("saveQuizResultInput") input: SaveQuizResultInput) {
     return this.quizService.saveQuizResult(userId, input);
   }
+
+  @Query(() => QuizResult, { nullable: true })
+  @Auth("user")
+  getLastSaveQuizResult(@CurrentUser("id") userId: string, @Args("quizResultId", { type: () => ID }) quizResultId: string) {
+    return this.quizService.getLastSaveQuizResult(userId, quizResultId);
+  }
 }

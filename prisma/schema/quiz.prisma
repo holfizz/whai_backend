@@ -32,11 +32,13 @@ model Quiz {
 
 model UserAnswer {
   id                    String     @id @default(uuid())
+  createdAt             DateTime   @default(now()) @map("created_at")
+  updatedAt             DateTime   @updatedAt @map("updated_at")
   quizResultId          String
   quizResult            QuizResult @relation(fields: [quizResultId], references: [id])
   questionId            String
   question              Question   @relation(fields: [questionId], references: [id])
-  selectedAnswers       Json       @default("[]")
+  selectedAnswers       String[]
   matchingAnswers       Json       @default("[]")
   correctnessPercentage Float
   correctAnswers        String[]
@@ -44,6 +46,8 @@ model UserAnswer {
 
 model QuizResult {
   id            String       @id @default(uuid())
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
   userId        String
   user          User         @relation(fields: [userId], references: [id])
   quizId        String
