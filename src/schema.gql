@@ -59,7 +59,7 @@ type Course {
   createdAt: DateTime!
   description: String
   id: ID!
-  imageUrl: String
+  imgUrl: String
   level: CourseLevelEnum
   name: String!
   progressPercents: Float!
@@ -159,6 +159,19 @@ type Interaction {
 input InteractionInput {
   answers: [String!]!
   choices: [ChoiceInput!]!
+}
+
+type KnowledgeSum {
+  recommendations: [String!]!
+  strongPoints: [String!]!
+  summary: String!
+  weakPoints: [String!]!
+}
+
+input KnowledgeSumInput {
+  conversationId: ID!
+  courseId: ID!
+  quizResultId: ID!
 }
 
 type LearningSession {
@@ -365,8 +378,9 @@ type Mutation {
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!
-  createCourse(createCourseData: CourseInput!): Course!
+  createCourse(createCourseData: CourseInput!, image: Upload): Course!
   createCourseAIHistory(courseId: ID!): CourseAIHistory!
+  createIndependentQuizWithAI(dto: QuizIndependentWithAIInput!): Quiz!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
   createLessonFromAI(lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput!): Lesson!
@@ -408,6 +422,7 @@ type Mutation {
 
   """Send a password reset link to the user's email address."""
   forgotPassword(email: String!): Boolean!
+  generateKnowledgeSum(dto: KnowledgeSumInput!): KnowledgeSum!
   generateTD(dto: GenerateTDInput!): [GenerateTD!]!
   generateTelegramLink: TelegramLink!
 
@@ -438,7 +453,7 @@ type Mutation {
 
   """Update the details of an existing chat for the current user."""
   updateChat(id: String!, updateChatDto: UpdateChatInput!): Chat!
-  updateCourse(id: String!, updateCourseData: UpdateCourse!): Course!
+  updateCourse(id: ID!, image: Upload, updateCourseData: UpdateCourse!): Course!
   updateLesson(id: String!, updateLessonInput: UpdateLesson!): Lesson!
   updateLessonBlock(id: String!, updateLessonBlock: UpdateLessonBlock!): LessonBlock!
   updateLessonTask(id: String!, updateLessonTask: UpdateLessonTasks!): LessonTasks!
@@ -478,7 +493,6 @@ type Query {
   """Retrieve all chats for the current user."""
   getAllChats: [Chat!]!
   getAllChatsWithAI(lessonId: ID!): [ChatWithAI!]!
-  getAllCourseAIHistory(courseId: ID!): [CourseAIHistory!]!
   getAllCourses: [Course!]!
   getAllLessons(subtopicId: ID!): [Lesson!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!
@@ -491,8 +505,9 @@ type Query {
   getChatWithAI(chatWithAIID: ID!): ChatWithAI!
   getCourse(courseId: ID!): Course!
   getCourseAIHistory(courseAIHistoryId: ID!): CourseAIHistory!
+  getCourseAIHistoryByCourseId(courseId: ID!): CourseAIHistory!
   getLastCourse: Course
-  getLastSaveQuizResult(quizResultId: ID!): QuizResult
+  getLastSaveQuizResult(quizId: ID!): QuizResult
   getLesson(lessonId: ID!): Lesson!
   getMessagesByCourseAIHistoryId(courseAIHistoryId: ID!): [MessageWithAIData!]!
 
@@ -548,13 +563,19 @@ type Quiz {
 }
 
 type QuizDetails {
-  courseId: ID!
+  courseId: ID
   description: String
   id: ID!
   name: String!
   questions: [Question!]!
   quizResult: QuizResult
-  subtopicId: ID!
+  subtopicId: ID
+}
+
+input QuizIndependentWithAIInput {
+  courseAIHistoryId: ID!
+  courseDescription: String
+  courseTitle: String!
 }
 
 input QuizInput {
@@ -581,9 +602,8 @@ enum QuizQuestionType {
 }
 
 type QuizResult {
-  courseId: ID!
+  courseId: ID
   id: ID!
-  lessonId: ID
   quizId: ID!
   subtopicId: ID
   totalPercents: Float!
@@ -629,7 +649,7 @@ input ResetPasswordInput {
 }
 
 input SaveQuizResultInput {
-  courseId: ID!
+  courseId: ID
   quizId: ID!
   subtopicId: ID
   userAnswers: [UserAnswerInput!]!
@@ -771,7 +791,7 @@ input UpdateChatInput {
 
 input UpdateCourse {
   description: String
-  id: ID!
+  id: ID
   name: String
 }
 

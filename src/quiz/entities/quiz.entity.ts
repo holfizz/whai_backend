@@ -124,11 +124,9 @@ export class QuizResult {
   @Field(() => ID)
   quizId: string;
 
-  @Field(() => ID)
-  courseId: string;
-
   @Field(() => ID, { nullable: true })
-  lessonId?: string;
+  @IsOptional()
+  courseId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -215,12 +213,15 @@ export class QuizDetails {
   @Field(() => ID)
   id: string;
 
-  @Field(() => ID)
-  subtopicId: string;
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsOptional()
+  subtopicId?: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  courseId: string;
+  @IsOptional()
+  courseId?: string;
 
   @Field(() => String)
   name: string;

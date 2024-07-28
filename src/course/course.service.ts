@@ -1,19 +1,31 @@
+import { FileService, FileType } from "@/file/file.service";
 import { PrismaService } from "@/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { FileUpload } from "graphql-upload-ts";
 import { CourseInput } from "./dto/course.input";
 import { UpdateCourse } from "./dto/update-course.input";
 
 @Injectable()
 export class CourseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileService: FileService,
+  ) {}
 
-  async createCourse(userId: string, data: CourseInput) {
+  async createCourse(userId: string, data: CourseInput, image?: FileUpload) {
+    let imgUrl: string | null = null;
+    if (image) {
+      imgUrl = this.fileService.createFile(FileType.AVATAR, image);
+    }
+
     const course = await this.prisma.course.create({
       data: {
         ...data,
         ownerID: userId,
+        imgUrl,
       },
     });
+
     return {
       ...course,
       ...(await this.getCourseStats(course.id)),
@@ -61,13 +73,36 @@ export class CourseService {
     return { ...course, ...(await this.getCourseStats(course.id)) };
   }
 
-  async updateCourse(userId: string, id: string, data: UpdateCourse) {
+  async updateCourse(userId: string, id: string, data: UpdateCourse, image?: FileUpload) {
+    // Retrieve the existing course to get the old image path
+    const existingCourse = await this.prisma.course.findUnique({
+      where: { id, ownerID: userId },
+    });
+
+    if (!existingCourse) {
+      throw new HttpException("Course not found", HttpStatus.NOT_FOUND);
+    }
+
+    if (existingCourse.imgUrl) {
+      this.fileService.removeFile(existingCourse.imgUrl);
+    }
+
+    let newImagePath = existingCourse.imgUrl; // Default to the existing image path
+
+    if (image) {
+      // Save the new image and get its path
+      newImagePath = this.fileService.createFile(FileType.AVATAR, image);
+    }
+
+    // Update the course with the new image path
     return this.prisma.course.update({
       where: { id, ownerID: userId },
-      data,
+      data: {
+        ...data,
+        imgUrl: newImagePath,
+      },
     });
   }
-
   async deleteCourse(userId: string, id: string) {
     // const course = await this.getCourse(userId, id);
     return this.prisma.course.delete({ where: { id } });

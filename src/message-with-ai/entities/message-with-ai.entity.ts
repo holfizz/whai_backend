@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { MessageWithAIRole } from "@prisma/client";
-import { IsString, IsUUID } from "class-validator";
+import { IsArray, IsString, IsUUID } from "class-validator";
 
 registerEnumType(MessageWithAIRole, {
   name: "MessageWithAIRole",
@@ -49,4 +49,26 @@ export class GenerateTD {
   @Field(() => String)
   @IsString()
   description: string;
+}
+
+@ObjectType()
+export class KnowledgeSum {
+  @Field(() => String)
+  @IsString()
+  summary: string;
+
+  @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
+  strongPoints: string[];
+
+  @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
+  weakPoints: string[];
+
+  @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
+  recommendations: string[];
 }

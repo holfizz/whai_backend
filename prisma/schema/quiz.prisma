@@ -20,9 +20,9 @@ model Quiz {
   questions      Question[]
   totalQuestions Int?         @default(0) @map("total_questions")
   subtopicId     String?      @map("subtopic_id")
-  folder         Subtopic?    @relation(fields: [subtopicId], references: [id])
+  subtopic       Subtopic?    @relation(fields: [subtopicId], references: [id])
   quizResult     QuizResult[]
-  courseId       String
+  courseId       String?
   course         Course?      @relation(fields: [courseId], references: [id])
   isCompleted    Boolean      @default(false) @map("is_completed")
   isPlan         Boolean      @default(false)
@@ -52,8 +52,8 @@ model QuizResult {
   user          User         @relation(fields: [userId], references: [id])
   quizId        String
   quiz          Quiz         @relation(fields: [quizId], references: [id])
-  courseId      String
-  course        Course       @relation(fields: [courseId], references: [id])
+  courseId      String?
+  course        Course?      @relation(fields: [courseId], references: [id])
   subtopicId    String?
   subtopic      Subtopic?    @relation(fields: [subtopicId], references: [id])
   totalPercents Float        @default(0)

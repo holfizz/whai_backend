@@ -5,11 +5,12 @@ import { PaginationModule } from "@/pagination/pagination.module";
 import { PrismaService } from "@/prisma.service";
 import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
+import { ContentGeneratorService } from "./ai-content-generator.service";
 import { MessageWithAiResolver } from "./message-with-ai.resolver";
 import { MessageWithAiService } from "./message-with-ai.service";
 
 @Module({
-  providers: [MessageWithAiResolver, MessageWithAiService, PrismaService, FileService, EduAiService],
+  providers: [MessageWithAiResolver, MessageWithAiService, PrismaService, FileService, EduAiService, ContentGeneratorService],
   imports: [PaginationModule, HttpModule, EduAiModule],
 })
 export class MessageWithAiModule {}

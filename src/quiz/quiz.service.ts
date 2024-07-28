@@ -6,7 +6,7 @@ import { Quiz, QuizSummary } from "@/quiz/entities/quiz.entity";
 import { Injectable } from "@nestjs/common";
 import { QuizQuestionType } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
-import { QuizInput, QuizWithAIInput, SaveQuizResultInput, UserAnswerInput } from "./dto/quiz.input";
+import { QuizIndependentWithAIInput, QuizInput, QuizWithAIInput, SaveQuizResultInput, UserAnswerInput } from "./dto/quiz.input";
 import { QuizRepository } from "./quiz.repository";
 import { QuizUtils } from "./quiz.utils";
 
@@ -36,7 +36,7 @@ export class QuizService {
 
       const quizStats = await this.quizUtils.calculateQuizStats(data.id);
       await this.quizRepository.updateQuizStats(data.id, quizStats);
-
+      await this.prisma.quiz.update({ where: { id: data.id }, data: { isPlan: false } });
       return this.quizRepository.findQuizById(data.id);
     });
   }
@@ -229,7 +229,13 @@ export class QuizService {
   async deleteQuiz(id: string): Promise<any> {
     return await this.prisma
       .$transaction(async prisma => {
-        await this.quizRepository.deleteQuizAndRelatedEntities(id);
+        await prisma.userAnswer.deleteMany({ where: { quizResult: { quizId: id } } });
+        await prisma.quizResult.deleteMany({ where: { quizId: id } });
+        await prisma.choice.deleteMany({ where: { question: { quizId: id } } });
+        await prisma.interaction.deleteMany({ where: { question: { quizId: id } } });
+        await prisma.matchingInteraction.deleteMany({ where: { question: { quizId: id } } });
+        await prisma.question.deleteMany({ where: { quizId: id } });
+        await prisma.quiz.delete({ where: { id } });
       })
       .catch(error => {
         throw new Error(`Failed to delete quiz and its related entities: ${error.message}`);
@@ -319,7 +325,7 @@ export class QuizService {
 
       const totalQuestions = userAnswers.length;
       const averageCorrectnessPercentage = totalQuestions > 0 ? totalCorrectness / totalQuestions : 0; // Calculate average percentage
-
+      await this.prisma.quiz.update({ where: { id: quizId }, data: { isCompleted: true } });
       const quizResult = await this.prisma.quizResult.create({
         data: {
           userId,
@@ -405,5 +411,33 @@ export class QuizService {
       },
     });
     return quizResult;
+  }
+  async createIndependentQuizWithAI(userId: string, dto: QuizIndependentWithAIInput, pubSub: PubSub): Promise<Quiz> {
+    const aiDto: AIDTO = {
+      content: {
+        createType: "Знания",
+        descriptionType: "Создай независимый тест",
+        courseTitle: dto.courseTitle,
+        courseDescription: dto.courseDescription,
+      },
+    };
+
+    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
+    if (!fullContent) throw new Error("Failed to get content from AI service.");
+
+    const quizJson = this.extractQuizJson(fullContent);
+    const parsedContent = JSON.parse(quizJson);
+
+    const { questions, completionTime } = parsedContent;
+    const quiz = await this.prisma.quiz.create({ data: { name: "Test for testing knowledge" } });
+    if (!quiz) {
+      throw new Error("Failed to create quiz.");
+    }
+    return this.createQuizFromAI({
+      id: quiz?.id,
+      name: dto.courseTitle,
+      description: dto.courseDescription,
+      questions: questions,
+    });
   }
 }

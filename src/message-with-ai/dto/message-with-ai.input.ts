@@ -46,3 +46,18 @@ export class GenerateTDInput {
   @IsString()
   userRequest: string;
 }
+
+@InputType()
+export class KnowledgeSumInput {
+  @Field(() => ID)
+  @IsUUID()
+  conversationId: string;
+
+  @Field(() => ID)
+  @IsString()
+  quizResultId: string;
+
+  @Field(() => ID)
+  @IsString()
+  courseId: string;
+}

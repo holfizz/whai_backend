@@ -215,9 +215,10 @@ export class SaveQuizResultInput {
   @IsUUID()
   quizId: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
   @IsUUID()
-  courseId: string;
+  courseId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
@@ -229,4 +230,22 @@ export class SaveQuizResultInput {
   @ValidateNested({ each: true })
   @Type(() => UserAnswerInput)
   userAnswers: UserAnswerInput[];
+}
+
+@InputType()
+export class QuizIndependentWithAIInput {
+  @Field(() => String)
+  @IsString()
+  @IsNotEmpty()
+  courseTitle: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  courseDescription?: string;
+
+  @IsString()
+  @Field(() => ID)
+  @IsUUID()
+  courseAIHistoryId: string;
 }

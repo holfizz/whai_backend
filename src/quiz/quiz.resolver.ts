@@ -2,7 +2,7 @@ import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
-import { QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
+import { QuizIndependentWithAIInput, QuizInput, QuizWithAIInput, SaveQuizResultInput } from "./dto/quiz.input";
 import { Quiz, QuizDetails, QuizResult, QuizSummary } from "./entities/quiz.entity";
 import { QuizService } from "./quiz.service";
 
@@ -80,7 +80,12 @@ export class QuizResolver {
 
   @Query(() => QuizResult, { nullable: true })
   @Auth("user")
-  getLastSaveQuizResult(@CurrentUser("id") userId: string, @Args("quizResultId", { type: () => ID }) quizResultId: string) {
-    return this.quizService.getLastSaveQuizResult(userId, quizResultId);
+  getLastSaveQuizResult(@CurrentUser("id") userId: string, @Args("quizId", { type: () => ID }) quizId: string) {
+    return this.quizService.getLastSaveQuizResult(userId, quizId);
+  }
+  @Mutation(() => Quiz)
+  @Auth("user")
+  async createIndependentQuizWithAI(@CurrentUser("id") userId: string, @Args("dto") dto: QuizIndependentWithAIInput): Promise<Quiz> {
+    return this.quizService.createIndependentQuizWithAI(userId, dto, pubSub);
   }
 }

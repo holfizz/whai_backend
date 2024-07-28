@@ -87,6 +87,7 @@
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
+    "apollo-upload-client": "^18.0.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-oxlint": "^0.2.3",
     "eslint-plugin-prettier": "^5.0.0",

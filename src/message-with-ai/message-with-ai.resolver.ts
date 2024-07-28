@@ -2,16 +2,20 @@ import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Int, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
-import { GenerateTDInput, GetAllMessagesInput, MessageWithAIInput } from "./dto/message-with-ai.input";
+import { ContentGeneratorService } from "./ai-content-generator.service";
+import { GenerateTDInput, GetAllMessagesInput, KnowledgeSumInput, MessageWithAIInput } from "./dto/message-with-ai.input";
 import { UpdateMessageWithAiInput } from "./dto/update-message-with-ai.input";
-import { GenerateTD, MessageWithAI, MessageWithAIData } from "./entities/message-with-ai.entity";
+import { GenerateTD, KnowledgeSum, MessageWithAI, MessageWithAIData } from "./entities/message-with-ai.entity";
 import { MessageWithAiService } from "./message-with-ai.service";
 
 const pubSub = new PubSub();
 
 @Resolver(() => MessageWithAIData)
 export class MessageWithAiResolver {
-  constructor(private readonly messageWithAiService: MessageWithAiService) {}
+  constructor(
+    private readonly messageWithAiService: MessageWithAiService,
+    private readonly contentGeneratorService: ContentGeneratorService,
+  ) {}
   @Subscription(() => MessageWithAI, {
     filter: (payload, variables) => {
       return payload.chatWithAIAnswer.conversation_id === variables.chatWithAIId;
@@ -22,11 +26,7 @@ export class MessageWithAiResolver {
   }
   @Mutation(() => MessageWithAIData)
   @Auth("user")
-  async createMessageWithAI(
-    @CurrentUser("id") userId: string,
-    @Args("chatWithAIRequestDto") dto: MessageWithAIInput,
-    // @Args("file", { type: () => GraphQLUpload, nullable: true }) file?: Promise<FileUpload>,
-  ): Promise<any> {
+  async createMessageWithAI(@CurrentUser("id") userId: string, @Args("chatWithAIRequestDto") dto: MessageWithAIInput): Promise<any> {
     try {
       const result = await this.messageWithAiService.getChatAIMAnswers(userId, dto, pubSub);
 
@@ -61,6 +61,11 @@ export class MessageWithAiResolver {
   @Mutation(() => [GenerateTD])
   @Auth("user")
   generateTD(@CurrentUser("id") userId: string, @Args("dto") dto: GenerateTDInput) {
-    return this.messageWithAiService.generateTitleAndDescription(dto, userId);
+    return this.contentGeneratorService.generateTitleAndDescription(dto, userId);
+  }
+  @Mutation(() => KnowledgeSum)
+  @Auth("user")
+  async generateKnowledgeSum(@CurrentUser("id") userId: string, @Args("dto") dto: KnowledgeSumInput): Promise<KnowledgeSum> {
+    return this.contentGeneratorService.generateKnowledgeSum(dto, userId);
   }
 }

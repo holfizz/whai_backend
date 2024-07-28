@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import * as fs from "fs";
+import { FileUpload } from "graphql-upload-ts";
 import * as path from "path";
 import * as uuid from "uuid";
 
@@ -11,20 +12,38 @@ export enum FileType {
 }
 @Injectable()
 export class FileService {
-  createFile(type: FileType, file: any): string {
+  createFile(type: FileType, file: FileUpload): string {
+    if (!file) {
+      throw new HttpException("File is not provided", HttpStatus.BAD_REQUEST);
+    }
+
     try {
-      const fileExtension = file.originalname.split(".").pop();
-      const fileName = uuid.v4() + "." + fileExtension;
+      const { createReadStream, filename } = file;
+      const fileExtension = path.extname(filename);
+      const fileName = `${uuid.v4()}${fileExtension}`;
       const filePath = path.resolve(__dirname, "..", "static", type);
+
       if (!fs.existsSync(filePath)) {
         fs.mkdirSync(filePath, { recursive: true });
       }
-      fs.writeFileSync(path.resolve(filePath, fileName), file.buffer);
-      return type + "/" + fileName;
+
+      const writeStream = fs.createWriteStream(path.join(filePath, fileName));
+      createReadStream().pipe(writeStream);
+
+      return `${type}/${fileName}`;
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  // removeFile(fileName: string) {}
+  removeFile(fileName: string) {
+    try {
+      const filePath = path.resolve(__dirname, "..", "static", fileName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (e) {
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

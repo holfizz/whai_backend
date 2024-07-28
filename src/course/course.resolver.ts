@@ -1,6 +1,7 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
 import { CourseService } from "./course.service";
 import { CourseInput } from "./dto/course.input";
 import { UpdateCourse } from "./dto/update-course.input";
@@ -12,8 +13,18 @@ export class CourseResolver {
 
   @Mutation(() => Course)
   @Auth("user")
-  async createCourse(@CurrentUser("id") userId: string, @Args("createCourseData") createCourseData?: CourseInput) {
-    return this.courseService.createCourse(userId, createCourseData);
+  async createCourse(
+    @CurrentUser("id") userId: string,
+    @Args("createCourseData") createCourseData?: CourseInput,
+    @Args("image", { type: () => GraphQLUpload, nullable: true }) image?: FileUpload | null,
+  ) {
+    let uploadedImage: FileUpload | null = null;
+
+    if (image) {
+      uploadedImage = await image;
+    }
+
+    return this.courseService.createCourse(userId, createCourseData, uploadedImage);
   }
 
   @Query(() => Course)
@@ -36,8 +47,15 @@ export class CourseResolver {
 
   @Mutation(() => Course)
   @Auth("user")
-  async updateCourse(@CurrentUser("id") userId: string, @Args("id") id: string, @Args("updateCourseData") updateCourseData: UpdateCourse) {
-    return this.courseService.updateCourse(userId, id, updateCourseData);
+  async updateCourse(
+    @CurrentUser("id") userId: string,
+    @Args("id", { type: () => ID }) id: string,
+    @Args("updateCourseData") updateCourseData: UpdateCourse,
+    @Args("image", { type: () => GraphQLUpload, nullable: true }) image?: FileUpload | null,
+  ) {
+    const uploadedImage = image ? await image : null;
+
+    return this.courseService.updateCourse(userId, id, updateCourseData, uploadedImage);
   }
 
   @Mutation(() => Course)

@@ -7,7 +7,6 @@ export class CourseInput {
   @IsString()
   @IsOptional()
   name?: string;
-  w;
 
   @Field(() => String, { nullable: true })
   @IsOptional()

@@ -15,14 +15,14 @@ export class CourseAIHistoryResolver {
     return this.courseAIHistoryService.createCourseAIHistory(userId, courseId);
   }
 
-  @Query(() => [CourseAIHistory])
+  @Query(() => CourseAIHistory)
   @Auth("user")
-  async getAllCourseAIHistory(
+  async getCourseAIHistoryByCourseId(
     @CurrentUser("id") userId: string,
     @Args("courseId", { type: () => ID })
     courseId: string,
   ) {
-    return this.courseAIHistoryService.getAllCourseAIHistory(userId, courseId);
+    return this.courseAIHistoryService.getCourseAIHistoryByCourseId(userId, courseId);
   }
 
   @Query(() => CourseAIHistory)

@@ -21,7 +21,7 @@ export class UserResolver {
   async updateProfile(
     @CurrentUser("id") id: string,
     @Args("dto") dto: UpdateUserInput,
-    @Args("picture", { type: () => GraphQLUpload, nullable: true }) picture: Promise<FileUpload>,
+    @Args("picture", { type: () => GraphQLUpload, nullable: true }) picture: FileUpload,
   ): Promise<User> {
     return this.userService.updateProfile(id, dto, picture);
   }

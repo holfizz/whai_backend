@@ -4,7 +4,7 @@ import { CourseInput } from "./course.input";
 
 @InputType()
 export class UpdateCourse extends PartialType(CourseInput) {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
   @IsOptional()
   id?: string;

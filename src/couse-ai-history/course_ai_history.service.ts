@@ -58,39 +58,17 @@ export default class CourseAIHistoryService {
     }
   }
 
-  async getAllCourseAIHistory(userId: string, courseId: string) {
+  async getCourseAIHistoryByCourseId(userId: string, courseId: string) {
     try {
       const course = await this.prisma.course.findUnique({ where: { id: courseId } });
       if (!course) {
         throw new Error(`Course with ID ${courseId} not found.`);
       }
-
-      // Get chats with the specified lessonId
-      const chatsWithLessonId = await this.prisma.courseAIHistory.findMany({
-        where: {
-          userId,
-          courseId: courseId,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-
-      // Get chats without the specified lessonId
-      const otherChats = await this.prisma.courseAIHistory.findMany({
-        where: {
-          userId,
-          courseId: courseId,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-
-      // Combine the results, with chats with lessonId first
-      const sortedChats = [...chatsWithLessonId, ...otherChats];
-
-      return sortedChats;
+      const courseAIHistory = await this.prisma.courseAIHistory.findFirst({ where: { courseId: courseId } });
+      if (!courseAIHistory) {
+        throw new Error(`Course AI History with ID ${courseId} not found.`);
+      }
+      return courseAIHistory;
     } catch (error) {
       throw new Error(`Error getting chats: ${error.message}`);
     }

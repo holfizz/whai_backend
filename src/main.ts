@@ -1,8 +1,8 @@
+import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import * as cookieParser from "cookie-parser";
 import { graphqlUploadExpress } from "graphql-upload-ts";
 import { AppModule } from "./app.module";
-import { ValidationPipe } from "@nestjs/common";
 
 const start = async () => {
   const app = await NestFactory.create(AppModule);
@@ -11,7 +11,7 @@ const start = async () => {
   app.enableCors({
     origin: ["http://localhost:3000"],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "apollo-require-preflight"],
   });
 
   app.use(cookieParser());

@@ -25,7 +25,7 @@ export class UserService {
     }
   }
 
-  async updateProfile(id: string, updateUserDto: UpdateUserInput, picture: Promise<FileUpload>) {
+  async updateProfile(id: string, updateUserDto: UpdateUserInput, picture: FileUpload) {
     try {
       let avatarPath: string | undefined = undefined;
 

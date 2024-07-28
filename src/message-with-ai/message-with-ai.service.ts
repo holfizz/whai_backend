@@ -115,49 +115,4 @@ export class MessageWithAiService {
   async remove(id: number) {
     return `This action removes a #${id} messageWithAi`;
   }
-
-  async generateTitleAndDescription(dto: GenerateTDInput, userId: string) {
-    const aiDto: AIDTO = {
-      content: {
-        createType: "Заголовок",
-        descriptionType: "Создай заголовки и описания",
-        userRequest: dto.userRequest,
-      },
-    };
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.conversationId, userId, aiDto, "EduAI");
-    if (!fullContent) throw new Error("Failed to get content from AI service.");
-    const tdJson = this.extractTDJson(fullContent);
-
-    const parsedContent = JSON.parse(tdJson);
-    console.log("parsedContent", parsedContent);
-
-    return parsedContent;
-  }
-
-  private extractTDJson(content: string): string {
-    const patterns = [/```td\n```json\n([\s\S]*?)\n```\n```/, /```json\n```td\n([\s\S]*?)\n```\n```/, /```td\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
-    let match = null;
-    for (const pattern of patterns) {
-      match = content.match(pattern);
-      if (match && match.length >= 2) {
-        break;
-      }
-    }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find TD JSON in the provided content.");
-    }
-    let tdJson = match[1];
-    console.log(tdJson);
-    if (tdJson.trim().startsWith("json")) {
-      tdJson = tdJson.replace(/^json\s*/, "");
-    }
-    console.log(tdJson);
-    try {
-      JSON.parse(tdJson);
-    } catch (e) {
-      throw new Error("Extracted content is not valid JSON.");
-    }
-
-    return tdJson;
-  }
 }

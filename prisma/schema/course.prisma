@@ -24,6 +24,7 @@ model Course {
   Subtopic        Subtopic[]
   courseAIHistory CourseAIHistory?
   Analytics       Analytics?
+  imgUrl          String?
 
   @@map("courses")
 }
