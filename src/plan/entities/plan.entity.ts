@@ -134,10 +134,6 @@ export class CoursePlan extends BaseEntity {
   @IsString()
   description?: string;
 
-  @Field(() => ID)
-  @IsUUID()
-  courseId: string;
-
   @Field(() => [TopicPlan])
   @IsArray()
   @ArrayNotEmpty()

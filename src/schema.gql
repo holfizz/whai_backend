@@ -89,7 +89,6 @@ enum CourseLevelEnum {
 }
 
 type CoursePlan {
-  courseId: ID!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -112,6 +111,7 @@ input CoursePlanWithAIInput {
   description: String
   isHasVideo: Boolean
   name: String!
+  userKnowledge: String
 }
 
 input CreateChatInput {

@@ -182,6 +182,11 @@ export class CoursePlanWithAIInput {
   @IsUUID()
   courseId: string;
 
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  userKnowledge?: string;
+
   @Field(() => Boolean, { nullable: true })
   @IsBoolean()
   @IsOptional()

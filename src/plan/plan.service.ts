@@ -1,12 +1,12 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
+import { AIDTO } from "@/edu-ai/types/ai.types";
+import { CoursePlan } from "@/plan/entities/plan.entity";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { PubSub } from "graphql-subscriptions";
 import { CoursePlanInput, CoursePlanWithAIInput } from "./dto/plan.input";
 import { PlanRepository } from "./plan.repository";
 import { PlanUtils } from "./plan.utils";
-import { CoursePlan } from "@/plan/entities/plan.entity";
-import { AIDTO } from "@/edu-ai/types/ai.types";
 
 @Injectable()
 export class PlanService {
@@ -52,6 +52,7 @@ export class PlanService {
     const aiDto: AIDTO = {
       content: {
         createType: "План",
+        userKnowledge: dto.userKnowledge,
         descriptionType: "Создай план",
         planTitle: dto.name,
         planDescription: dto.description,

@@ -15,7 +15,7 @@ export class ContentGeneratorService {
     const aiDto: AIDTO = {
       content: {
         createType: "Заголовок",
-        descriptionType: "Создай заголовки и описания",
+        descriptionType: "Создай заголовки и описания для курса",
         userRequest: dto.userRequest,
       },
     };
@@ -76,7 +76,7 @@ export class ContentGeneratorService {
     const aiDto: AIDTO = {
       content: {
         createType: "knowledge_sum",
-        descriptionType: "Сделай вывод по знаниям пользователя",
+        createDescription: "Сделай вывод по знаниям пользователя",
         quiz: quiz,
         courseTitle: course.name,
         courseDescription: course.description,
