@@ -34,18 +34,6 @@ export class ChoiceInput {
 }
 
 @InputType()
-export class InteractionInput {
-  @Field(() => [String])
-  @IsArray()
-  answers: string[];
-
-  @Field(() => [ChoiceInput])
-  @ValidateNested({ each: true })
-  @Type(() => ChoiceInput)
-  choices: ChoiceInput[];
-}
-
-@InputType()
 export class SideTypeInput {
   @Field(() => String, { nullable: true })
   @IsString()
@@ -96,13 +84,6 @@ export class QuestionInput {
   @Type(() => ChoiceInput)
   @IsOptional()
   choices?: ChoiceInput[];
-
-  @Field(() => [InteractionInput], { nullable: true })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => InteractionInput)
-  @IsOptional()
-  interactions?: InteractionInput[];
 
   @Field(() => MatchingInteractionInput, { nullable: true })
   @IsOptional()
@@ -244,8 +225,13 @@ export class QuizIndependentWithAIInput {
   @IsString()
   courseDescription?: string;
 
-  @IsString()
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  courseAIHistoryId: string;
+  @IsOptional()
+  courseAIHistoryId?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  toCheckKnowledge?: boolean;
 }

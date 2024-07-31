@@ -98,7 +98,7 @@ export class LessonService {
 
     return await this.createLessonFromAI({
       id: dto.id,
-      name: dto.description,
+      name: dto.name,
       description: dto.description,
       courseId: dto.courseId,
       ...parsedContent,

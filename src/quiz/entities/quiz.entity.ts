@@ -35,17 +35,6 @@ export class Choice {
 }
 
 @ObjectType()
-export class Interaction {
-  @Field(() => [String])
-  answers: string[];
-
-  @Field(() => [Choice])
-  @ValidateNested({ each: true })
-  @Type(() => Choice)
-  choices: Choice[];
-}
-
-@ObjectType()
 export class SideType {
   @Field(() => String)
   @IsString()
@@ -93,13 +82,6 @@ export class Question {
   @Type(() => Choice)
   @IsOptional()
   choices?: Choice[];
-
-  @Field(() => [Interaction], { nullable: true })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Interaction)
-  @IsOptional()
-  interactions?: Interaction[];
 
   @Field(() => MatchingInteraction, { nullable: true })
   @IsOptional()

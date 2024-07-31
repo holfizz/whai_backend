@@ -1,6 +1,10 @@
 import { Field, ID, InputType, Int } from "@nestjs/graphql";
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
-
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+enum TDType {
+  COURSE,
+  LESSON,
+  TEST,
+}
 @InputType()
 export class MessageWithAIInput {
   @Field(() => ID, { nullable: true })
@@ -38,13 +42,19 @@ export class GetAllMessagesInput {
 
 @InputType()
 export class GenerateTDInput {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  conversationId: string;
+  @IsOptional()
+  conversationId?: string;
 
   @Field(() => String)
   @IsString()
   userRequest: string;
+
+  @Field(() => String)
+  @IsString()
+  @IsEnum(TDType)
+  type: TDType;
 }
 
 @InputType()

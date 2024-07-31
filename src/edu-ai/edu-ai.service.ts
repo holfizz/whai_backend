@@ -1,10 +1,10 @@
+import { PrismaService } from "@/prisma.service";
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { PubSub } from "graphql-subscriptions";
 import { catchError, tap, throwError } from "rxjs";
 import { AIDTO } from "./types/ai.types";
-import { PrismaService } from "@/prisma.service";
 
 @Injectable()
 export class EduAiService {
@@ -16,22 +16,22 @@ export class EduAiService {
   ) {}
 
   async getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub?: PubSub): Promise<any> {
-    const messagesHistory = await this.prisma.messageWithAI.findMany({
-      where: {
-        OR: [{ chatWithAIId: conversationId }, { courseAIHistoryId: conversationId }],
-      },
-    });
-    console.log("HISTORY", messagesHistory.slice(1, 4));
-    if (!messagesHistory) {
-      throw new Error("messagesHistory not found");
+    let messagesHis: any[];
+    if (conversationId) {
+      const messagesHistory = await this.prisma.messageWithAI.findMany({
+        where: {
+          OR: [{ chatWithAIId: conversationId }, { courseAIHistoryId: conversationId }],
+        },
+      });
+      messagesHis = messagesHistory.map(message => ({
+        role: message.role.toLowerCase(),
+        content: message.content,
+        ...(message.role === "USER" && { content_type: "text" }),
+        ...(message.type && { type: message.type }),
+      }));
     }
-    const transformedMessages = messagesHistory.map(message => ({
-      role: message.role.toLowerCase(),
-      content: message.content,
-      ...(message.role === "USER" && { content_type: "text" }),
-      ...(message.type && { type: message.type }),
-    }));
-    console.log(transformedMessages);
+
+    console.log(messagesHis);
     let botId: string;
 
     switch (botMode) {
@@ -62,7 +62,7 @@ export class EduAiService {
             query: JSON.stringify(dto.content),
             content_type: "answer",
             stream: true,
-            chat_history: transformedMessages,
+            chat_history: messagesHis || [],
           },
           {
             headers: {

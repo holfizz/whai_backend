@@ -76,25 +76,6 @@ export class QuizRepository {
         });
       }
     }
-    if (question.interactions) {
-      for (const interaction of question.interactions) {
-        const createdInteraction = await this.prisma.interaction.create({
-          data: {
-            answers: interaction.answers,
-            question: { connect: { id: questionId } },
-          },
-        });
-        for (const choice of interaction.choices || []) {
-          await this.prisma.choice.create({
-            data: {
-              content: choice.content,
-              interaction: { connect: { id: createdInteraction.id } },
-              question: { connect: { id: questionId } },
-            },
-          });
-        }
-      }
-    }
   }
 
   async updateQuizStats(quizId: string, stats: { totalQuestions: number }): Promise<void> {
@@ -112,11 +93,6 @@ export class QuizRepository {
         questions: {
           include: {
             choices: true,
-            interactions: {
-              include: {
-                choices: true,
-              },
-            },
             matchingInteraction: true,
           },
         },
@@ -131,11 +107,6 @@ export class QuizRepository {
         questions: {
           include: {
             choices: true,
-            interactions: {
-              include: {
-                choices: true,
-              },
-            },
             matchingInteraction: true,
           },
         },
@@ -147,7 +118,6 @@ export class QuizRepository {
     const questions = await this.prisma.question.findMany({ where: { quizId } });
     for (const question of questions) {
       await this.prisma.choice.deleteMany({ where: { questionId: question.id } });
-      await this.prisma.interaction.deleteMany({ where: { questionId: question.id } });
       await this.prisma.matchingInteraction.deleteMany({ where: { questionId: question.id } });
       await this.prisma.question.delete({ where: { id: question.id } });
     }
@@ -169,7 +139,6 @@ export class QuizRepository {
     const existingQuestions = await this.prisma.question.findMany({ where: { quizId: id } });
     for (const question of existingQuestions) {
       await this.prisma.choice.deleteMany({ where: { questionId: question.id } });
-      await this.prisma.interaction.deleteMany({ where: { questionId: question.id } });
       await this.prisma.matchingInteraction.deleteMany({ where: { questionId: question.id } });
       await this.prisma.question.delete({ where: { id: question.id } });
     }

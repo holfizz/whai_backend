@@ -98,7 +98,6 @@ export class QuizService {
           include: {
             choices: true,
             matchingInteraction: true,
-            interactions: true,
           },
         },
       },
@@ -146,7 +145,6 @@ export class QuizService {
           include: {
             choices: true,
             matchingInteraction: true,
-            interactions: true,
           },
         },
         quizResult: {
@@ -232,7 +230,6 @@ export class QuizService {
         await prisma.userAnswer.deleteMany({ where: { quizResult: { quizId: id } } });
         await prisma.quizResult.deleteMany({ where: { quizId: id } });
         await prisma.choice.deleteMany({ where: { question: { quizId: id } } });
-        await prisma.interaction.deleteMany({ where: { question: { quizId: id } } });
         await prisma.matchingInteraction.deleteMany({ where: { question: { quizId: id } } });
         await prisma.question.deleteMany({ where: { quizId: id } });
         await prisma.quiz.delete({ where: { id } });
@@ -295,7 +292,6 @@ export class QuizService {
           include: {
             choices: true,
             matchingInteraction: true,
-            interactions: true,
           },
         });
 
@@ -407,8 +403,8 @@ export class QuizService {
   async createIndependentQuizWithAI(userId: string, dto: QuizIndependentWithAIInput, pubSub: PubSub): Promise<Quiz> {
     const aiDto: AIDTO = {
       content: {
-        createType: "Знания",
-        descriptionType: "Создай независимый тест",
+        createType: dto.toCheckKnowledge ? "Знания" : "Tест",
+        descriptionType: dto.toCheckKnowledge ? "Создай тест на проверку знаний" : "Создай тест",
         courseTitle: dto.courseTitle,
         courseDescription: dto.courseDescription,
       },

@@ -69,33 +69,20 @@ model Question {
   quiz                Quiz                 @relation(fields: [quizId], references: [id])
   quizId              String               @map("quiz_id")
   matchingInteraction MatchingInteraction?
-  interactions        Interaction[]
   UserAnswer          UserAnswer[]
 
   @@map("questions")
 }
 
 model Choice {
-  id                         String       @id @unique @default(uuid())
+  id                         String   @id @unique @default(uuid())
   content                    String
-  correctAnswerDescription   String?      @map("correct_answer_description")
-  incorrectAnswerDescription String?      @map("incorrect_answer_description")
-  question                   Question     @relation(fields: [questionId], references: [id])
-  questionId                 String       @map("question_id")
-  interaction                Interaction? @relation(fields: [interactionId], references: [id])
-  interactionId              String?      @map("interaction_id")
+  correctAnswerDescription   String?  @map("correct_answer_description")
+  incorrectAnswerDescription String?  @map("incorrect_answer_description")
+  question                   Question @relation(fields: [questionId], references: [id])
+  questionId                 String   @map("question_id")
 
   @@map("choices")
-}
-
-model Interaction {
-  id         String    @id @unique @default(uuid())
-  choices    Choice[]
-  answers    String[]
-  question   Question? @relation(fields: [questionId], references: [id])
-  questionId String?   @map("question_id")
-
-  @@map("interactions")
 }
 
 model MatchingInteraction {

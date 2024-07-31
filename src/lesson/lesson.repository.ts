@@ -64,6 +64,7 @@ export class LessonRepository {
   }
 
   async updateLesson(data: UpdateLesson): Promise<any> {
+    console.log(13123123123);
     if (!data.courseId) {
       throw new BadRequestException("courseId must be provided");
     }

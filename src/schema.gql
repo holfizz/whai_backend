@@ -141,7 +141,8 @@ type GenerateTD {
 }
 
 input GenerateTDInput {
-  conversationId: ID!
+  conversationId: ID
+  type: String!
   userRequest: String!
 }
 
@@ -149,16 +150,6 @@ input GetAllMessagesInput {
   chatId: ID!
   skip: Int
   take: Int
-}
-
-type Interaction {
-  answers: [String!]!
-  choices: [Choice!]!
-}
-
-input InteractionInput {
-  answers: [String!]!
-  choices: [ChoiceInput!]!
 }
 
 type KnowledgeSum {
@@ -533,7 +524,6 @@ type Question {
   answers: [String!]
   choices: [Choice!]
   id: ID!
-  interactions: [Interaction!]
   matchingInteraction: MatchingInteraction
   prompt: String
   questionType: QuizQuestionType!
@@ -542,7 +532,6 @@ type Question {
 input QuestionInput {
   answers: [String!]
   choices: [ChoiceInput!]
-  interactions: [InteractionInput!]
   matchingInteraction: MatchingInteractionInput
   prompt: String
   questionType: QuizQuestionType!
@@ -573,9 +562,10 @@ type QuizDetails {
 }
 
 input QuizIndependentWithAIInput {
-  courseAIHistoryId: ID!
+  courseAIHistoryId: ID
   courseDescription: String
   courseTitle: String!
+  toCheckKnowledge: Boolean
 }
 
 input QuizInput {

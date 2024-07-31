@@ -17,6 +17,7 @@ export class ContentGeneratorService {
         createType: "Заголовок",
         descriptionType: "Создай заголовки и описания для курса",
         userRequest: dto.userRequest,
+        type: dto.type,
       },
     };
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.conversationId, userId, aiDto, "EduAI");
