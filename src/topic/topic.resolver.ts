@@ -1,9 +1,9 @@
+import { Auth } from "@/auth/decorators/auth.decorator";
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { TopicInput } from "./dto/create-topic.input"; // Импортируем DTO
 import { UpdateTopicInput } from "./dto/update-topic.input";
 import { Topic } from "./entities/topic.entity";
 import { TopicService } from "./topic.service";
-import { Auth } from "@/auth/decorators/auth.decorator";
-import { TopicInput } from "./dto/create-topic.input"; // Импортируем DTO
 
 @Resolver(() => Topic)
 export class TopicResolver {
@@ -15,8 +15,8 @@ export class TopicResolver {
   }
 
   @Mutation(() => Topic)
-  updateTopic(@Args("updateTopicInput") updateTopicInput: UpdateTopicInput) {
-    return this.topicService.updateTopic(updateTopicInput.id, updateTopicInput);
+  updateTopic(@Args("topicId", { type: () => ID }) id: string, @Args("updateTopicInput") updateTopicInput: UpdateTopicInput) {
+    return this.topicService.updateTopic(id, updateTopicInput);
   }
 
   @Mutation(() => Topic)

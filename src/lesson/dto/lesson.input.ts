@@ -3,7 +3,7 @@ import { LessonTasksInput } from "@/lesson-tasks/dto/lesson-task.input";
 import { Field, ID, InputType, Int, registerEnumType } from "@nestjs/graphql";
 import { LessonTypeEnum } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 
 registerEnumType(LessonTypeEnum, {
   name: "LessonTypeEnum",
@@ -89,16 +89,6 @@ export class LessonWithAIInput {
   @IsOptional()
   @IsString()
   additionalParams?: string;
-
-  @Field(() => Boolean, { nullable: true })
-  @IsOptional()
-  @IsBoolean()
-  isHasVideo?: boolean;
-
-  @Field(() => Boolean, { nullable: true })
-  @IsOptional()
-  @IsBoolean()
-  isHasAISearchImage?: boolean;
 
   @IsString()
   @Field(() => ID)

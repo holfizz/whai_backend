@@ -22,8 +22,8 @@ export class AuthService {
     try {
       const data = { id: userId };
 
-      const accessTokenOptions = process.env.NODE_ENV === "development" ? { expiresIn: "3y" } : { expiresIn: "1d" };
-      const refreshTokenOptions = process.env.NODE_ENV === "development" ? { expiresIn: "3y" } : { expiresIn: "7d" };
+      const accessTokenOptions = process.env.NODE_ENV === "development" ? { expiresIn: "100d" } : { expiresIn: "1d" };
+      const refreshTokenOptions = process.env.NODE_ENV === "development" ? { expiresIn: "100d" } : { expiresIn: "7d" };
 
       const accessToken = this.jwt.sign(data, accessTokenOptions);
       const refreshToken = this.jwt.sign(data, refreshTokenOptions) as string;

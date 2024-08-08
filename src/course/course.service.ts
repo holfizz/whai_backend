@@ -34,7 +34,13 @@ export class CourseService {
 
   async getCourse(userId: string, id: string) {
     const course = await this.prisma.course.findUnique({
-      where: { id, ownerID: userId },
+      where: {
+        id,
+        ownerID: userId,
+        topics: {
+          some: {},
+        },
+      },
       include: { courseAIHistory: true },
     });
     if (!course) {
@@ -45,10 +51,14 @@ export class CourseService {
 
   async getAllCourses(userId: string) {
     const courses = await this.prisma.course.findMany({
-      where: { ownerID: userId },
+      where: {
+        ownerID: userId,
+        topics: {
+          some: {},
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
-
     if (!courses || courses.length === 0) {
       throw new NotFoundException(`No courses found for user ID ${userId}`);
     }
@@ -64,8 +74,15 @@ export class CourseService {
 
   async getLastCourse(userId: string) {
     const course = await this.prisma.course.findFirst({
-      where: { ownerID: userId },
-      orderBy: { updatedAt: "desc" },
+      where: {
+        ownerID: userId,
+        topics: {
+          some: {},
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
     });
     if (!course) {
       throw new NotFoundException(`No courses found for user ID ${userId}`);

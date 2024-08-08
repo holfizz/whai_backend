@@ -82,29 +82,30 @@ export class PlanService {
   }
 
   private extractPlanJson(content: string): string {
-    const patterns = [/```plan\n```json\n([\s\S]*?)\n```\n```/, /```json\n```plan\n([\s\S]*?)\n```\n```/, /```plan\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
-    let match = null;
-    for (const pattern of patterns) {
-      match = content.match(pattern);
-      if (match && match.length >= 2) {
-        break;
+    const quizPattern = /```plan([\s\S]*?)```/;
+    const jsonPattern = /```json([\s\S]*?)```/;
+    let match = content.match(quizPattern);
+    if (!match || match.length < 2) {
+      console.error("Cannot find quiz block in the provided content.");
+      throw new Error("Cannot find quiz block in the provided content.");
+    }
+    let planContent = match[1].trim();
+    let jsonMatch = planContent.match(jsonPattern);
+    if (jsonMatch && jsonMatch.length >= 2) {
+      planContent = jsonMatch[1].trim();
+    } else {
+      jsonMatch = content.match(jsonPattern);
+      if (jsonMatch && jsonMatch.length >= 2) {
+        planContent = jsonMatch[1].trim();
       }
     }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find plan JSON in the provided content.");
-    }
-    let planJson = match[1];
-    console.log(planJson);
-    if (planJson.trim().startsWith("json")) {
-      planJson = planJson.replace(/^json\s*/, "");
-    }
     try {
-      JSON.parse(planJson);
+      JSON.parse(planContent);
     } catch (e) {
+      console.error("Extracted content is not valid JSON:", planContent);
       throw new Error("Extracted content is not valid JSON.");
     }
-
-    return planJson;
+    return planContent;
   }
 
   async stopGeneration(conversationId: string): Promise<void> {

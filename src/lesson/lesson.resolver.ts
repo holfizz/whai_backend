@@ -21,8 +21,8 @@ export class LessonResolver {
 
   @Mutation(() => Lesson)
   @Auth("user")
-  async updateLesson(@Args("id") id: string, @Args("updateLessonInput") updateLessonInput: UpdateLesson) {
-    return this.lessonService.updateLesson(id, updateLessonInput);
+  async updateLesson(@Args("updateLessonInput") updateLessonInput: UpdateLesson) {
+    return this.lessonService.updateLesson(updateLessonInput.id, updateLessonInput);
   }
 
   @Mutation(() => Lesson)

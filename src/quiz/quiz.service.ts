@@ -246,30 +246,30 @@ export class QuizService {
   }
 
   private extractQuizJson(content: string): string {
-    const patterns = [/```quiz\n```json\n([\s\S]*?)\n```\n```/, /```json\n```quiz\n([\s\S]*?)\n```\n```/, /```quiz\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
-    let match = null;
-    for (const pattern of patterns) {
-      match = content.match(pattern);
-      if (match && match.length >= 2) {
-        break;
+    const quizPattern = /```quiz([\s\S]*?)```/;
+    const jsonPattern = /```json([\s\S]*?)```/;
+    let quizMatch = content.match(quizPattern);
+    if (!quizMatch || quizMatch.length < 2) {
+      console.error("Cannot find quiz block in the provided content.");
+      throw new Error("Cannot find quiz block in the provided content.");
+    }
+    let quizContent = quizMatch[1].trim();
+    let jsonMatch = quizContent.match(jsonPattern);
+    if (jsonMatch && jsonMatch.length >= 2) {
+      quizContent = jsonMatch[1].trim();
+    } else {
+      jsonMatch = content.match(jsonPattern);
+      if (jsonMatch && jsonMatch.length >= 2) {
+        quizContent = jsonMatch[1].trim();
       }
     }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find quiz JSON in the provided content.");
-    }
-    let knowledgeSumJson = match[1];
-    console.log(knowledgeSumJson);
-    if (knowledgeSumJson.trim().startsWith("json")) {
-      knowledgeSumJson = knowledgeSumJson.replace(/^json\s*/, "");
-    }
-    console.log(knowledgeSumJson);
     try {
-      JSON.parse(knowledgeSumJson);
+      JSON.parse(quizContent);
     } catch (e) {
+      console.error("Extracted content is not valid JSON:", quizContent);
       throw new Error("Extracted content is not valid JSON.");
     }
-
-    return knowledgeSumJson;
+    return quizContent;
   }
 
   async stopGeneration(conversationId: string): Promise<void> {

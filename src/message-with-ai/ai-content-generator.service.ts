@@ -31,30 +31,30 @@ export class ContentGeneratorService {
   }
 
   private extractTDJson(content: string): string {
-    const patterns = [/```td\n```json\n([\s\S]*?)\n```\n```/, /```json\n```td\n([\s\S]*?)\n```\n```/, /```td\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
-    let match = null;
-    for (const pattern of patterns) {
-      match = content.match(pattern);
-      if (match && match.length >= 2) {
-        break;
+    const quizPattern = /```td([\s\S]*?)```/;
+    const jsonPattern = /```json([\s\S]*?)```/;
+    let match = content.match(quizPattern);
+    if (!match || match.length < 2) {
+      console.error("Cannot find quiz block in the provided content.");
+      throw new Error("Cannot find quiz block in the provided content.");
+    }
+    let tdContent = match[1].trim();
+    let jsonMatch = tdContent.match(jsonPattern);
+    if (jsonMatch && jsonMatch.length >= 2) {
+      tdContent = jsonMatch[1].trim();
+    } else {
+      jsonMatch = content.match(jsonPattern);
+      if (jsonMatch && jsonMatch.length >= 2) {
+        tdContent = jsonMatch[1].trim();
       }
     }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find TD JSON in the provided content.");
-    }
-    let tdJson = match[1];
-    console.log(tdJson);
-    if (tdJson.trim().startsWith("json")) {
-      tdJson = tdJson.replace(/^json\s*/, "");
-    }
-    console.log(tdJson);
     try {
-      JSON.parse(tdJson);
+      JSON.parse(tdContent);
     } catch (e) {
+      console.error("Extracted content is not valid JSON:", tdContent);
       throw new Error("Extracted content is not valid JSON.");
     }
-
-    return tdJson;
+    return tdContent;
   }
 
   async generateKnowledgeSum(dto: KnowledgeSumInput, userId: string) {
@@ -96,34 +96,29 @@ export class ContentGeneratorService {
   }
 
   private extractKnowledgeSumJson(content: string): string {
-    const patterns = [
-      /```knowledge_sum\n```json\n([\s\S]*?)\n```\n```/,
-      /```json\n```knowledge_sum\n([\s\S]*?)\n```\n```/,
-      /```knowledge_sum\n([\s\S]*?)\n```/,
-      /```json\n([\s\S]*?)\n```/,
-    ];
-    let match = null;
-    for (const pattern of patterns) {
-      match = content.match(pattern);
-      if (match && match.length >= 2) {
-        break;
+    const quizPattern = /```knowledge_sum([\s\S]*?)```/;
+    const jsonPattern = /```json([\s\S]*?)```/;
+    let match = content.match(quizPattern);
+    if (!match || match.length < 2) {
+      console.error("Cannot find quiz block in the provided content.");
+      throw new Error("Cannot find quiz block in the provided content.");
+    }
+    let knowledgeContent = match[1].trim();
+    let jsonMatch = knowledgeContent.match(jsonPattern);
+    if (jsonMatch && jsonMatch.length >= 2) {
+      knowledgeContent = jsonMatch[1].trim();
+    } else {
+      jsonMatch = content.match(jsonPattern);
+      if (jsonMatch && jsonMatch.length >= 2) {
+        knowledgeContent = jsonMatch[1].trim();
       }
     }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find TD JSON in the provided content.");
-    }
-    let knowledgeSumJson = match[1];
-    console.log(knowledgeSumJson);
-    if (knowledgeSumJson.trim().startsWith("json")) {
-      knowledgeSumJson = knowledgeSumJson.replace(/^json\s*/, "");
-    }
-    console.log(knowledgeSumJson);
     try {
-      JSON.parse(knowledgeSumJson);
+      JSON.parse(knowledgeContent);
     } catch (e) {
+      console.error("Extracted content is not valid JSON:", knowledgeContent);
       throw new Error("Extracted content is not valid JSON.");
     }
-
-    return knowledgeSumJson;
+    return knowledgeContent;
   }
 }

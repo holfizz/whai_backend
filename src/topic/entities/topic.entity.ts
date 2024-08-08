@@ -1,6 +1,6 @@
 import { BaseEntity } from "@/helpers/base.entity";
 import { Field, Float, ID, ObjectType } from "@nestjs/graphql";
-import { IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 @ObjectType()
 export class Topic extends BaseEntity {
@@ -30,6 +30,6 @@ export class Topic extends BaseEntity {
   totalSubtopics: number;
 
   @Field(() => Boolean)
-  @IsNumber()
+  @IsBoolean()
   isHasVideo: boolean;
 }

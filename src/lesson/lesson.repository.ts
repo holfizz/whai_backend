@@ -27,12 +27,16 @@ export class LessonRepository {
     if (!data.courseId) {
       throw new BadRequestException("courseId must be provided");
     }
+    const course = await this.prisma.course.findUnique({ where: { id: data.courseId } });
+    if (!course) {
+      throw new BadRequestException(`Course with ID ${data.courseId} not exist`);
+    }
 
     return this.prisma.lesson.create({
       data: {
         name: data.name,
         description: data.description,
-        types: data.types,
+        types: course.isHasVideo ? ["VIDEO"] : [],
         subtopicId: data.subtopicId,
         courseId: data.courseId,
       },
@@ -64,7 +68,6 @@ export class LessonRepository {
   }
 
   async updateLesson(data: UpdateLesson): Promise<any> {
-    console.log(13123123123);
     if (!data.courseId) {
       throw new BadRequestException("courseId must be provided");
     }
@@ -96,6 +99,9 @@ export class LessonRepository {
   async findAllLessons(subtopicId: string): Promise<any> {
     return this.prisma.lesson.findMany({
       where: { subtopicId },
+      orderBy: {
+        createdAt: "asc",
+      },
       include: { lessonBlocks: true, lessonTasks: true },
     });
   }

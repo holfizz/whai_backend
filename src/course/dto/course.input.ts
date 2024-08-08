@@ -1,5 +1,5 @@
-import { Field, ID, InputType } from "@nestjs/graphql";
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { Field, InputType } from "@nestjs/graphql";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 @InputType()
 export class CourseInput {
@@ -12,19 +12,19 @@ export class CourseInput {
   @IsOptional()
   @IsString()
   description?: string;
-}
 
-@InputType()
-export class AddVideoToCourseInput {
-  @Field(() => ID)
-  @IsUUID()
-  courseId: string;
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isHasVideo?: boolean;
 
-  @Field(() => String)
-  videoUrl: string;
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isHasAISearchImage?: boolean;
 
-  @Field(() => String)
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  needHomeworks?: boolean;
 }

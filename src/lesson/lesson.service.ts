@@ -76,6 +76,10 @@ export class LessonService {
     if (!courseAIHistoryId) {
       throw new Error(`Chat with AI ID ${dto.courseAIHistoryId} not found.`);
     }
+    const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
+    if (!course) {
+      throw new Error(`course with ID ${dto.courseId} not found.`);
+    }
     const aiDto: AIDTO = {
       content: {
         createType: "Урок",
@@ -83,8 +87,8 @@ export class LessonService {
         lessonTitle: dto.name,
         lessonDescription: dto.description,
         additionalParams: dto.additionalParams,
-        isHasVideo: dto.isHasVideo,
-        isHasAISearchImage: dto.isHasAISearchImage,
+        isHasVideo: course.isHasVideo,
+        isHasAISearchImage: course.isHasAISearchImage,
       },
     };
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
@@ -144,30 +148,30 @@ export class LessonService {
   }
 
   private extractLessonJson(content: string): string {
-    const patterns = [/```lesson\n```json\n([\s\S]*?)\n```\n```/, /```json\n```lesson\n([\s\S]*?)\n```\n```/, /```lesson\n([\s\S]*?)\n```/, /```json\n([\s\S]*?)\n```/];
-    let match = null;
-    for (const pattern of patterns) {
-      match = content.match(pattern);
-      if (match && match.length >= 2) {
-        break;
+    const quizPattern = /```lesson([\s\S]*?)```/;
+    const jsonPattern = /```json([\s\S]*?)```/;
+    let quizMatch = content.match(quizPattern);
+    if (!quizMatch || quizMatch.length < 2) {
+      console.error("Cannot find quiz block in the provided content.");
+      throw new Error("Cannot find quiz block in the provided content.");
+    }
+    let lessonContent = quizMatch[1].trim();
+    let jsonMatch = lessonContent.match(jsonPattern);
+    if (jsonMatch && jsonMatch.length >= 2) {
+      lessonContent = jsonMatch[1].trim();
+    } else {
+      jsonMatch = content.match(jsonPattern);
+      if (jsonMatch && jsonMatch.length >= 2) {
+        lessonContent = jsonMatch[1].trim();
       }
     }
-    if (!match || match.length < 2) {
-      throw new Error("Cannot find lesson JSON in the provided content.");
-    }
-    let lessonJson = match[1];
-    console.log(lessonJson);
-    if (lessonJson.trim().startsWith("json")) {
-      lessonJson = lessonJson.replace(/^json\s*/, "");
-    }
-    console.log(lessonJson);
     try {
-      JSON.parse(lessonJson);
+      JSON.parse(lessonContent);
     } catch (e) {
+      console.error("Extracted content is not valid JSON:", lessonContent);
       throw new Error("Extracted content is not valid JSON.");
     }
-
-    return lessonJson;
+    return lessonContent;
   }
 
   async stopGeneration(conversationId: string): Promise<void> {

@@ -5,26 +5,29 @@ enum CourseLevelEnum {
 }
 
 model Course {
-  id              String           @id @unique @default(uuid())
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  name            String           @default("Course")
-  description     String?
-  ownerID         String           @map("owner_id")
-  publicUrl       String?          @map("public_url")
-  tags            String[]
-  level           CourseLevelEnum?
-  students        User[]
-  teacherIds      String[]         @map("teacher_ids")
-  studentsId      String[]         @map("students_id")
-  quizResult      QuizResult[]
-  lessons         Lesson[]
-  quizzes         Quiz[]
-  topics          Topic[]
-  Subtopic        Subtopic[]
-  courseAIHistory CourseAIHistory?
-  Analytics       Analytics?
-  imgUrl          String?
+  id                 String           @id @unique @default(uuid())
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  name               String           @default("Course")
+  description        String?
+  ownerID            String           @map("owner_id")
+  publicUrl          String?          @map("public_url")
+  tags               String[]
+  level              CourseLevelEnum?
+  students           User[]
+  teacherIds         String[]         @map("teacher_ids")
+  studentsId         String[]         @map("students_id")
+  quizResult         QuizResult[]
+  lessons            Lesson[]
+  quizzes            Quiz[]
+  topics             Topic[]
+  Subtopic           Subtopic[]
+  courseAIHistory    CourseAIHistory?
+  Analytics          Analytics?
+  imgUrl             String?
+  isHasVideo         Boolean          @default(false)
+  isHasAISearchImage Boolean          @default(false)
+  needHomeworks      Boolean          @default(false)
 
   @@map("courses")
 }
