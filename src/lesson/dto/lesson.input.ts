@@ -20,11 +20,11 @@ export class LessonInput {
   @IsString()
   description?: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
   courseId: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsString()
   @IsUUID()
   subtopicId: string;

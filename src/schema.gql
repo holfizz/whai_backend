@@ -192,7 +192,7 @@ type Lesson {
   description: String
   id: ID!
   isCompleted: Boolean
-  isHasLessonTask: Boolean!
+  isHasLessonTask: Boolean
   lessonBlocks: [LessonBlock]
   lessonTasks: [LessonTasks]
   name: String!
@@ -238,10 +238,10 @@ input LessonBlockInput {
 }
 
 input LessonInput {
-  courseId: ID!
+  courseId: ID
   description: String
   name: String!
-  subtopicId: ID!
+  subtopicId: ID
   types: [LessonTypeEnum!]
 }
 
@@ -295,13 +295,13 @@ input LessonWithAIInput {
 
 input LessonWithAITasksBlocksInput {
   completionTime: Int
-  courseId: ID!
+  courseId: ID
   description: String
   id: ID
   lessonBlocks: [LessonBlockInput]
   lessonTasks: [LessonTasksInput]
   name: String!
-  subtopicId: ID!
+  subtopicId: ID
   types: [LessonTypeEnum!]
 }
 
@@ -678,12 +678,12 @@ type Subscription {
 }
 
 type Subtopic {
-  completionTime: Float!
+  completionTime: Float
   createdAt: DateTime!
   description: String
   id: ID!
   name: String!
-  progressPercents: Float!
+  progressPercents: Float
   topicId: ID!
   updatedAt: DateTime!
 }
@@ -816,7 +816,10 @@ input UpdateMessageWithAiInput {
 }
 
 input UpdateSubtopicInput {
+  description: String
   id: ID
+  name: String
+  topicId: ID
 }
 
 input UpdateTopicInput {

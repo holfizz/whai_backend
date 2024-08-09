@@ -3,11 +3,11 @@ import { IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class SubtopicInput {
-  @Field()
+  @Field(() => String)
   @IsString()
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   description?: string;

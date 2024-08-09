@@ -54,7 +54,8 @@ export class Lesson extends BaseEntity {
   @IsNumber()
   completionTime: number;
 
-  @Field(() => Boolean)
+  @Field(() => Boolean, { nullable: true })
   @IsBoolean()
-  isHasLessonTask: boolean;
+  @IsOptional()
+  isHasLessonTask?: boolean;
 }

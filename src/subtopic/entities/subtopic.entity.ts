@@ -8,7 +8,7 @@ export class Subtopic extends BaseEntity {
   @IsString()
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   description?: string;
@@ -17,11 +17,11 @@ export class Subtopic extends BaseEntity {
   @IsUUID()
   topicId: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   @IsNumber()
   progressPercents: number;
 
-  @Field(() => Number)
+  @Field(() => Number, { nullable: true })
   @IsNumber()
   completionTime: number;
 }
