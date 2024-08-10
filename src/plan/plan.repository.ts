@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { LessonService } from "@/lesson/lesson.service";
 import { PrismaService } from "@/prisma.service";
-import { CoursePlanInput, LessonPlanInput, QuizPlanInput, SubtopicPlanInput, TopicPlanInput } from "./dto/plan.input";
+import { QuizService } from "@/quiz/quiz.service";
 import { SubtopicService } from "@/subtopic/subtopic.service";
 import { TopicService } from "@/topic/topic.service";
-import { LessonService } from "@/lesson/lesson.service";
-import { QuizService } from "@/quiz/quiz.service";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { CoursePlanInput, LessonPlanInput, QuizPlanInput, SubtopicPlanInput, TopicPlanInput } from "./dto/plan.input";
 
 @Injectable()
 export class PlanRepository {
@@ -144,7 +144,8 @@ export class PlanRepository {
     });
   }
 
-  async updatePlan(id: string, dto: CoursePlanInput): Promise<void> {
+  async updatePlan(id: string, dto: CoursePlanInput): Promise<any> {
+    // Обновляем основную информацию о курсе
     await this.prisma.course.update({
       where: { id },
       data: {
@@ -153,35 +154,119 @@ export class PlanRepository {
       },
     });
 
-    const existingTopics = await this.prisma.topic.findMany({ where: { courseId: id } });
-    for (const topicPlan of existingTopics) {
-      const subtopics = await this.prisma.subtopic.findMany({ where: { topicId: topicPlan.id } });
-      for (const subtopicPlan of subtopics) {
-        await this.prisma.lesson.deleteMany({ where: { subtopicId: subtopicPlan.id } });
-        await this.prisma.subtopic.delete({ where: { id: subtopicPlan.id } });
+    // Удаляем старые данные
+    await this.deleteOldPlanData(id);
+
+    // Создаем новые данные
+    for (const topicInput of dto.topics) {
+      const newTopic = await this.createOrUpdateTopic(topicInput, id);
+
+      for (const subtopicInput of topicInput.subtopics) {
+        const newSubtopic = await this.createOrUpdateSubtopic(subtopicInput, newTopic.id);
+
+        for (const lessonInput of subtopicInput.lessons) {
+          await this.createOrUpdateLesson(lessonInput, newSubtopic.id, id);
+        }
+
+        for (const quizInput of subtopicInput.quizzes) {
+          await this.createOrUpdateQuiz(quizInput, newSubtopic.id, id);
+        }
       }
-      await this.prisma.topic.delete({ where: { id: topicPlan.id } });
     }
-    //TITLE:something strange
-    // for (const topic of dto.topics) {
-    //   const newTopicPlan = await this.createTopicPlan(topic);
-    //   for (const subtopicPlan of topic.subtopics) {
-    //     const newSubtopicPlan = await this.createSubtopicPlan(subtopicPlan);
-    //     for (const lessonPlan of subtopicPlan.lessons) {
-    //       await this.lessonService.createLesson({
-    //         name: dto.name,
-    //         description: dto.description,
-    //         subtopicId: newSubtopicPlan.id,
-    //         types: [],
-    //         courseId: dto.courseId,
-    //       });
-    //     }
-    //   }
-    // }
+
+    return this.findPlanById(id);
+  }
+
+  private async deleteOldPlanData(courseId: string): Promise<void> {
+    const topics = await this.prisma.topic.findMany({ where: { courseId } });
+    for (const topic of topics) {
+      const subtopics = await this.prisma.subtopic.findMany({ where: { topicId: topic.id } });
+      for (const subtopic of subtopics) {
+        await this.prisma.lesson.deleteMany({ where: { subtopicId: subtopic.id } });
+        await this.prisma.quiz.deleteMany({ where: { subtopicId: subtopic.id } });
+        await this.prisma.subtopic.delete({ where: { id: subtopic.id } });
+      }
+      await this.prisma.topic.delete({ where: { id: topic.id } });
+    }
+  }
+
+  private async createOrUpdateTopic(topicInput: TopicPlanInput, courseId: string): Promise<any> {
+    return await this.prisma.topic.upsert({
+      where: {
+        id: topicInput.id || "", // Может быть пустой, если создается новый
+      },
+      update: {
+        name: topicInput.name,
+        description: topicInput.description,
+      },
+      create: {
+        name: topicInput.name,
+        description: topicInput.description,
+        courseId,
+      },
+    });
+  }
+
+  private async createOrUpdateSubtopic(subtopicInput: SubtopicPlanInput, topicId: string): Promise<any> {
+    return await this.prisma.subtopic.upsert({
+      where: {
+        id: subtopicInput.id || "", // Может быть пустой, если создается новый
+      },
+      update: {
+        name: subtopicInput.name,
+        description: subtopicInput.description,
+        completionTime: subtopicInput.completionTime,
+      },
+      create: {
+        name: subtopicInput.name,
+        description: subtopicInput.description,
+        topicId,
+        completionTime: subtopicInput.completionTime,
+      },
+    });
+  }
+
+  private async createOrUpdateLesson(lessonInput: LessonPlanInput, subtopicId: string, courseId: string): Promise<any> {
+    return await this.prisma.lesson.upsert({
+      where: {
+        id: lessonInput.id || "", // Может быть пустой, если создается новый
+      },
+      update: {
+        name: lessonInput.name,
+        description: lessonInput.description,
+        types: lessonInput.types,
+      },
+      create: {
+        name: lessonInput.name,
+        description: lessonInput.description,
+        types: lessonInput.types,
+        subtopicId,
+        courseId,
+      },
+    });
+  }
+
+  private async createOrUpdateQuiz(quizInput: QuizPlanInput, subtopicId: string, courseId: string): Promise<any> {
+    return await this.prisma.quiz.upsert({
+      where: {
+        id: quizInput.id || "", // Может быть пустой, если создается новый
+      },
+      update: {
+        name: quizInput.name,
+        description: quizInput.description,
+      },
+      create: {
+        name: quizInput.name,
+        description: quizInput.description,
+        subtopicId,
+        courseId,
+        isPlan: true,
+      },
+    });
   }
 
   async findPlanById(id: string): Promise<any> {
-    return this.prisma.course.findUnique({
+    const plan = this.prisma.course.findUnique({
       where: { id },
       include: {
         topics: {
@@ -196,6 +281,10 @@ export class PlanRepository {
         },
       },
     });
+    if (!plan) {
+      throw new NotFoundException(`Plan with ID ${id} not found`);
+    }
+    return plan;
   }
 
   async findAllPlans(): Promise<any> {

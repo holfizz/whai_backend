@@ -32,15 +32,24 @@ export class PlanService {
     return newPlan;
   }
 
-  async updatePlan(id: string, data: CoursePlanInput): Promise<any> {
-    return await this.prisma.$transaction(async prisma => {
-      await this.planRepository.updatePlan(id, data);
-
-      return this.planRepository.findPlanById(id);
+  async updatePlan(id: string, data: CoursePlanInput): Promise<CoursePlan> {
+    await this.prisma.course.update({
+      where: { id: data.courseId },
+      data: {
+        name: data.name,
+        description: data.description,
+      },
     });
+
+    const updatedPlan = await this.planRepository.updatePlan(id, data);
+    if (!updatedPlan) {
+      throw new Error("Failed to update plan");
+    }
+
+    return updatedPlan;
   }
 
-  async findPlanById(id: string): Promise<any> {
+  async getCoursePlan(id: string): Promise<any> {
     return this.planRepository.findPlanById(id);
   }
 

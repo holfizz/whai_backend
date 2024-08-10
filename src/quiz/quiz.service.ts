@@ -43,13 +43,18 @@ export class QuizService {
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<Quiz> {
     const quiz = await this.prisma.quiz.findUnique({ where: { id: dto.id } });
     if (!quiz) throw new Error(`Quiz with id ${dto.id} not found.`);
-
+    const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
+    if (!course) {
+      throw new Error(`course with ID ${dto.courseId} not found.`);
+    }
     const aiDto: AIDTO = {
       content: {
         createType: "Тест",
         descriptionType: "Создай тест",
         quizTitle: dto.name,
         quizDescription: dto.description,
+        courseTitle: course.name,
+        courseDescription: course.description,
         additionalParams: dto.additionalParams,
       },
     };

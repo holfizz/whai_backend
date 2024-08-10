@@ -10,7 +10,7 @@ registerEnumType(CourseLevelEnum, {
 
 @ObjectType()
 export class Course extends BaseEntity {
-  @Field()
+  @Field(() => String)
   @IsString()
   name: string;
 
@@ -18,17 +18,17 @@ export class Course extends BaseEntity {
   @IsOptional()
   courseAIHistory?: CourseAIHistory;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsUrl()
   imgUrl?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   publicUrl?: string;
 

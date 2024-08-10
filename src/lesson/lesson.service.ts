@@ -84,6 +84,8 @@ export class LessonService {
       content: {
         createType: "Урок",
         descriptionType: "Создай урок",
+        courseTitle: course.name,
+        courseDescription: course.description,
         lessonTitle: dto.name,
         lessonDescription: dto.description,
         additionalParams: dto.additionalParams,

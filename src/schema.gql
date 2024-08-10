@@ -108,6 +108,7 @@ type CoursePlan {
 input CoursePlanInput {
   courseId: ID!
   description: String
+  id: ID
   name: String!
   topics: [TopicPlanInput!]!
 }
@@ -259,6 +260,7 @@ type LessonPlan {
 input LessonPlanInput {
   courseId: ID
   description: String
+  id: ID
   name: String!
   subtopicId: ID
   types: [LessonTypeEnum!]!
@@ -362,8 +364,9 @@ type MessageWithAIData {
 
 input MessageWithAIInput {
   chatWithAIId: ID
-  content: String!
   courseAIHistoryId: ID
+  lessonId: ID!
+  message: String!
 }
 
 enum MessageWithAIRole {
@@ -444,6 +447,7 @@ type Mutation {
   updateMessage(messageId: String!, updateMessageInput: UpdateMessageInput!): Message!
   updateMessageWithAi(updateMessageWithAiInput: UpdateMessageWithAiInput!): MessageWithAIData!
   updateOrCreateLearningSession(LearningSessionInput: LearningSessionInput!): LearningSession!
+  updatePlan(planId: ID!, updatePlanInput: CoursePlanInput!): CoursePlan!
 
   """
   Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
@@ -486,6 +490,7 @@ type Query {
   getCourse(courseId: ID!): Course!
   getCourseAIHistory(courseAIHistoryId: ID!): CourseAIHistory!
   getCourseAIHistoryByCourseId(courseId: ID!): CourseAIHistory!
+  getCoursePlan(planId: ID!): CoursePlan!
   getLastCourse: Course
   getLastSaveQuizResult(quizId: ID!): QuizResult
   getLesson(lessonId: ID!): Lesson!
@@ -564,6 +569,7 @@ input QuizInput {
 input QuizPlanInput {
   courseId: ID
   description: String
+  id: ID
   name: String!
   subtopicId: ID
 }
@@ -709,6 +715,7 @@ type SubtopicPlan {
 input SubtopicPlanInput {
   completionTime: Float!
   description: String
+  id: ID
   lessons: [LessonPlanInput!]
   name: String!
   quizzes: [QuizPlanInput!]
@@ -754,6 +761,7 @@ input TopicPlanInput {
   completionTime: Float!
   courseId: ID
   description: String
+  id: ID
   name: String!
   subtopics: [SubtopicPlanInput!]
 }
@@ -810,9 +818,10 @@ input UpdateMessageInput {
 
 input UpdateMessageWithAiInput {
   chatWithAIId: ID
-  content: String
   courseAIHistoryId: ID
   id: Int!
+  lessonId: ID
+  message: String
 }
 
 input UpdateSubtopicInput {

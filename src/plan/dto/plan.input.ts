@@ -9,6 +9,11 @@ registerEnumType(LessonTypeEnum, {
 
 @InputType()
 export class QuizPlanInput {
+  @Field(() => ID, { nullable: true })
+  @IsString()
+  @IsOptional()
+  id?: string;
+
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
@@ -35,6 +40,11 @@ export class QuizPlanInput {
 
 @InputType()
 export class LessonPlanInput {
+  @Field(() => ID, { nullable: true })
+  @IsString()
+  @IsOptional()
+  id?: string;
+
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
@@ -66,6 +76,11 @@ export class LessonPlanInput {
 
 @InputType()
 export class SubtopicPlanInput {
+  @Field(() => ID, { nullable: true })
+  @IsString()
+  @IsOptional()
+  id?: string;
+
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
@@ -103,6 +118,11 @@ export class SubtopicPlanInput {
 
 @InputType()
 export class TopicPlanInput {
+  @Field(() => ID, { nullable: true })
+  @IsString()
+  @IsOptional()
+  id?: string;
+
   @Field(() => String)
   @IsString()
   @IsNotEmpty()
@@ -134,6 +154,11 @@ export class TopicPlanInput {
 
 @InputType()
 export class CoursePlanInput {
+  @Field(() => ID, { nullable: true })
+  @IsString()
+  @IsOptional()
+  id?: string;
+
   @Field(() => String)
   @IsString()
   @IsNotEmpty()

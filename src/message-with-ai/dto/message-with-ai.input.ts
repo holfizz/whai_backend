@@ -17,10 +17,14 @@ export class MessageWithAIInput {
   @IsOptional()
   courseAIHistoryId?: string;
 
+  @Field(() => ID)
+  @IsUUID()
+  lessonId: string;
+
+  @Field(() => String)
   @IsString()
   @IsNotEmpty()
-  @Field(() => String)
-  content: string;
+  message: string;
 }
 
 @InputType()
