@@ -31,7 +31,7 @@ export class EduAiService {
       }));
     }
 
-    console.log(messagesHis);
+    console.log(messagesHis || 1);
     let botId: string;
 
     switch (botMode) {

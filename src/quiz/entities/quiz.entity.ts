@@ -229,6 +229,6 @@ export class QuizSummary {
   @Field(() => String, { nullable: true })
   description?: string;
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   totalPercents?: number;
 }

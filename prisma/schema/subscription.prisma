@@ -1,0 +1,39 @@
+enum SubscriptionType {
+  BASIC
+  STANDARD
+  PREMIUM
+}
+
+model Subscription {
+  id                    String           @id @unique @default(uuid())
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+  type                  SubscriptionType @unique @map("type")
+  price                 Float            @map("price")
+  annualDiscountRate    Float            @default(0.2) @map("annual_discount_rate")
+  courseLimitPerMonth   Int              @map("course_limit_per_month")
+  lessonLimitPerCourse  Int              @map("lesson_limit_per_course")
+  additionalTitlesLimit Int              @map("additional_titles_limit")
+  hasBasicAnalytics     Boolean          @default(false) @map("has_basic_analytics")
+  hasAIAssistedHomework Boolean          @default(false) @map("has_ai_assisted_homework")
+  hasFileUploadInChat   Boolean          @default(false) @map("has_file_upload_in_chat")
+  hasImageGeneration    Boolean          @default(false) @map("has_image_generation")
+  isAutoRenewal         Boolean          @default(true) @map("is_auto_renewal")
+  User                  User[]
+
+  @@map("subscriptions")
+}
+
+model SubscriptionHistory {
+  id               String           @id @unique @default(uuid())
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  subscriptionType SubscriptionType @map("subscription_type")
+  price            Float            @map("price")
+  startedAt        DateTime         @map("started_at")
+  endedAt          DateTime?        @map("ended_at")
+  userId           String           @map("user_id")
+  user             User             @relation(fields: [userId], references: [id])
+
+  @@map("subscription_history")
+}

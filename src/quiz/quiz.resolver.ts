@@ -88,4 +88,10 @@ export class QuizResolver {
   async createIndependentQuizWithAI(@CurrentUser("id") userId: string, @Args("dto") dto: QuizIndependentWithAIInput): Promise<Quiz> {
     return this.quizService.createIndependentQuizWithAI(userId, dto, pubSub);
   }
+
+  @Query(() => [QuizSummary])
+  @Auth("user")
+  getAllIndependentQuizzes(@CurrentUser("id") userId: string): Promise<QuizSummary[]> {
+    return this.quizService.getAllIndependentQuizzes(userId);
+  }
 }

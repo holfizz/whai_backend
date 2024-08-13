@@ -29,4 +29,12 @@ export class LessonTasksService {
     }
     await this.prisma.lessonTask.deleteMany({ where: { id } });
   }
+
+  async getAllTasksByLessonId(lessonId: string) {
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId } });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+    }
+    return await this.prisma.lessonTask.findMany({ where: { lessonId } });
+  }
 }

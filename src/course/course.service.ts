@@ -59,9 +59,6 @@ export class CourseService {
       },
       orderBy: { createdAt: "desc" },
     });
-    if (!courses || courses.length === 0) {
-      throw new NotFoundException(`No courses found for user ID ${userId}`);
-    }
 
     return await Promise.all(
       courses.map(async course => {

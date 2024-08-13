@@ -29,6 +29,7 @@ import { UserModule } from "./user/user.module";
 import { SubtopicModule } from "@/subtopic/subtopic.module";
 import { TopicModule } from "@/topic/topic.module";
 import { CourseAIHistoryModule } from "@/couse-ai-history/course_ai_history.module";
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { CourseAIHistoryModule } from "@/couse-ai-history/course_ai_history.modu
     EduAiModule,
     PlanModule,
     CourseAIHistoryModule,
+    SubscriptionModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

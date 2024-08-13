@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ActivatedSubscriptionResponse {
+  subscriptionEndDate: DateTime!
+  subscriptionType: SubscriptionType!
+  userId: ID!
+}
+
 input ActivationLinkInput {
   activationLink: String!
 }
@@ -375,6 +381,8 @@ enum MessageWithAIRole {
 }
 
 type Mutation {
+  activateSubscription(subscriptionType: SubscriptionType!): ActivatedSubscriptionResponse!
+
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!
@@ -397,6 +405,7 @@ type Mutation {
   createPlanWithAI(CoursePlanWithAIInput: CoursePlanWithAIInput!): CoursePlan!
   createQuiz(createQuizInput: QuizInput!): Quiz!
   createQuizWithAI(QuizWithAIInput: QuizWithAIInput!): Quiz!
+  createSubscription(data: SubscriptionInput!): SubscriptionEntity!
   createSubtopic(createSubtopicInput: SubtopicInput!): Subtopic!
   createTopic(createTopicInput: TopicInput!): Topic!
 
@@ -454,6 +463,7 @@ type Mutation {
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
   updateQuiz(updateQuizData: QuizInput!): Quiz!
+  updateSubscription(data: SubscriptionInput!, subscriptionId: ID!): SubscriptionEntity!
   updateSubtopic(updateSubtopicInput: UpdateSubtopicInput!): Subtopic!
   updateTopic(topicId: ID!, updateTopicInput: UpdateTopicInput!): Topic!
 }
@@ -478,6 +488,7 @@ type Query {
   getAllChats: [Chat!]!
   getAllChatsWithAI(lessonId: ID!): [ChatWithAI!]!
   getAllCourses: [Course!]!
+  getAllIndependentQuizzes: [QuizSummary!]!
   getAllLessons(subtopicId: ID!): [Lesson!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!
 
@@ -485,6 +496,7 @@ type Query {
   getAllMessages(chatId: String!): [Message!]!
   getAllQuizzes(subtopicId: ID!): [QuizSummary!]!
   getAllSubtopics(topicId: ID!): [Subtopic!]!
+  getAllTasksByLessonId(lessonId: ID!): [LessonTasks!]!
   getAllTopics(courseId: ID!): [Topic!]!
   getChatWithAI(chatWithAIID: ID!): ChatWithAI!
   getCourse(courseId: ID!): Course!
@@ -502,6 +514,8 @@ type Query {
   """
   getProfile: User!
   getQuiz(quizId: ID!): QuizDetails!
+  getSubscription(subscriptionId: ID!): SubscriptionEntity!
+  getSubscriptionByUserId: SubscriptionEntity!
   getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
   isActivated(activationLink: ActivationLinkInput!): Boolean!
@@ -595,7 +609,7 @@ type QuizSummary {
   description: String
   id: ID!
   name: String!
-  totalPercents: Int
+  totalPercents: Float
 }
 
 input QuizWithAIInput {
@@ -681,6 +695,43 @@ type Subscription {
   """
   newMessage: Message!
   quizWithAIAnswer(chatWithAIId: String!): Quiz!
+}
+
+type SubscriptionEntity {
+  additionalTitlesLimit: Float!
+  annualDiscountRate: Float!
+  courseLimitPerMonth: Float!
+  createdAt: DateTime!
+  hasAIAssistedHomework: Boolean!
+  hasBasicAnalytics: Boolean!
+  hasFileUploadInChat: Boolean!
+  hasImageGeneration: Boolean!
+  id: ID!
+  isAutoRenewal: Boolean!
+  lessonLimitPerCourse: Float!
+  price: Float!
+  type: SubscriptionType!
+  updatedAt: DateTime!
+}
+
+input SubscriptionInput {
+  additionalTitlesLimit: Float!
+  annualDiscountRate: Float!
+  courseLimitPerMonth: Float!
+  hasAIAssistedHomework: Boolean!
+  hasBasicAnalytics: Boolean!
+  hasFileUploadInChat: Boolean!
+  hasImageGeneration: Boolean!
+  isAutoRenewal: Boolean!
+  lessonLimitPerCourse: Float!
+  price: Float!
+  type: SubscriptionType!
+}
+
+enum SubscriptionType {
+  BASIC
+  PREMIUM
+  STANDARD
 }
 
 type Subtopic {

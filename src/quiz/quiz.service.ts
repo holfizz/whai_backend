@@ -142,6 +142,69 @@ export class QuizService {
     });
   }
 
+  async getAllIndependentQuizzes(userId: string): Promise<QuizSummary[]> {
+    // Fetch quizzes matching the criteria
+    const quizzes = await this.prisma.quiz.findMany({
+      where: {
+        userId: userId,
+        AND: [
+          { subtopicId: null },
+          { courseId: null },
+          {
+            quizResult: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        quizResult: {
+          include: { userAnswers: true },
+        },
+        questions: {
+          include: {
+            choices: true,
+            matchingInteraction: true,
+          },
+        },
+      },
+    });
+
+    return quizzes.map(quiz => {
+      const bestQuizResult = quiz.quizResult.reduce((best, current) => (current.totalPercents > (best?.totalPercents ?? 0) ? current : best), null);
+
+      if (bestQuizResult) {
+        const totalQuestions = quiz.questions.length;
+        const userAnswers = bestQuizResult.userAnswers;
+
+        const correctAnswersCount = userAnswers.filter(ua => ua.correctnessPercentage === 100).length;
+        const wrongAnswersCount = userAnswers.length - correctAnswersCount;
+
+        const totalPercents = totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
+
+        return {
+          id: quiz.id,
+          name: quiz.name,
+          description: quiz.description,
+          totalPercents,
+          correctAnswers: correctAnswersCount,
+          wrongAnswers: wrongAnswersCount,
+        };
+      }
+
+      return {
+        id: quiz.id,
+        name: quiz.name,
+        description: quiz.description,
+        totalPercents: 0,
+        correctAnswers: 0,
+        wrongAnswers: 0,
+      };
+    });
+  }
+
   async getQuiz(quizId: string, userId: string): Promise<any> {
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: quizId },
@@ -310,14 +373,14 @@ export class QuizService {
           selectedAnswers: userAnswer.selectedAnswers,
           matchingAnswers: userAnswer.matchingAnswers || [],
           correctnessPercentage,
-          correctAnswers, // Storing as array
+          correctAnswers,
         });
 
-        totalCorrectness += correctnessPercentage; // Accumulate correctness percentages
+        totalCorrectness += correctnessPercentage;
       }
 
       const totalQuestions = userAnswers.length;
-      const averageCorrectnessPercentage = totalQuestions > 0 ? totalCorrectness / totalQuestions : 0; // Calculate average percentage
+      const averageCorrectnessPercentage = totalQuestions > 0 ? totalCorrectness / totalQuestions : 0;
       await this.prisma.quiz.update({ where: { id: quizId }, data: { isCompleted: true } });
       const quizResult = await this.prisma.quizResult.create({
         data: {
@@ -422,7 +485,7 @@ export class QuizService {
     const parsedContent = JSON.parse(quizJson);
 
     const { questions, completionTime } = parsedContent;
-    const quiz = await this.prisma.quiz.create({ data: { name: "Test for testing knowledge" } });
+    const quiz = await this.prisma.quiz.create({ data: { name: "Test for testing knowledge", userId } });
     if (!quiz) {
       throw new Error("Failed to create quiz.");
     }
