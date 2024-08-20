@@ -9,7 +9,7 @@ const start = async () => {
   const PORT = process.env.PORT || 7700;
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: ["http://localhost:3000"],
+    origin: [process.env.FRONTEND_URL],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "apollo-require-preflight"],
   });

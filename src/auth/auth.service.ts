@@ -252,7 +252,7 @@ export class AuthService {
         expires: expiresIn,
         secure: true,
         domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.DOMAIN,
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: "lax",
       });
     } catch (error) {
       throw error;

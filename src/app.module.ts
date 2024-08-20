@@ -1,3 +1,6 @@
+import { CourseAIHistoryModule } from "@/couse-ai-history/course_ai_history.module";
+import { SubtopicModule } from "@/subtopic/subtopic.module";
+import { TopicModule } from "@/topic/topic.module";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
@@ -25,11 +28,8 @@ import { PaginationModule } from "./pagination/pagination.module";
 import { PlanModule } from "./plan/plan.module";
 import { PrismaService } from "./prisma.service";
 import { QuizModule } from "./quiz/quiz.module";
+import { SubscriptionModule } from "./subscription/subscription.module";
 import { UserModule } from "./user/user.module";
-import { SubtopicModule } from "@/subtopic/subtopic.module";
-import { TopicModule } from "@/topic/topic.module";
-import { CourseAIHistoryModule } from "@/couse-ai-history/course_ai_history.module";
-import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -61,7 +61,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     }),
 
     ServeStaticModule.forRoot({
-      rootPath: path.resolve(__dirname, "static"),
+      rootPath: path.resolve(__dirname, "../static"),
     }),
     AuthModule,
     UserModule,
