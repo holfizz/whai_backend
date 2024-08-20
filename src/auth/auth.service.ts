@@ -250,9 +250,10 @@ export class AuthService {
       res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
         httpOnly: true,
         expires: expiresIn,
-        secure: true,
-        domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.DOMAIN,
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.DOMAIN,
+        path: "/api/graphql",
+        sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
       });
     } catch (error) {
       throw error;
@@ -267,8 +268,8 @@ export class AuthService {
         httpOnly: true,
         domain: process.env.DOMAIN,
         expires: new Date(0),
-        secure: true,
-        //PRODUCTION - нужно поставить lax
+        secure: process.env.NODE_ENV === "production",
+        path: "/api/graphql",
         sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
       });
     } catch (error) {

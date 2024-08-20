@@ -6,7 +6,7 @@ import { AppModule } from "./app.module";
 
 const start = async () => {
   const app = await NestFactory.create(AppModule);
-  const PORT = process.env.PORT || 7700;
+  const PORT = process.env.PORT || 8800;
   app.setGlobalPrefix("api");
   app.enableCors({
     origin: [process.env.FRONTEND_URL],
