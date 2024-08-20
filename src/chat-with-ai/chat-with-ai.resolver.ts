@@ -2,7 +2,7 @@ import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import ChatWithAIService from "./chat-with-ai.service";
-import { ChatWithAIInput } from "./dto/chat-with-ai.Input";
+import { ChatWithAIInput } from "./dto/chat-with-ai.input";
 import { ChatWithAI } from "./entities/chat-with-ai.entity";
 
 @Resolver(ChatWithAI)
