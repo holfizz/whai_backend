@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -66,7 +67,7 @@ export class AuthService {
       }
 
       const activationLink = crypto.randomUUID();
-      console.log(activationLink);
+      logger.log(activationLink);
       await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
 
       const user = await this.prisma.user.create({
@@ -250,9 +251,8 @@ export class AuthService {
       res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
         httpOnly: true,
         expires: expiresIn,
-        secure: process.env.NODE_ENV === "production",
         domain: process.env.DOMAIN,
-        path: "/api/graphql",
+        secure: process.env.NODE_ENV === "development",
         sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
       });
     } catch (error) {
@@ -267,9 +267,9 @@ export class AuthService {
       res.cookie(this.REFRESH_TOKEN_NAME, "", {
         httpOnly: true,
         domain: process.env.DOMAIN,
+        secure: process.env.NODE_ENV === "development",
+
         expires: new Date(0),
-        secure: process.env.NODE_ENV === "production",
-        path: "/api/graphql",
         sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
       });
     } catch (error) {

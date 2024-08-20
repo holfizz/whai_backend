@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { LessonService } from "@/lesson/lesson.service";
 import { PrismaService } from "@/prisma.service";
 import { QuizService } from "@/quiz/quiz.service";
@@ -67,7 +68,7 @@ export class PlanRepository {
         });
 
         for (const lessonInput of subtopicInput.lessons) {
-          console.log("Creating lesson with data:", JSON.stringify(lessonInput, null, 2));
+          logger.log("Creating lesson with data:", JSON.stringify(lessonInput, null, 2));
           await this.createLessonPlan({
             name: lessonInput.name,
             description: lessonInput.description,
@@ -78,7 +79,7 @@ export class PlanRepository {
         }
 
         for (const quizInput of subtopicInput.quizzes) {
-          console.log("Creating quiz with data:", JSON.stringify(quizInput, null, 2));
+          logger.log("Creating quiz with data:", JSON.stringify(quizInput, null, 2));
           await this.createQuizPlan({
             name: quizInput.name,
             description: quizInput.description,

@@ -1,5 +1,6 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { AIDTO } from "@/edu-ai/types/ai.types";
+import logger from "@/helpers/logger";
 import { CoursePlan } from "@/plan/entities/plan.entity";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
@@ -74,7 +75,7 @@ export class PlanService {
     if (!fullContent) throw new Error("Failed to get content from AI service.");
     const planJson = this.extractPlanJson(fullContent);
     const parsedContent = JSON.parse(planJson);
-    console.log("parsedContent", parsedContent);
+    logger.log("parsedContent", parsedContent);
     await this.prisma.messageWithAI.create({
       data: {
         content: JSON.stringify(parsedContent),

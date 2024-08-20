@@ -1,5 +1,6 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { AIDTO } from "@/edu-ai/types/ai.types";
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { UpdateQuizInput } from "@/quiz/dto/update-quiz.input";
 import { Quiz, QuizSummary } from "@/quiz/entities/quiz.entity";
@@ -20,7 +21,7 @@ export class QuizService {
   ) {}
 
   async createQuizFromAI(data: UpdateQuizInput): Promise<Quiz> {
-    console.log("createQuizFromAI - data:", data);
+    logger.log("createQuizFromAI - data:", data);
 
     return await this.prisma.$transaction(async prisma => {
       if (!data.id) {
@@ -29,7 +30,7 @@ export class QuizService {
 
       if (data.questions) {
         for (const question of data.questions) {
-          console.log("createQuizFromAI - Creating question:", question);
+          logger.log("createQuizFromAI - Creating question:", question);
           await this.quizRepository.createQuestion(question, data.id);
         }
       }
@@ -227,14 +228,14 @@ export class QuizService {
       throw new Error(`Quiz with id ${quizId} not found.`);
     }
 
-    console.log("Quiz:", quiz);
+    logger.log("Quiz:", quiz);
 
     const quizResults = quiz.quizResult;
-    console.log("Quiz Results:", quizResults);
+    logger.log("Quiz Results:", quizResults);
 
     // Проверка наличия результатов
     if (!quizResults || quizResults.length === 0) {
-      console.log("No results found for this user and quiz.");
+      logger.log("No results found for this user and quiz.");
       return {
         id: quiz.id,
         name: quiz.name,
@@ -249,7 +250,7 @@ export class QuizService {
     // Получение лучшего результата
     const bestQuizResult = quizResults.reduce((best, current) => (current.totalPercents > (best?.totalPercents ?? 0) ? current : best), null);
 
-    console.log("Best Quiz Result:", bestQuizResult);
+    logger.log("Best Quiz Result:", bestQuizResult);
 
     let userAnswers = [];
 
@@ -352,7 +353,7 @@ export class QuizService {
 
       const userAnswerEntities = [];
       let totalCorrectness = 0;
-      console.log("userAnswer.selectedAnswers", userAnswers);
+      logger.log("userAnswer.selectedAnswers", userAnswers);
 
       for (const userAnswer of userAnswers) {
         const question = await this.prisma.question.findUnique({
@@ -367,7 +368,7 @@ export class QuizService {
 
         const { correctnessPercentage, correctAnswers } = this.calculateCorrectness(question, userAnswer);
 
-        console.log("userAnswer.selectedAnswers", userAnswer.selectedAnswers);
+        logger.log("userAnswer.selectedAnswers", userAnswer.selectedAnswers);
         userAnswerEntities.push({
           questionId: userAnswer.questionId,
           selectedAnswers: userAnswer.selectedAnswers,
@@ -430,7 +431,7 @@ export class QuizService {
             break;
           }
           const totalPairs = correctAnswers.length;
-          console.log("totalPairs", totalPairs);
+          logger.log("totalPairs", totalPairs);
           const correctPairs = matchAnswers.reduce((count, answer) => {
             const isCorrect = correctAnswers.some(correctAnswer => correctAnswer.left === answer.left && correctAnswer.right === answer.right);
             return count + (isCorrect ? 1 : 0);

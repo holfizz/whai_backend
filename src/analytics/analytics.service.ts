@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { LearningSessionInput } from "./dto/analytics.input";
@@ -46,7 +47,7 @@ export class AnalyticsService {
         });
       }
     }
-    console.log(sessionResult);
+    logger.log(sessionResult);
     return { sessionDetails: sessionResult };
   }
   // findAll() {

@@ -1,5 +1,6 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { AIDTO } from "@/edu-ai/types/ai.types";
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { GenerateTDInput, KnowledgeSumInput } from "./dto/message-with-ai.input";
@@ -25,7 +26,7 @@ export class ContentGeneratorService {
     const tdJson = this.extractTDJson(fullContent);
 
     const parsedContent = JSON.parse(tdJson);
-    console.log("parsedContent", parsedContent);
+    logger.log("parsedContent", parsedContent);
 
     return parsedContent;
   }
@@ -73,7 +74,7 @@ export class ContentGeneratorService {
       userAnswer: answer.question.questionType === "MATCH" ? answer.matchingAnswers : answer.selectedAnswers,
     }));
     const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
-    console.log(quiz);
+    logger.log(quiz);
     const aiDto: AIDTO = {
       content: {
         createType: "knowledge_sum",
@@ -90,7 +91,7 @@ export class ContentGeneratorService {
     const tdJson = this.extractKnowledgeSumJson(fullContent);
 
     const parsedContent = JSON.parse(tdJson);
-    console.log("parsedContent", parsedContent);
+    logger.log("parsedContent", parsedContent);
 
     return parsedContent;
   }

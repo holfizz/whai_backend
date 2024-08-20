@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
@@ -31,7 +32,7 @@ export class EduAiService {
       }));
     }
 
-    console.log(messagesHis || 1);
+    logger.log(messagesHis || 1);
     let botId: string;
 
     switch (botMode) {
@@ -90,7 +91,7 @@ export class EduAiService {
                 const eventData = completeMessage.replace(/^data:/, "").trim();
                 try {
                   const parsedData = JSON.parse(eventData);
-                  console.log(parsedData);
+                  logger.log(parsedData);
                   const messageData = {
                     id: randomUUID(),
 

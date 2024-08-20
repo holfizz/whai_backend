@@ -1,4 +1,5 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
+import logger from "@/helpers/logger";
 import { LessonBlock } from "@/lesson-block/entities/lesson-block.entity";
 import { PaginationService } from "@/pagination/pagination.service";
 import { PrismaService } from "@/prisma.service";
@@ -85,7 +86,7 @@ export class MessageWithAiService {
         },
       });
 
-      console.log(assistantMessage);
+      logger.log(assistantMessage);
       return assistantMessage;
     } catch (error) {
       console.error("Error: ", error);

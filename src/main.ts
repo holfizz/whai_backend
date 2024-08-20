@@ -3,6 +3,7 @@ import { NestFactory } from "@nestjs/core";
 import * as cookieParser from "cookie-parser";
 import { graphqlUploadExpress } from "graphql-upload-ts";
 import { AppModule } from "./app.module";
+import logger from "./helpers/logger";
 
 const start = async () => {
   const app = await NestFactory.create(AppModule);
@@ -19,7 +20,7 @@ const start = async () => {
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }) as any);
   app.getHttpAdapter().getInstance().disable("x-powered-by");
   await app.listen(PORT, () => {
-    console.log(`server started on PORT ${PORT}`);
+    logger.log(`server started on PORT ${PORT}`);
   });
 };
 start();

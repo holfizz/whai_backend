@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
 
@@ -9,7 +10,7 @@ export class AutoRenewalService {
   // @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     try {
-      console.log("Running auto-renewal process");
+      logger.log("Running auto-renewal process");
 
       const expiredSubscriptions = await this.prisma.subscriptionHistory.findMany({
         where: {
@@ -29,9 +30,9 @@ export class AutoRenewalService {
         }),
       );
 
-      console.log("Auto-renewal process completed");
+      logger.log("Auto-renewal process completed");
     } catch (error) {
-      console.error("Error during auto-renewal:", error);
+      logger.error("Error during auto-renewal:", error);
     }
   }
 }

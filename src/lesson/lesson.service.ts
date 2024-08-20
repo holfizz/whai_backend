@@ -1,5 +1,6 @@
 import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { AIDTO } from "@/edu-ai/types/ai.types";
+import logger from "@/helpers/logger";
 import { LessonBlockService } from "@/lesson-block/lesson-block.service";
 import { LessonTasksService } from "@/lesson-tasks/lesson-tasks.service";
 import { PrismaService } from "@/prisma.service";
@@ -98,7 +99,7 @@ export class LessonService {
     const lessonJson = this.extractLessonJson(fullContent);
 
     const parsedContent = JSON.parse(lessonJson);
-    console.log("parsedContent", parsedContent);
+    logger.log("parsedContent", parsedContent);
 
     await this.lessonRepository.validateSubtopic(dto.subtopicId);
 
@@ -140,7 +141,7 @@ export class LessonService {
       }
 
       const lessonStats = await this.lessonUtils.calculateLessonStats(currentLesson.id);
-      console.log(`Total Blocks: ${lessonStats.totalBlocks}`);
+      logger.log(`Total Blocks: ${lessonStats.totalBlocks}`);
 
       // Fetch the newly created lesson with lessonBlocks and tasks
       const createdLesson = await this.lessonRepository.findLessonById(currentLesson.id);

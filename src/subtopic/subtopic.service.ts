@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { SubtopicInput } from "./dto/create-subtopic.input";
@@ -12,7 +13,7 @@ export class SubtopicService {
       throw new BadRequestException("topicId must be provided888");
     }
 
-    console.log("Creating subtopic for topicId:", data.topicId);
+    logger.log("Creating subtopic for topicId:", data.topicId);
     const topic = await this.prisma.topic.findUnique({ where: { id: data.topicId } });
     if (!topic) {
       console.error(`Topic with ID ${data.topicId} not found`);
