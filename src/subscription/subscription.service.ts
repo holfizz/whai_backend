@@ -17,13 +17,11 @@ export class SubscriptionService {
         throw new ForbiddenException("Only administrators can create subscriptions");
       }
 
-      // Создаем новую подписку
       return await this.prisma.subscription.create({
         data: {
           type: data.type,
           price: data.price,
           annualDiscountRate: data.annualDiscountRate,
-          isAutoRenewal: data.isAutoRenewal,
           courseLimitPerMonth: data.courseLimitPerMonth,
           lessonLimitPerCourse: data.lessonLimitPerCourse,
           additionalTitlesLimit: data.additionalTitlesLimit,
@@ -39,11 +37,10 @@ export class SubscriptionService {
     }
   }
 
-  async getSubscriptionById(subscriptionId: string) {
+  async getSubscriptionById(subscriptionType: SubscriptionType) {
     try {
-      // Получаем подписку по идентификатору
       return await this.prisma.subscription.findUnique({
-        where: { id: subscriptionId },
+        where: { type: subscriptionType },
       });
     } catch (error) {
       console.error("Error fetching subscription by ID:", error);
@@ -53,22 +50,21 @@ export class SubscriptionService {
 
   async getSubscriptionByUserId(userId: string) {
     try {
-      // Получаем текущую подписку пользователя
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: { currentSubscription: true },
-      }).currentSubscription;
+      });
+      return user?.currentSubscription;
     } catch (error) {
       console.error("Error fetching subscription by user ID:", error);
       throw new InternalServerErrorException("Failed to fetch subscription by user ID");
     }
   }
 
-  async updateSubscription(subscriptionId: string, data: Partial<SubscriptionInput>) {
+  async updateSubscription(subscriptionType: SubscriptionType, data: Partial<SubscriptionInput>) {
     try {
-      // Обновляем подписку
       return await this.prisma.subscription.update({
-        where: { id: subscriptionId },
+        where: { type: subscriptionType },
         data,
       });
     } catch (error) {
@@ -79,7 +75,6 @@ export class SubscriptionService {
 
   async activateSubscription(userId: string, subscriptionType: SubscriptionType) {
     try {
-      // Находим выбранную подписку по типу
       const subscription = await this.prisma.subscription.findUnique({
         where: { type: subscriptionType },
       });
@@ -88,37 +83,35 @@ export class SubscriptionService {
         throw new Error(`Subscription of type ${subscriptionType} not found.`);
       }
 
-      // Завершаем текущую подписку пользователя, если есть
       await this.endCurrentSubscription(userId);
 
       const currentDate = new Date();
       const endDate = new Date(currentDate);
-      endDate.setDate(currentDate.getDate() + 30); // Устанавливаем конечную дату на 30 дней вперёд
+      endDate.setMonth(currentDate.getMonth() + 1); // Продление на 1 месяц
 
       // Создаем запись в истории подписок
-      await this.prisma.subscriptionHistory.create({
-        data: {
-          userId: userId,
-          subscriptionType: subscriptionType,
-          price: subscription.price,
-          startedAt: currentDate,
-          endedAt: endDate,
-        },
-      });
+      // await this.prisma.subscriptionHistory.create({
+      // data: {
+      //   userId: userId,
+      //   subscriptionType: subscriptionType,
+      //   price: subscription.price,
+      //   startedAt: currentDate,
+      //   endedAt: endDate,
+      //   paymentId: 0,
+      // },
+      // });
 
-      // Обновляем текущую подписку пользователя
       await this.prisma.user.update({
         where: { id: userId },
         data: {
-          currentSubscriptionId: subscription.id,
+          currentSubscriptionType: subscriptionType,
         },
       });
 
-      // Получаем обновленного пользователя и его текущую подписку
       const updatedUser = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
-          currentSubscription: true, // Включаем текущую подписку пользователя
+          currentSubscription: true,
         },
       });
 
@@ -128,7 +121,7 @@ export class SubscriptionService {
 
       return {
         userId: updatedUser.id,
-        subscriptionType: subscription.type,
+        subscriptionType: subscriptionType,
         subscriptionEndDate: endDate,
       };
     } catch (error) {
@@ -144,11 +137,11 @@ export class SubscriptionService {
         include: { currentSubscription: true },
       });
 
-      if (user?.currentSubscriptionId) {
+      if (user?.currentSubscriptionType) {
         await this.prisma.subscriptionHistory.updateMany({
           where: {
             userId: userId,
-            subscriptionType: user.currentSubscription.type,
+            subscriptionType: user.currentSubscriptionType,
             endedAt: null,
           },
           data: {

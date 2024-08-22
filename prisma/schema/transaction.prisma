@@ -1,0 +1,26 @@
+enum TransactionStatus {
+  PENDING
+  AUTH_FAIL
+  REJECTED
+  CONFIRMED
+  THREE_DS_CHECKING
+}
+
+model Transaction {
+  id        String            @id @default(cuid())
+  status    TransactionStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  paymentId     String? @unique @map("payment_id")
+  paymentMethod String? @map("payment_method")
+
+  months   Int              @default(1)
+  amount   Float
+  type     SubscriptionType
+  user     User             @relation(fields: [userId], references: [id])
+  userId   String           @map("user_id")
+  rebillId Int?             @map("rebill_id")
+
+  @@map("transaction")
+}

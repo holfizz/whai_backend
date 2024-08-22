@@ -16,7 +16,8 @@
     "prisma:migrate": "prisma migrate dev && prisma generate",
     "test": "jest --config ./config/jest/jest.config.ts",
     "test:watch": "jest --watch --config ./config/jest/jest.config.ts",
-    "test:e2e": "jest --config ./test/jest-e2e.json --config ./config/jest/jest.config.ts"
+    "test:e2e": "jest --config ./test/jest-e2e.json --config ./config/jest/jest.config.ts",
+    "ngrok": "ngrok http 8800"
   },
   "dependencies": {
     "@apollo/federation": "^0.38.1",
@@ -59,6 +60,7 @@
     "lucide-react": "^0.399.0",
     "mammoth": "^1.7.0",
     "nestjs-telegraf": "^2.7.0",
+    "ngrok": "5.0.0-beta.2",
     "nodemailer": "^6.9.8",
     "openai": "^4.27.0",
     "passport-jwt": "^4.0.1",

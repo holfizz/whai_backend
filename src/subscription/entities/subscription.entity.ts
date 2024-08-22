@@ -1,4 +1,3 @@
-import { BaseEntity } from "@/helpers/base.entity";
 import { Field, Float, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { SubscriptionType } from "@prisma/client";
 import { IsBoolean, IsNumber, IsOptional, IsUUID } from "class-validator";
@@ -9,7 +8,7 @@ registerEnumType(SubscriptionType, {
 });
 
 @ObjectType()
-export class SubscriptionEntity extends BaseEntity {
+export class SubscriptionEntity {
   @Field(() => SubscriptionType)
   @IsOptional()
   type: SubscriptionType;

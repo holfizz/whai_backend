@@ -24,7 +24,7 @@ export class AutoRenewalService {
           await this.prisma.user.update({
             where: { id: subscription.userId },
             data: {
-              currentSubscriptionId: null, // Убираем текущую подписку у пользователя
+              currentSubscriptionType: null,
             },
           });
         }),

@@ -29,6 +29,7 @@ import { PlanModule } from "./plan/plan.module";
 import { PrismaService } from "./prisma.service";
 import { QuizModule } from "./quiz/quiz.module";
 import { SubscriptionModule } from "./subscription/subscription.module";
+import { TransactionModule } from "./transaction/transaction.module";
 import { UserModule } from "./user/user.module";
 
 @Module({
@@ -86,6 +87,7 @@ import { UserModule } from "./user/user.module";
     PlanModule,
     CourseAIHistoryModule,
     SubscriptionModule,
+    TransactionModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

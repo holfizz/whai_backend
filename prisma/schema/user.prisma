@@ -10,41 +10,44 @@ enum UserRole {
 // Models
 
 model User {
-  id                      String                @id @unique @default(uuid())
-  createdAt               DateTime              @default(now()) @map("created_at")
-  updatedAt               DateTime              @updatedAt @map("updated_at")
-  firstName               String                @map("first_name")
-  lastName                String                @map("last_name")
-  phoneNumber             String                @unique @map("phone_number")
-  avatarPath              String?               @map("avatar_path")
-  email                   String                @unique
+  id                      String            @id @unique @default(uuid())
+  createdAt               DateTime          @default(now()) @map("created_at")
+  updatedAt               DateTime          @updatedAt @map("updated_at")
+  firstName               String            @map("first_name")
+  lastName                String            @map("last_name")
+  phoneNumber             String            @unique @map("phone_number")
+  avatarPath              String?           @map("avatar_path")
+  email                   String            @unique
   password                String
-  roles                   UserRole[]            @default([USER, STUDENT])
-  isVerified              Boolean               @default(false) @map("is_verified")
-  activationLink          String?               @unique @map("activation_link")
-  resetPasswordToken      String?               @map("reset_password_token")
-  resetPasswordExpiration DateTime?             @map("reset_password_expiration")
-  courseId                String?               @map("course_id")
+  roles                   UserRole[]        @default([USER, STUDENT])
+  isVerified              Boolean           @default(false) @map("is_verified")
+  activationLink          String?           @unique @map("activation_link")
+  resetPasswordToken      String?           @map("reset_password_token")
+  resetPasswordExpiration DateTime?         @map("reset_password_expiration")
+  courseId                String?           @map("course_id")
   chat                    Chat[]
   chatMembers             ChatMembers[]
   chatsWithAI             ChatWithAI[]
   message                 Message[]
-  course                  Course?               @relation(fields: [courseId], references: [id])
+  course                  Course?           @relation(fields: [courseId], references: [id])
   learningSession         LearningSession[]
   telegramLink            TelegramLink?
-  isTelegramLinked        Boolean?              @default(false) @map("is_telegram_linked")
-  telegramId              String?               @unique @map("telegram_id")
+  isTelegramLinked        Boolean?          @default(false) @map("is_telegram_linked")
+  telegramId              String?           @unique @map("telegram_id")
   notice                  Notice[]
-  sentNotices             Notice[]              @relation(name: "NoticeSender")
+  sentNotices             Notice[]          @relation(name: "NoticeSender")
   quizResult              QuizResult[]
   courseAIHistory         CourseAIHistory[]
   Analytics               Analytics?
-  currentSubscription     Subscription?         @relation(fields: [currentSubscriptionId], references: [id])
-  currentSubscriptionId   String?               @map("current_subscription_id")
+
+  currentSubscriptionType SubscriptionType?     @unique @map("current_subscription_id")
   subscriptionHistory     SubscriptionHistory[]
   isTrial                 Boolean               @default(false) @map("is_trial")
   trialEndsAt             DateTime?             @map("trial_ends_at")
   quizzes                 Quiz[]
+  isAutoRenewal           Boolean               @default(true) @map("is_auto_renewal")
+  currentSubscription     Subscription?         @relation(fields: [currentSubscriptionType], references: [type])
+  Transaction             Transaction[]
 
   @@map("users")
 }

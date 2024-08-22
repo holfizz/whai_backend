@@ -1,6 +1,6 @@
 import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
-import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { SubscriptionType } from "@prisma/client";
 import { SubscriptionInput } from "./dto/create-subscription.input";
 import { ActivatedSubscriptionResponse, SubscriptionEntity } from "./entities/subscription.entity";
@@ -16,22 +16,25 @@ export class SubscriptionResolver {
     return this.subscriptionService.createSubscription(adminId, data);
   }
 
-  @Query(() => SubscriptionEntity)
+  @Query(() => SubscriptionEntity, { name: "getSubscriptionByUserId" })
   @Auth("user")
   async getSubscriptionByUserId(@CurrentUser("id") userId: string) {
     return this.subscriptionService.getSubscriptionByUserId(userId);
   }
 
-  @Query(() => SubscriptionEntity)
+  @Query(() => SubscriptionEntity, { name: "getSubscription" })
   @Auth("user")
-  async getSubscription(@Args("subscriptionId", { type: () => ID }) subscriptionId: string) {
-    return this.subscriptionService.getSubscriptionById(subscriptionId);
+  async getSubscription(@Args("subscriptionType", { type: () => SubscriptionType }) subscriptionType: SubscriptionType) {
+    return this.subscriptionService.getSubscriptionById(subscriptionType);
   }
 
   @Mutation(() => SubscriptionEntity)
   @Auth("user")
-  async updateSubscription(@Args("subscriptionId", { type: () => ID }) subscriptionId: string, @Args("data", { type: () => SubscriptionInput }) data: Partial<SubscriptionInput>) {
-    return this.subscriptionService.updateSubscription(subscriptionId, data);
+  async updateSubscription(
+    @Args("subscriptionType", { type: () => SubscriptionType }) subscriptionType: SubscriptionType,
+    @Args("data", { type: () => SubscriptionInput }) data: Partial<SubscriptionInput>,
+  ) {
+    return this.subscriptionService.updateSubscription(subscriptionType, data);
   }
 
   @Mutation(() => ActivatedSubscriptionResponse)

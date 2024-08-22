@@ -313,6 +313,10 @@ input LessonWithAITasksBlocksInput {
   types: [LessonTypeEnum!]
 }
 
+input MakePaymentDto {
+  months: Float!
+}
+
 type MatchingAnswer {
   left: String!
   right: String!
@@ -438,6 +442,7 @@ type Mutation {
   """
   leaveChat(chatId: String!): ChatMember!
   login(loginInput: loginInput!): SignResponse!
+  makePayment(dto: MakePaymentDto!): TinkoffPaymentResponse!
   resetPassword(dto: ResetPasswordInput!): Boolean!
   saveQuizResult(saveQuizResultInput: SaveQuizResultInput!): QuizResult!
   signUp(signUpInput: SignUpInput!): SignResponse!
@@ -463,7 +468,7 @@ type Mutation {
   """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
   updateQuiz(updateQuizData: QuizInput!): Quiz!
-  updateSubscription(data: SubscriptionInput!, subscriptionId: ID!): SubscriptionEntity!
+  updateSubscription(data: SubscriptionInput!, subscriptionType: SubscriptionType!): SubscriptionEntity!
   updateSubtopic(updateSubtopicInput: UpdateSubtopicInput!): Subtopic!
   updateTopic(topicId: ID!, updateTopicInput: UpdateTopicInput!): Topic!
 }
@@ -514,7 +519,7 @@ type Query {
   """
   getProfile: User!
   getQuiz(quizId: ID!): QuizDetails!
-  getSubscription(subscriptionId: ID!): SubscriptionEntity!
+  getSubscription(subscriptionType: SubscriptionType!): SubscriptionEntity!
   getSubscriptionByUserId: SubscriptionEntity!
   getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
@@ -701,17 +706,14 @@ type SubscriptionEntity {
   additionalTitlesLimit: Float!
   annualDiscountRate: Float!
   courseLimitPerMonth: Float!
-  createdAt: DateTime!
   hasAIAssistedHomework: Boolean!
   hasBasicAnalytics: Boolean!
   hasFileUploadInChat: Boolean!
   hasImageGeneration: Boolean!
-  id: ID!
   isAutoRenewal: Boolean!
   lessonLimitPerCourse: Float!
   price: Float!
   type: SubscriptionType!
-  updatedAt: DateTime!
 }
 
 input SubscriptionInput {
@@ -776,6 +778,11 @@ input SubtopicPlanInput {
 type TelegramLink {
   link: String!
   message: String!
+}
+
+type TinkoffPaymentResponse {
+  confirmationToken: String
+  paymentUrl: String
 }
 
 type Topic {
