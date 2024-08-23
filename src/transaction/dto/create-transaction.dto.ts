@@ -18,7 +18,7 @@ export class CreateTransactionDto {
       value: string;
       currency: string;
     };
-    id: string;
+
     status: string;
     payment_method?: {
       type: string;

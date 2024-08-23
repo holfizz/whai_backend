@@ -315,6 +315,7 @@ input LessonWithAITasksBlocksInput {
 
 input MakePaymentDto {
   months: Float!
+  subscriptionType: SubscriptionType!
 }
 
 type MatchingAnswer {
@@ -781,7 +782,6 @@ type TelegramLink {
 }
 
 type TinkoffPaymentResponse {
-  confirmationToken: String
   paymentUrl: String
 }
 

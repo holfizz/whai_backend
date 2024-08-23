@@ -57,7 +57,7 @@ export interface INotificationBase {
   TerminalKey: string; // Идентификатор терминала
   Amount: number; // Сумма в копейках
   OrderId: string; // Идентификатор заказа в системе Мерчанта
-  Success: boolean; // Успешность прохождения запроса
+  Success: boolean;
   Status: TransactionStatus;
   PaymentId: number; // Уникальный идентификатор транзакции в системе Т‑Кассы
   ErrorCode: string; // Код ошибки. «0» в случае успеха
@@ -68,4 +68,14 @@ export interface INotificationBase {
   RebillId?: number; // Идентификатор автоплатежа (для рекуррентных платежей)
   CardId?: number; // Идентификатор карты в системе Т‑Кассы
   Pan?: string; // Замаскированный номер карты/телефона (если нужно)// Дополнительные параметры платежа
+}
+export interface TinkoffReqResult {
+  Success: boolean;
+  ErrorCode: string;
+  TerminalKey: string;
+  Status: string;
+  PaymentId: string;
+  OrderId: string;
+  Amount: number;
+  PaymentURL: string;
 }

@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { INotificationBase } from "@/lib/tinkoff/types/tinkoff.types";
 import { PrismaService } from "@/prisma.service";
 import { Injectable } from "@nestjs/common";
@@ -13,10 +14,10 @@ export class WebhookService {
       throw new Error("Transaction not found");
     }
 
-    if (dto.Success && transaction.userId) {
+    if (dto.Status && transaction.userId) {
       await this.prisma.transaction.update({ where: { id: dto.OrderId }, data: { rebillId: dto.RebillId } });
 
-      await this.prisma.subscriptionHistory.create({
+      const subData = await this.prisma.subscriptionHistory.create({
         data: {
           user: {
             connect: { id: transaction.userId },
@@ -29,7 +30,7 @@ export class WebhookService {
           transactionId: transaction.id,
         },
       });
-
+      logger.log(subData);
       return true;
     }
 

@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { TinkoffService } from "@/lib/tinkoff/tinkoff.service";
 import { PrismaService } from "@/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
@@ -20,7 +21,7 @@ export class TransactionService {
     }
 
     const subs = await this.prisma.subscription.findUnique({
-      where: { type: user.currentSubscriptionType },
+      where: { type: dto.subscriptionType },
     });
 
     if (!subs) {
@@ -38,7 +39,10 @@ export class TransactionService {
         },
         userId,
       );
-
+      logger.log(paymentResponse);
+      if (!paymentResponse.Success) {
+        throw Error("Error creating payment by T-BANK.");
+      }
       await this.create({
         userId,
         months: dto.months,
@@ -47,19 +51,16 @@ export class TransactionService {
             value: amount.toString(),
             currency: "RUB",
           },
-          // id: paymentResponse.confirmationToken || "",
-          id: "",
           status: "PENDING",
         },
       });
 
-      // return {
-      //   confirmationToken: paymentResponse.confirmationToken,
-      // };
-      return true;
+      return {
+        paymentUrl: paymentResponse.PaymentURL,
+      };
     } catch (error) {
-      console.error("Error making payment:", error.message || error);
-      throw new BadRequestException("Error creating payment.");
+      logger.error("Error making payment:", error.message || error);
+      throw new BadRequestException("Error creating payment.", error);
     }
   }
 

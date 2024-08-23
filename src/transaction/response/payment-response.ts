@@ -6,10 +6,5 @@ export class TinkoffPaymentResponse {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  confirmationToken?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
   paymentUrl?: string;
 }
