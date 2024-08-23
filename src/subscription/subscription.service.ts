@@ -1,7 +1,7 @@
 import { PrismaService } from "@/prisma.service";
 import { ForbiddenException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { SubscriptionType } from "@prisma/client";
-import { SubscriptionInput } from "./dto/create-subscription.input";
+import { ActivateDto, SubscriptionInput } from "./dto/create-subscription.input";
 
 @Injectable()
 export class SubscriptionService {
@@ -73,38 +73,38 @@ export class SubscriptionService {
     }
   }
 
-  async activateSubscription(userId: string, subscriptionType: SubscriptionType) {
+  async activateSubscription(userId: string, dto: ActivateDto) {
     try {
       const subscription = await this.prisma.subscription.findUnique({
-        where: { type: subscriptionType },
+        where: { type: dto.subscriptionType },
       });
 
       if (!subscription) {
-        throw new Error(`Subscription of type ${subscriptionType} not found.`);
+        throw new Error(`Subscription of type ${dto.subscriptionType} not found.`);
       }
 
-      await this.endCurrentSubscription(userId);
+      // await this.endCurrentSubscription(userId);
 
       const currentDate = new Date();
       const endDate = new Date(currentDate);
-      endDate.setMonth(currentDate.getMonth() + 1); // Продление на 1 месяц
+      endDate.setMonth(currentDate.getMonth() + 1);
 
-      // Создаем запись в истории подписок
-      // await this.prisma.subscriptionHistory.create({
-      // data: {
-      //   userId: userId,
-      //   subscriptionType: subscriptionType,
-      //   price: subscription.price,
-      //   startedAt: currentDate,
-      //   endedAt: endDate,
-      //   paymentId: 0,
-      // },
-      // });
+      await this.prisma.subscriptionHistory.create({
+        data: {
+          user: { connect: { id: userId } },
+          subscriptionType: dto.subscriptionType,
+          price: subscription.price,
+          startedAt: currentDate,
+          endedAt: endDate,
+          transactionId: dto.transactionId,
+          paymentId: String(dto.paymentId),
+        },
+      });
 
       await this.prisma.user.update({
         where: { id: userId },
         data: {
-          currentSubscriptionType: subscriptionType,
+          currentSubscriptionType: dto.subscriptionType,
         },
       });
 
@@ -121,7 +121,7 @@ export class SubscriptionService {
 
       return {
         userId: updatedUser.id,
-        subscriptionType: subscriptionType,
+        subscriptionType: dto.subscriptionType,
         subscriptionEndDate: endDate,
       };
     } catch (error) {

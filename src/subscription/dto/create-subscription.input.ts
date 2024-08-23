@@ -51,3 +51,9 @@ export class SubscriptionInput {
   @IsBoolean()
   hasImageGeneration: boolean;
 }
+
+export class ActivateDto {
+  subscriptionType: SubscriptionType;
+  transactionId: string;
+  paymentId: string;
+}

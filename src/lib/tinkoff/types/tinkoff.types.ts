@@ -1,5 +1,3 @@
-import { TransactionStatus } from "@prisma/client";
-
 export interface IInitPaymentRequest {
   TerminalKey: string; // Идентификатор терминала
   Amount: number; // Сумма платежа в копейках
@@ -53,22 +51,21 @@ export interface IChargeRecurrentPaymentResponse {
     Message: string; // Сообщение об ошибке
   };
 }
-export interface INotificationBase {
-  TerminalKey: string; // Идентификатор терминала
-  Amount: number; // Сумма в копейках
-  OrderId: string; // Идентификатор заказа в системе Мерчанта
+export interface TinkoffNotificationDto {
+  TerminalKey: string;
+  OrderId: string;
   Success: boolean;
-  Status: TransactionStatus;
-  PaymentId: number; // Уникальный идентификатор транзакции в системе Т‑Кассы
-  ErrorCode: string; // Код ошибки. «0» в случае успеха
-  Message?: string; // Краткое описание ошибки
-  Details?: string; // Подробное описание ошибки
-  Token: string; // Подпись запроса
-  DATA?: Record<string, any>;
-  RebillId?: number; // Идентификатор автоплатежа (для рекуррентных платежей)
-  CardId?: number; // Идентификатор карты в системе Т‑Кассы
-  Pan?: string; // Замаскированный номер карты/телефона (если нужно)// Дополнительные параметры платежа
+  Status: string;
+  PaymentId: string;
+  ErrorCode: string;
+  Amount: number;
+  CardId: number;
+  Pan: string;
+  ExpDate: string;
+  RebillId: number;
+  Token: string;
 }
+
 export interface TinkoffReqResult {
   Success: boolean;
   ErrorCode: string;
@@ -78,4 +75,15 @@ export interface TinkoffReqResult {
   OrderId: string;
   Amount: number;
   PaymentURL: string;
+}
+export interface TinkoffChargeResponse {
+  TerminalKey: string;
+  Amount: number;
+  OrderId: string;
+  Success: boolean;
+  Status: string;
+  PaymentId: string;
+  ErrorCode: string;
+  Message: string;
+  Details: string;
 }

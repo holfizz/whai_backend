@@ -5,7 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 import { TinkoffPaymentDto, TinkoffRequestDto } from "./dto/tinkoff.dto";
-import { TinkoffReqResult } from "./types/tinkoff.types";
+import { TinkoffChargeResponse, TinkoffReqResult } from "./types/tinkoff.types";
 
 @Injectable()
 export class TinkoffService {
@@ -50,7 +50,7 @@ export class TinkoffService {
     return await this.request(payload, "Init");
   }
 
-  private async request(dto: TinkoffRequestDto, endpoint: string): Promise<TinkoffReqResult> {
+  private async request(dto: any, endpoint: string): Promise<TinkoffReqResult> {
     try {
       const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
       logger.log("Generating token for request...");
@@ -126,8 +126,25 @@ export class TinkoffService {
       throw error;
     }
   }
+  async requestCharge(dto: any, endpoint: string): Promise<TinkoffChargeResponse> {
+    try {
+      const { data } = await this.httpService.axiosRef.request({
+        method: "POST",
+        url: `${this.configService.get<string>("TINKOFF_API_URL")}/${endpoint}`,
+        data: dto,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-  private generateToken(params: Record<string, any>): string {
+      logger.log("Response from Tinkoff:", data);
+      return data;
+    } catch (error) {
+      logger.error("Error during request:", error);
+      throw error;
+    }
+  }
+  generateToken(params: Record<string, any>): string {
     console.log("Generating SHA-256 token with params:", params);
 
     const password = this.configService.get<string>("TBANK_PASSWORD");

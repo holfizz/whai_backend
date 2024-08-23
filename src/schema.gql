@@ -2,12 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type ActivatedSubscriptionResponse {
-  subscriptionEndDate: DateTime!
-  subscriptionType: SubscriptionType!
-  userId: ID!
-}
-
 input ActivationLinkInput {
   activationLink: String!
 }
@@ -386,8 +380,6 @@ enum MessageWithAIRole {
 }
 
 type Mutation {
-  activateSubscription(subscriptionType: SubscriptionType!): ActivatedSubscriptionResponse!
-
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!

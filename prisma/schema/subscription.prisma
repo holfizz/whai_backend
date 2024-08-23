@@ -30,9 +30,9 @@ model SubscriptionHistory {
   price            Float            @map("price")
   startedAt        DateTime         @map("started_at")
   endedAt          DateTime?        @map("ended_at")
-  userId           String           @unique @map("user_id")
+  userId           String           @map("user_id")
   user             User?            @relation(fields: [userId], references: [id])
-  paymentId        Int              @map("payment_id")
+  paymentId        String           @map("payment_id")
   transactionId    String
 
   @@map("subscription_history")

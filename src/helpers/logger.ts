@@ -9,5 +9,10 @@ class logger {
       console.error(...props);
     }
   }
+  warn(...props) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(...props);
+    }
+  }
 }
 export default new logger();

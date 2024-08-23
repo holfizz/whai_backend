@@ -1,9 +1,9 @@
 enum TransactionStatus {
   PENDING
-  AUTH_FAIL
   REJECTED
   CONFIRMED
-  THREE_DS_CHECKING
+  REVERSED
+  REFUNDED
 }
 
 model Transaction {
@@ -12,7 +12,7 @@ model Transaction {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  paymentId     String? @unique @map("payment_id")
+  paymentId     String? @map("payment_id")
   paymentMethod String? @map("payment_method")
 
   months   Int              @default(1)
@@ -20,7 +20,7 @@ model Transaction {
   type     SubscriptionType
   user     User             @relation(fields: [userId], references: [id])
   userId   String           @map("user_id")
-  rebillId Int?             @map("rebill_id")
+  rebillId BigInt?          @map("rebill_id")
 
   @@map("transaction")
 }

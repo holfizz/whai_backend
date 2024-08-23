@@ -43,17 +43,6 @@ export class TransactionService {
       if (!paymentResponse.Success) {
         throw Error("Error creating payment by T-BANK.");
       }
-      await this.create({
-        userId,
-        months: dto.months,
-        payment: {
-          amount: {
-            value: amount.toString(),
-            currency: "RUB",
-          },
-          status: "PENDING",
-        },
-      });
 
       return {
         paymentUrl: paymentResponse.PaymentURL,
@@ -64,21 +53,7 @@ export class TransactionService {
     }
   }
 
-  async create({ userId, months, payment }: CreateTransactionDto) {
-    // return this.prisma.transaction.create({
-    //   data: {
-    //     months,
-    //     amount: parseFloat(payment.amount.value),
-    //     paymentId: payment.id,
-    //     status: "PENDING",
-    //     user: {
-    //       connect: { id: userId },
-    //     },
-    //   },
-    // });
-  }
-
-  async update({ transactionId, months, payment }: UpdateTransactionDto) {
+  async update({ transactionId, months }: UpdateTransactionDto) {
     const updateData: Partial<CreateTransactionDto> = {
       months,
       // amount: payment ? parseFloat(payment.amount.value) : undefined,

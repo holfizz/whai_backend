@@ -1,43 +1,70 @@
 import logger from "@/helpers/logger";
-import { INotificationBase } from "@/lib/tinkoff/types/tinkoff.types";
+import { TinkoffNotificationDto } from "@/lib/tinkoff/types/tinkoff.types";
 import { PrismaService } from "@/prisma.service";
+import { SubscriptionService } from "@/subscription/subscription.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class WebhookService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly subscriptionService: SubscriptionService,
+  ) {}
 
-  async tinkoff(dto: INotificationBase) {
-    const transaction = await this.prisma.transaction.findFirst({ where: { id: dto.OrderId } });
-    const subs = await this.prisma.subscription.findUnique({ where: { type: transaction.type } });
+  async tinkoff(dto: TinkoffNotificationDto): Promise<string> {
+    console.log("LOOOOOG");
+    console.log(dto);
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { id: dto.OrderId },
+    });
+
     if (!transaction) {
+      logger.error("Transaction not found");
       throw new Error("Transaction not found");
     }
 
-    if (dto.Status && transaction.userId) {
-      await this.prisma.transaction.update({ where: { id: dto.OrderId }, data: { rebillId: dto.RebillId } });
+    switch (dto.Status) {
+      case "AUTHORIZED":
+        logger.log(`Payment authorized for OrderId: ${dto.OrderId}`);
+        break;
+      case "CONFIRMED":
+        logger.log(`Payment confirmed for OrderId: ${dto.OrderId}`);
+        await this.prisma.transaction.update({
+          where: { id: dto.OrderId },
+          data: { status: "CONFIRMED", rebillId: dto.RebillId, paymentId: String(dto.PaymentId) },
+        });
+        const userId = transaction.userId;
+        if (!userId) {
+          throw new Error("User ID not found in transaction");
+        }
 
-      const subData = await this.prisma.subscriptionHistory.create({
-        data: {
-          user: {
-            connect: { id: transaction.userId },
-          },
-          startedAt: new Date(),
-          price: subs.price,
-          subscriptionType: transaction.type,
-          endedAt: new Date(new Date().setDate(new Date().getDate() + 30)),
-          paymentId: transaction.rebillId,
-          transactionId: transaction.id,
-        },
-      });
-      logger.log(subData);
-      return true;
+        await this.subscriptionService.activateSubscription(userId, { transactionId: transaction.id, subscriptionType: transaction.type, paymentId: dto.PaymentId });
+        break;
+      case "REVERSED":
+        logger.log(`Payment reversed for OrderId: ${dto.OrderId}`);
+        await this.prisma.transaction.update({
+          where: { id: dto.OrderId },
+          data: { status: "REVERSED" },
+        });
+        break;
+      case "REFUNDED":
+        logger.log(`Payment refunded for OrderId: ${dto.OrderId}`);
+        await this.prisma.transaction.update({
+          where: { id: dto.OrderId },
+          data: { status: "REFUNDED" },
+        });
+        break;
+      case "REJECTED":
+        logger.error(`Payment rejected for OrderId: ${dto.OrderId}`);
+        await this.prisma.transaction.update({
+          where: { id: dto.OrderId },
+          data: { status: "REJECTED" },
+        });
+        break;
+      default:
+        logger.warn(`Unhandled payment status: ${dto.Status} for OrderId: ${dto.OrderId}`);
     }
 
-    return false;
-  }
-
-  private getEndDate(months: number): Date {
-    return new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000);
+    return "Ok";
   }
 }
