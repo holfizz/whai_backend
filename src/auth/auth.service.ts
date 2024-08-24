@@ -68,7 +68,12 @@ export class AuthService {
 
       const activationLink = crypto.randomUUID();
       logger.log(activationLink);
-      await this.mailService.sendActivationMail(dto.email, `${process.env.FRONTEND_URL}/confirmEmail/${activationLink}`);
+      await this.mailService.sendActivationMail({
+        to: dto.email,
+        link: `${process.env.FRONTEND_URL}/activate-email/${activationLink}`,
+        name: dto.firstName,
+        type: "ACTIVATE_EMAIL",
+      });
 
       const user = await this.prisma.user.create({
         data: {
@@ -79,7 +84,7 @@ export class AuthService {
 	  roles: ["ADMIN"],
           password: await bcrypt.hash(dto.password, 5),
           activationLink: activationLink,
-          isVerified: true,
+          isVerified: false,
         },
       });
 
@@ -197,17 +202,21 @@ export class AuthService {
           resetPasswordExpiration: expirationDate,
         },
       });
-      await this.mailService.sendActivationMail(user.email, `${process.env.FRONTEND_URL}/reset-password/${resetToken}`);
+      await this.mailService.sendActivationMail({ to: user.email, link: `${process.env.FRONTEND_URL}/reset-password/${resetToken}`, name: user.firstName, type: "RESET_PASS" });
       return "Сообщение отправлено";
     } catch (error) {
       throw error;
     }
   }
 
-  async forgotPassword(email) {
+  async forgotPassword(email: string) {
     try {
-      await this.generateResetPasswordToken(email.email);
-      return true;
+      console.log(email);
+      if (email) {
+        await this.generateResetPasswordToken(email);
+        return true;
+      }
+      return false;
     } catch (error) {
       throw error;
     }
