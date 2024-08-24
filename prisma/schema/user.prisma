@@ -45,7 +45,7 @@ model User {
   isTrial                 Boolean               @default(false) @map("is_trial")
   trialEndsAt             DateTime?             @map("trial_ends_at")
   quizzes                 Quiz[]
-  isAutoRenewal           Boolean               @default(true) @map("is_auto_renewal")
+  isAutoRenewal           Boolean               @default(false) @map("is_auto_renewal")
   currentSubscription     Subscription?         @relation(fields: [currentSubscriptionType], references: [type])
   Transaction             Transaction[]
 

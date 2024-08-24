@@ -55,5 +55,6 @@ export class SubscriptionInput {
 export class ActivateDto {
   subscriptionType: SubscriptionType;
   transactionId: string;
+  months: number;
   paymentId: string;
 }

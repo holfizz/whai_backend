@@ -2,9 +2,7 @@ import logger from "@/helpers/logger";
 import { TinkoffService } from "@/lib/tinkoff/tinkoff.service";
 import { PrismaService } from "@/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { MakePaymentDto } from "./dto/make-payment.dto";
-import { UpdateTransactionDto } from "./dto/update-transaction.dto";
 
 @Injectable()
 export class TransactionService {
@@ -14,28 +12,30 @@ export class TransactionService {
   ) {}
 
   async makePayment(dto: MakePaymentDto, userId: string): Promise<any> {
-    // Найти текущий тип подписки пользователя
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.update({ where: { id: userId }, data: { isAutoRenewal: dto.isAutoRenewal } });
     if (!user) {
       throw new BadRequestException("User not found.");
     }
-
     const subs = await this.prisma.subscription.findUnique({
       where: { type: dto.subscriptionType },
     });
-
     if (!subs) {
       throw new BadRequestException("Subscription not found.");
     }
+    let totalAmount = subs.price * dto.months;
 
-    const amount = subs.price * dto.months;
-
+    if (dto.months === 12) {
+      const discount = 0.2;
+      totalAmount = totalAmount * (1 - discount);
+    }
     try {
       const paymentResponse = await this.tinkoff.createPayment(
         {
           subType: subs.type,
           Descriptions: `Subscription for ${dto.months} months`,
           userId,
+          totalAmount,
+          months: dto.months,
         },
         userId,
       );
@@ -43,7 +43,6 @@ export class TransactionService {
       if (!paymentResponse.Success) {
         throw Error("Error creating payment by T-BANK.");
       }
-
       return {
         paymentUrl: paymentResponse.PaymentURL,
       };
@@ -51,20 +50,5 @@ export class TransactionService {
       logger.error("Error making payment:", error.message || error);
       throw new BadRequestException("Error creating payment.", error);
     }
-  }
-
-  async update({ transactionId, months }: UpdateTransactionDto) {
-    const updateData: Partial<CreateTransactionDto> = {
-      months,
-      // amount: payment ? parseFloat(payment.amount.value) : undefined,
-      // paymentId: payment ? payment.id : undefined,
-      // status: payment ? payment.status : undefined,
-      // paymentMethod: payment ? payment.payment_method?.type : undefined, // Обновляем если paymentMethod присутствует
-    };
-
-    return this.prisma.transaction.update({
-      where: { id: transactionId },
-      data: updateData,
-    });
   }
 }

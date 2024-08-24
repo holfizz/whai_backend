@@ -3,6 +3,7 @@ import { PrismaService } from "@/prisma.service";
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { SubscriptionType } from "@prisma/client";
 import * as crypto from "crypto";
 import { TinkoffPaymentDto, TinkoffRequestDto } from "./dto/tinkoff.dto";
 import { TinkoffChargeResponse, TinkoffReqResult } from "./types/tinkoff.types";
@@ -30,24 +31,37 @@ export class TinkoffService {
         user: {
           connect: { id: userId },
         },
-        type: "BASIC",
-        amount: subs.price,
+        type: subs.type,
+        months: paymentData.months,
+        amount: paymentData.totalAmount,
       },
     });
 
     logger.log("Created transaction:", transaction);
-
+    const getSubscriptionDescription = (type: SubscriptionType) => {
+      switch (type) {
+        case "BASIC":
+          return "Базовая подписка предоставляет доступ к основным функциям платформы. Идеально подходит для пользователей, которым нужен стандартный набор инструментов и услуг.";
+        case "STANDARD":
+          return "Стандартная подписка включает все функции базового уровня плюс дополнительные возможности и расширенные опции для более глубокого использования платформы.";
+        case "PREMIUM":
+          return "Премиум подписка предлагает полный доступ ко всем функциям платформы, включая эксклюзивные возможности и первоклассный сервис для пользователей, ищущих максимальные возможности.";
+        default:
+          return "Подписка на платформе whai.ru";
+      }
+    };
     const payload: TinkoffRequestDto = {
       Amount: transaction.amount * 100,
       OrderId: transaction.id,
-      Descriptions: `Покупка подписки на платформе https://whai.ru`,
+      Descriptions: getSubscriptionDescription(subs.type),
       userId,
       subs: subs,
     };
 
     logger.log("Payload for Tinkoff request:", payload);
-
-    return await this.request(payload, "Init");
+    const tBankData = await this.request(payload, "Init");
+    await this.prisma.transaction.update({ where: { id: transaction.id }, data: { orderId: tBankData.OrderId } });
+    return tBankData;
   }
 
   private async request(dto: any, endpoint: string): Promise<TinkoffReqResult> {
@@ -101,15 +115,16 @@ export class TinkoffService {
                     : dto.subs.type === "PREMIUM"
                       ? "Премиум подписка"
                       : "Подписка",
-              Price: dto.subs.price * 100,
+              Price: dto.Amount,
               Quantity: 1,
-              Amount: dto.subs.price * 100,
+              Amount: dto.Amount,
               Tax: "none",
             },
           ],
         },
       };
       logger.log("reqData", reqData);
+      logger.log("reqDataReceipt", reqData.Receipt);
       const { data } = await this.httpService.axiosRef.request({
         method: "POST",
         url: `${this.configService.get<string>("TINKOFF_API_URL")}/${endpoint}`,

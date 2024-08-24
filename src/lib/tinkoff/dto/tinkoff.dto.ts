@@ -1,5 +1,5 @@
 import { SubscriptionEntity } from "@/subscription/entities/subscription.entity";
-import { Field, InputType, registerEnumType } from "@nestjs/graphql";
+import { Field, InputType, Int, registerEnumType } from "@nestjs/graphql";
 import { SubscriptionType } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 registerEnumType(SubscriptionType, {
@@ -10,6 +10,14 @@ export class TinkoffPaymentDto {
   @Field(() => SubscriptionType)
   @IsNotEmpty()
   subType: SubscriptionType;
+
+  @Field(() => BigInt)
+  @IsNotEmpty()
+  totalAmount: number;
+
+  @Field(() => Int)
+  @IsNotEmpty()
+  months: number;
 
   @Field(() => String, { nullable: true })
   @IsOptional()

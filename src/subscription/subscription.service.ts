@@ -87,7 +87,7 @@ export class SubscriptionService {
 
       const currentDate = new Date();
       const endDate = new Date(currentDate);
-      endDate.setMonth(currentDate.getMonth() + 1);
+      endDate.setMonth(currentDate.getMonth() + dto.months);
 
       await this.prisma.subscriptionHistory.create({
         data: {

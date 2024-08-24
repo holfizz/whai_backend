@@ -13,6 +13,7 @@ model Transaction {
   updatedAt DateTime          @updatedAt
 
   paymentId     String? @map("payment_id")
+  orderId       String? @unique @map("order_id")
   paymentMethod String? @map("payment_method")
 
   months   Int              @default(1)

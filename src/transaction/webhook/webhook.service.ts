@@ -30,7 +30,7 @@ export class WebhookService {
       case "CONFIRMED":
         logger.log(`Payment confirmed for OrderId: ${dto.OrderId}`);
         await this.prisma.transaction.update({
-          where: { id: dto.OrderId },
+          where: { orderId: dto.OrderId },
           data: { status: "CONFIRMED", rebillId: dto.RebillId, paymentId: String(dto.PaymentId) },
         });
         const userId = transaction.userId;
@@ -38,26 +38,31 @@ export class WebhookService {
           throw new Error("User ID not found in transaction");
         }
 
-        await this.subscriptionService.activateSubscription(userId, { transactionId: transaction.id, subscriptionType: transaction.type, paymentId: dto.PaymentId });
+        await this.subscriptionService.activateSubscription(userId, {
+          transactionId: transaction.id,
+          subscriptionType: transaction.type,
+          paymentId: dto.PaymentId,
+          months: transaction.months,
+        });
         break;
       case "REVERSED":
         logger.log(`Payment reversed for OrderId: ${dto.OrderId}`);
         await this.prisma.transaction.update({
-          where: { id: dto.OrderId },
+          where: { orderId: dto.OrderId },
           data: { status: "REVERSED" },
         });
         break;
       case "REFUNDED":
         logger.log(`Payment refunded for OrderId: ${dto.OrderId}`);
         await this.prisma.transaction.update({
-          where: { id: dto.OrderId },
+          where: { orderId: dto.OrderId },
           data: { status: "REFUNDED" },
         });
         break;
       case "REJECTED":
         logger.error(`Payment rejected for OrderId: ${dto.OrderId}`);
         await this.prisma.transaction.update({
-          where: { id: dto.OrderId },
+          where: { orderId: dto.OrderId },
           data: { status: "REJECTED" },
         });
         break;

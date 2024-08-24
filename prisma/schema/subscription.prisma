@@ -34,6 +34,7 @@ model SubscriptionHistory {
   user             User?            @relation(fields: [userId], references: [id])
   paymentId        String           @map("payment_id")
   transactionId    String
+  isActive         Boolean          @default(true) @map("is_active")
 
   @@map("subscription_history")
 }

@@ -1,6 +1,6 @@
 import { Field, InputType, registerEnumType } from "@nestjs/graphql";
 import { SubscriptionType } from "@prisma/client";
-import { IsNumber } from "class-validator";
+import { IsBoolean, IsNumber } from "class-validator";
 
 registerEnumType(SubscriptionType, {
   name: "SubscriptionType",
@@ -14,4 +14,8 @@ export class MakePaymentDto {
 
   @Field(() => SubscriptionType)
   subscriptionType: SubscriptionType;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isAutoRenewal: boolean;
 }

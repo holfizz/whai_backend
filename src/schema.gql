@@ -308,6 +308,7 @@ input LessonWithAITasksBlocksInput {
 }
 
 input MakePaymentDto {
+  isAutoRenewal: Boolean!
   months: Float!
   subscriptionType: SubscriptionType!
 }
