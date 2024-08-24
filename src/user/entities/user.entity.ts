@@ -1,9 +1,55 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { UserRole } from "@prisma/client";
-import { IsUUID } from "class-validator";
+import { SubscriptionType, UserRole } from "@prisma/client";
+import { IsOptional, IsUUID } from "class-validator";
 registerEnumType(UserRole, {
   name: "UserRole",
 });
+registerEnumType(SubscriptionType, {
+  name: "SubscriptionType",
+});
+
+@ObjectType()
+export class ActiveSubscription {
+  @Field(type => SubscriptionType)
+  type: SubscriptionType;
+
+  @Field(type => Number)
+  price: number;
+
+  @Field(type => String)
+  startedAt: Date;
+
+  @Field(type => String, { nullable: true })
+  endedAt?: Date;
+
+  @Field(type => Boolean)
+  isActive: boolean;
+
+  @Field(type => Number, { nullable: true })
+  annualDiscountRate?: number;
+
+  @Field(type => Number, { nullable: true })
+  courseLimitPerMonth?: number;
+
+  @Field(type => Number, { nullable: true })
+  lessonLimitPerCourse?: number;
+
+  @Field(type => Number, { nullable: true })
+  additionalTitlesLimit?: number;
+
+  @Field(type => Boolean, { nullable: true })
+  hasBasicAnalytics?: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  hasAIAssistedHomework?: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  hasFileUploadInChat?: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  hasImageGeneration?: boolean;
+}
+
 @ObjectType()
 export class User {
   @Field(type => ID)
@@ -42,4 +88,8 @@ export class User {
 
   @Field({ nullable: true })
   resetPasswordExpiration?: Date;
+
+  @Field(() => ActiveSubscription, { nullable: true })
+  @IsOptional()
+  activeSubscription?: ActiveSubscription;
 }

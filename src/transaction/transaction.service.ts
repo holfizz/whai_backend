@@ -12,22 +12,40 @@ export class TransactionService {
   ) {}
 
   async makePayment(dto: MakePaymentDto, userId: string): Promise<any> {
-    const user = await this.prisma.user.update({ where: { id: userId }, data: { isAutoRenewal: dto.isAutoRenewal } });
+    // Обновляем информацию о пользователе
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isAutoRenewal: dto.isAutoRenewal },
+    });
     if (!user) {
       throw new BadRequestException("User not found.");
     }
+
+    // Находим информацию о подписке
     const subs = await this.prisma.subscription.findUnique({
       where: { type: dto.subscriptionType },
     });
     if (!subs) {
       throw new BadRequestException("Subscription not found.");
     }
-    let totalAmount = subs.price * dto.months;
 
+    const activeSubscription = await this.prisma.subscriptionHistory.findFirst({
+      where: {
+        userId,
+        endedAt: { gte: new Date() },
+      },
+    });
+
+    if (activeSubscription) {
+      throw new BadRequestException("User already has an active subscription.");
+    }
+
+    let totalAmount = subs.price * dto.months;
     if (dto.months === 12) {
       const discount = 0.2;
       totalAmount = totalAmount * (1 - discount);
     }
+
     try {
       const paymentResponse = await this.tinkoff.createPayment(
         {
@@ -39,10 +57,13 @@ export class TransactionService {
         },
         userId,
       );
+
       logger.log(paymentResponse);
+
       if (!paymentResponse.Success) {
-        throw Error("Error creating payment by T-BANK.");
+        throw new Error("Error creating payment by T-BANK.");
       }
+
       return {
         paymentUrl: paymentResponse.PaymentURL,
       };

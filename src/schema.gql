@@ -6,6 +6,22 @@ input ActivationLinkInput {
   activationLink: String!
 }
 
+type ActiveSubscription {
+  additionalTitlesLimit: Float
+  annualDiscountRate: Float
+  courseLimitPerMonth: Float
+  endedAt: String
+  hasAIAssistedHomework: Boolean
+  hasBasicAnalytics: Boolean
+  hasFileUploadInChat: Boolean
+  hasImageGeneration: Boolean
+  isActive: Boolean!
+  lessonLimitPerCourse: Float
+  price: Float!
+  startedAt: String!
+  type: SubscriptionType!
+}
+
 type AuthUser {
   email: String!
   roles: [String!]!
@@ -902,6 +918,7 @@ input UpdateUserInput {
 scalar Upload
 
 type User {
+  activeSubscription: ActiveSubscription
   avatarPath: String
   createdAt: String!
   email: String!

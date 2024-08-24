@@ -19,7 +19,46 @@ export class UserService {
       if (!user) {
         throw new Error("User not found");
       }
-      return user;
+
+      const activeSubscription = await this.prisma.subscriptionHistory.findFirst({
+        where: {
+          userId: id,
+          isActive: true,
+          endedAt: { gte: new Date() },
+        },
+      });
+
+      const subscriptionType = activeSubscription
+        ? await this.prisma.subscription.findUnique({
+            where: { type: activeSubscription.subscriptionType },
+          })
+        : null;
+
+      return {
+        ...user,
+        activeSubscription: activeSubscription
+          ? {
+              type: activeSubscription.subscriptionType,
+              price: activeSubscription.price,
+              isActive: true,
+              startedAt: activeSubscription.startedAt,
+              endedAt: activeSubscription.endedAt,
+              subscriptionDetails: subscriptionType
+                ? {
+                    price: subscriptionType.price,
+                    annualDiscountRate: subscriptionType.annualDiscountRate,
+                    courseLimitPerMonth: subscriptionType.courseLimitPerMonth,
+                    lessonLimitPerCourse: subscriptionType.lessonLimitPerCourse,
+                    additionalTitlesLimit: subscriptionType.additionalTitlesLimit,
+                    hasBasicAnalytics: subscriptionType.hasBasicAnalytics,
+                    hasAIAssistedHomework: subscriptionType.hasAIAssistedHomework,
+                    hasFileUploadInChat: subscriptionType.hasFileUploadInChat,
+                    hasImageGeneration: subscriptionType.hasImageGeneration,
+                  }
+                : null,
+            }
+          : null,
+      };
     } catch (error) {
       throw error;
     }
