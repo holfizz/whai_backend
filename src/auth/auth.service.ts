@@ -76,6 +76,7 @@ export class AuthService {
           lastName: dto.lastName,
           phoneNumber: dto.phoneNumber,
           email: dto.email,
+	  roles: ["ADMIN"],
           password: await bcrypt.hash(dto.password, 5),
           activationLink: activationLink,
           isVerified: true,
