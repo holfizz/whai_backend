@@ -61,6 +61,7 @@ export class TinkoffService {
     logger.log("Payload for Tinkoff request:", payload);
     const tBankData = await this.request(payload, "Init");
     await this.prisma.transaction.update({ where: { id: transaction.id }, data: { orderId: tBankData.OrderId } });
+
     return tBankData;
   }
 

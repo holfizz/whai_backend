@@ -83,7 +83,7 @@ export class AuthService {
           email: dto.email,
           password: await bcrypt.hash(dto.password, 5),
           activationLink: activationLink,
-          isVerified: false,
+          isVerified: process.env.NODE_ENV === "development" ? true : false,
         },
       });
 
