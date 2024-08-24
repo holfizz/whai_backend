@@ -3,12 +3,14 @@ import { TinkoffNotificationDto } from "@/lib/tinkoff/types/tinkoff.types";
 import { PrismaService } from "@/prisma.service";
 import { SubscriptionService } from "@/subscription/subscription.service";
 import { Injectable } from "@nestjs/common";
+import { TransactionMailService } from "../transaction-mail.service";
 
 @Injectable()
 export class WebhookService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly mailService: TransactionMailService,
   ) {}
 
   async tinkoff(dto: TinkoffNotificationDto): Promise<string> {
@@ -44,6 +46,20 @@ export class WebhookService {
           paymentId: dto.PaymentId,
           months: transaction.months,
         });
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+        if (user) {
+          await this.mailService.sendInvoiceMail({
+            to: user.email,
+            amount: String(transaction.amount),
+            months: transaction.months,
+            subscriptionType: transaction.type,
+            date: new Date().toISOString().split("T")[0],
+            name: user.firstName,
+          });
+        } else {
+          logger.error(`User with id ${userId} not found`);
+        }
         break;
       case "REVERSED":
         logger.log(`Payment reversed for OrderId: ${dto.OrderId}`);

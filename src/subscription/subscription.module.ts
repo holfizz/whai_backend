@@ -1,3 +1,4 @@
+import { TinkoffModule } from "@/lib/tinkoff/tinkoff.module";
 import { TinkoffService } from "@/lib/tinkoff/tinkoff.service";
 import { PrismaService } from "@/prisma.service";
 import { TransactionService } from "@/transaction/transaction.service";
@@ -8,7 +9,7 @@ import { SubscriptionResolver } from "./subscription.resolver";
 import { SubscriptionService } from "./subscription.service";
 
 @Module({
-  imports: [HttpModule],
+  imports: [HttpModule, TinkoffModule],
   providers: [SubscriptionResolver, SubscriptionService, PrismaService, AutoRenewalService, TinkoffService, TransactionService],
 })
 export class SubscriptionModule {}
