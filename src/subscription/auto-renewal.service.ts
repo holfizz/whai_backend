@@ -161,8 +161,6 @@ export class AutoRenewalService {
 
               logger.log(`Failed to renew subscription for user ${user.id}, subscription cancelled`);
             }
-          } else {
-            logger.log(`Subscription for user ${user.id} is still active, no action needed`);
           }
         }),
       );
