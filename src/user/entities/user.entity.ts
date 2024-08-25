@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { SubscriptionType, UserRole } from "@prisma/client";
-import { IsOptional, IsUUID } from "class-validator";
+import { IsBoolean, IsOptional, IsUUID } from "class-validator";
 registerEnumType(UserRole, {
   name: "UserRole",
 });
@@ -82,6 +82,10 @@ export class User {
 
   @Field(type => Boolean)
   isVerified: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  isAutoRenewal?: boolean;
 
   @Field({ nullable: true })
   resetPasswordToken?: string;

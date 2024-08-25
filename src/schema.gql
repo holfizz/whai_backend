@@ -908,6 +908,8 @@ input UpdateTopicInput {
 input UpdateUserInput {
   email: String
   firstName: String
+  id: ID
+  isAutoRenewal: Boolean
   lastName: String
   password: String
   phoneNumber: String
@@ -924,6 +926,7 @@ type User {
   email: String!
   firstName: String!
   id: ID!
+  isAutoRenewal: Boolean
   isVerified: Boolean!
   lastName: String!
   phoneNumber: String!

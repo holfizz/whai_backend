@@ -1,6 +1,20 @@
-import { Body, Container, Font, Head, Heading, Html, Text } from "@react-email/components";
+import { Body, Container, Font, Head, Heading, Html, Link, Text } from "@react-email/components";
 
-export function InvoiceTemplate({ amount, months, subscriptionType, date, name }: { amount: string; months: number; subscriptionType: string; date: string; name: string }) {
+export function InvoiceTemplate({
+  amount,
+  months,
+  subscriptionType,
+  date,
+  name,
+  autoRenew,
+}: {
+  amount: string;
+  months: number;
+  subscriptionType: string;
+  date: string;
+  name: string;
+  autoRenew: boolean;
+}) {
   return (
     <Html lang="ru">
       <Head>
@@ -35,6 +49,28 @@ export function InvoiceTemplate({ amount, months, subscriptionType, date, name }
             <Text style={{ color: "#272727", fontSize: "16px", lineHeight: "24px", marginBottom: "10px" }}>
               <strong>Тип подписки:</strong> {subscriptionType}
             </Text>
+            <Text style={{ color: "#272727", fontSize: "16px", lineHeight: "24px", marginBottom: "10px" }}>
+              <strong>Автопродление:</strong> {autoRenew ? "включено" : "выключено"}
+            </Text>
+            {autoRenew && (
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <Link
+                  href="https://whai.ru/ru/subscriptions"
+                  style={{
+                    display: "inline-block",
+                    padding: "10px 20px",
+                    fontSize: "16px",
+                    color: "#ffffff",
+                    backgroundColor: "#ffb57f",
+                    borderRadius: "5px",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Выключить автопродление
+                </Link>
+              </div>
+            )}
           </div>
           <Text style={{ color: "#828282", fontSize: "14px", lineHeight: "20px", textAlign: "center" }}>
             Если у вас возникли вопросы по вашему платежу, пожалуйста, свяжитесь с нашей поддержкой по почте{" "}
