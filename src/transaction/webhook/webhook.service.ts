@@ -56,6 +56,7 @@ export class WebhookService {
             subscriptionType: transaction.type,
             date: new Date().toISOString().split("T")[0],
             name: user.firstName,
+            autoRenew: user.isAutoRenewal,
           });
         } else {
           logger.error(`User with id ${userId} not found`);

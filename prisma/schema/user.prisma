@@ -15,7 +15,7 @@ model User {
   updatedAt               DateTime          @updatedAt @map("updated_at")
   firstName               String            @map("first_name")
   lastName                String            @map("last_name")
-  phoneNumber             String            @unique @map("phone_number")
+  phoneNumber             String            @map("phone_number")
   avatarPath              String?           @map("avatar_path")
   email                   String            @unique
   password                String

@@ -58,14 +58,6 @@ export class AuthService {
         throw new BadRequestException("Пользователь с таким email уже существует");
       }
 
-      const existUserByPhoneNumber = await this.prisma.user.findUnique({
-        where: { phoneNumber: dto.phoneNumber },
-      });
-
-      if (existUserByPhoneNumber) {
-        throw new BadRequestException("Пользователь с таким номером телефона уже существует");
-      }
-
       const activationLink = crypto.randomUUID();
       logger.log(activationLink);
       await this.mailService.sendActivationMail({

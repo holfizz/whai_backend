@@ -7,7 +7,7 @@ import { render } from "@react-email/render";
 export class TransactionMailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  private emailHTML(params: { amount: string; months: number; subscriptionType: string; date: string; name: string }) {
+  private emailHTML(params: { amount: string; months: number; subscriptionType: string; date: string; name: string; autoRenew: boolean }) {
     return render(InvoiceTemplate(params));
   }
 
@@ -18,6 +18,7 @@ export class TransactionMailService {
     subscriptionType,
     date,
     name,
+    autoRenew,
   }: {
     to: string;
     amount: string;
@@ -25,6 +26,7 @@ export class TransactionMailService {
     subscriptionType: string;
     date: string;
     name: string;
+    autoRenew: boolean;
   }) {
     await this.mailerService.sendMail({
       from: process.env.SMTP_USER,
@@ -37,6 +39,7 @@ export class TransactionMailService {
         subscriptionType,
         date,
         name,
+        autoRenew,
       }),
     });
   }
