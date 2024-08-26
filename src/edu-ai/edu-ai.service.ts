@@ -16,7 +16,7 @@ export class EduAiService {
     private prisma: PrismaService,
   ) {}
 
-  async getAIModelAnswer(conversationId: string, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub?: PubSub): Promise<any> {
+  async getAIModelAnswer(conversationId: string | null, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub?: PubSub): Promise<any> {
     let messagesHis: any[];
     if (conversationId) {
       const messagesHistory = await this.prisma.messageWithAI.findMany({
@@ -46,9 +46,13 @@ export class EduAiService {
         throw new Error("Invalid bot mode");
     }
     const abortController = new AbortController();
-
-    // Сохраняем AbortController для возможности отмены запроса
     this.abortControllers.set(conversationId, abortController);
+    const storedAbortController = this.abortControllers.get(conversationId);
+    if (storedAbortController) {
+      logger.log(`AbortController успешно сохранен для conversationId: ${conversationId}`);
+    } else {
+      logger.warn(`Не удалось сохранить AbortController для conversationId: ${conversationId}`);
+    }
     return new Promise((resolve, reject) => {
       let dataBuffer = "";
       let messages = [];
@@ -91,7 +95,7 @@ export class EduAiService {
                 const eventData = completeMessage.replace(/^data:/, "").trim();
                 try {
                   const parsedData = JSON.parse(eventData);
-                  logger.log(parsedData);
+                  // logger.log(parsedData);
                   const messageData = {
                     id: randomUUID(),
 
@@ -143,10 +147,17 @@ export class EduAiService {
   }
 
   stopGeneration(conversationId: string): void {
+    if (!conversationId) {
+      logger.log("No conversationId provided to stop generation.");
+      return;
+    }
     const abortController = this.abortControllers.get(conversationId);
     if (abortController) {
       abortController.abort();
       this.abortControllers.delete(conversationId);
+      logger.log(`Generation stopped for conversationId: ${conversationId}`);
+    } else {
+      logger.log(`No active generation found for conversationId: ${conversationId}`);
     }
   }
 }

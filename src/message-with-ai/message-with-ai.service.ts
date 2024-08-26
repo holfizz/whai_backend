@@ -16,6 +16,7 @@ export class MessageWithAiService {
     private readonly paginationService: PaginationService,
     private readonly eduAiService: EduAiService,
   ) {}
+
   private collectLessonContent(lessonBlocks: LessonBlock[]): string {
     let content = "";
 
@@ -33,7 +34,7 @@ export class MessageWithAiService {
 
     return content.trim();
   }
-  async getChatAIMAnswers(userId: string, dto: MessageWithAIInput, pubSub: PubSub): Promise<any> {
+  async createMessageWithAI(userId: string, dto: MessageWithAIInput, pubSub: PubSub): Promise<any> {
     const chatWithAI = await this.prisma.chatWithAI.findUnique({
       where: { id: dto.chatWithAIId },
     });
@@ -70,7 +71,7 @@ export class MessageWithAiService {
         throw new Error(`AI returned empty content for chatWithAI ID ${chatWithAI.id}`);
       }
 
-      const userMessage = await this.prisma.messageWithAI.create({
+      await this.prisma.messageWithAI.create({
         data: {
           chatWithAIId: chatWithAI.id,
           content: dto.message,
@@ -93,7 +94,9 @@ export class MessageWithAiService {
       throw error;
     }
   }
-
+  async stopGeneration(conversationId: string): Promise<void> {
+    this.eduAiService.stopGeneration(conversationId);
+  }
   async getAllMessagesInChatWithAI(userId: string, dto: GetAllMessagesInput) {
     try {
       const { take, skip } = this.paginationService.getPagination(dto);

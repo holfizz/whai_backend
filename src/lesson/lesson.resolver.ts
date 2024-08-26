@@ -2,7 +2,7 @@ import { Auth } from "@/auth/decorators/auth.decorator";
 import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
-import { LessonInput, LessonWithAIInput, LessonWithAITasksBlocksInput } from "./dto/lesson.input";
+import { LessonIndependentWithAIInput, LessonInput, LessonWithAIInput, LessonWithAITasksBlocksInput } from "./dto/lesson.input";
 import { UpdateLesson } from "./dto/update-lesson.input";
 import { Lesson } from "./entities/lesson.entity";
 import { LessonService } from "./lesson.service";
@@ -65,5 +65,17 @@ export class LessonResolver {
   @Auth("user")
   async createLessonFromAI(@Args("lessonWithAITasksBlocksInput") lessonWithAITasksBlocksInput: LessonWithAITasksBlocksInput) {
     return this.lessonService.createLessonFromAI(lessonWithAITasksBlocksInput);
+  }
+
+  @Mutation(() => Lesson)
+  @Auth("user")
+  async createIndependentLessonWithAI(@CurrentUser("id") userId: string, @Args("dto") dto: LessonIndependentWithAIInput) {
+    return this.lessonService.createIndependentLessonWithAI(userId, dto, pubSub);
+  }
+
+  @Query(() => [Lesson])
+  @Auth("user")
+  async getAllIndependentLessons(@CurrentUser("id") userId: string) {
+    return this.lessonService.getAllIndependentLessons(userId);
   }
 }

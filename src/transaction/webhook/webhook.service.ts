@@ -47,8 +47,19 @@ export class WebhookService {
           months: transaction.months,
         });
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-
+        const subscription = await this.prisma.subscription.findUnique({ where: { type: transaction.type } });
         if (user) {
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+              currentSubscriptionType: transaction.type,
+              isTrial: false,
+              trialEndsAt: null,
+              currentCourseCount: subscription.courseLimitPerMonth,
+              currentLessonCount: subscription.lessonLimitPerCourse,
+              additionalTitlesCount: subscription.additionalTitlesLimit,
+            },
+          });
           await this.mailService.sendInvoiceMail({
             to: user.email,
             amount: String(transaction.amount),

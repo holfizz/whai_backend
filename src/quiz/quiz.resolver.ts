@@ -65,13 +65,6 @@ export class QuizResolver {
     return this.quizService.createQuizWithAI(userId, dto, pubSub);
   }
 
-  @Mutation(() => Boolean)
-  @Auth("user")
-  stopGeneration(@Args("conversationId", { type: () => String }) conversationId: string) {
-    this.quizService.stopGeneration(conversationId);
-    return true;
-  }
-
   @Mutation(() => QuizResult)
   @Auth("user")
   saveQuizResult(@CurrentUser("id") userId: string, @Args("saveQuizResultInput") input: SaveQuizResultInput) {

@@ -5,18 +5,18 @@ enum SubscriptionType {
 }
 
 model Subscription {
-  createdAt             DateTime         @default(now()) @map("created_at")
-  updatedAt             DateTime         @updatedAt @map("updated_at")
-  type                  SubscriptionType @unique @map("type")
-  price                 Float            @map("price")
-  annualDiscountRate    Float            @default(0.2) @map("annual_discount_rate")
-  courseLimitPerMonth   Int              @map("course_limit_per_month")
-  lessonLimitPerCourse  Int              @map("lesson_limit_per_course")
-  additionalTitlesLimit Int              @map("additional_titles_limit")
-  hasBasicAnalytics     Boolean          @default(false) @map("has_basic_analytics")
-  hasAIAssistedHomework Boolean          @default(false) @map("has_ai_assisted_homework")
-  hasFileUploadInChat   Boolean          @default(false) @map("has_file_upload_in_chat")
-  hasImageGeneration    Boolean          @default(false) @map("has_image_generation")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  type      SubscriptionType @unique @map("type")
+  price     Float            @map("price")
+
+  courseLimitPerMonth   Int     @map("course_limit_per_month")
+  lessonLimitPerCourse  Int     @map("lesson_limit_per_course")
+  additionalTitlesLimit Int     @map("additional_titles_limit")
+  hasBasicAnalytics     Boolean @default(false) @map("has_basic_analytics")
+  hasAIAssistedHomework Boolean @default(false) @map("has_ai_assisted_homework")
+  hasFileUploadInChat   Boolean @default(false) @map("has_file_upload_in_chat")
+  hasImageGeneration    Boolean @default(false) @map("has_image_generation")
   User                  User[]
 
   @@map("subscriptions")
