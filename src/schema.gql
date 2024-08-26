@@ -27,6 +27,15 @@ type AuthUser {
   roles: [String!]!
 }
 
+input BlockInput {
+  courseId: ID
+  isAutofill: Boolean!
+  subtopicId: ID
+  topicId: ID
+  type: String!
+  userRequest: String!
+}
+
 type Chat {
   createdAt: DateTime!
   id: ID!
@@ -453,6 +462,7 @@ type Mutation {
   """
   enterChat(chatId: String!): ChatMember!
   forgotPassword(email: String!): Boolean!
+  generateBlocks(blockInput: BlockInput!): String!
   generateKnowledgeSum(dto: KnowledgeSumInput!): KnowledgeSum!
   generateTD(dto: GenerateTDInput!): [GenerateTD!]!
   generateTelegramLink: TelegramLink!
@@ -932,8 +942,11 @@ scalar Upload
 
 type User {
   activeSubscription: ActiveSubscription
+  additionalTitlesCount: Int!
   avatarPath: String
   createdAt: String!
+  currentCourseCount: Int!
+  currentLessonCount: Int!
   email: String!
   firstName: String!
   id: ID!

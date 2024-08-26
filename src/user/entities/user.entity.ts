@@ -1,6 +1,6 @@
-import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql";
+import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { SubscriptionType, UserRole } from "@prisma/client";
-import { IsBoolean, IsOptional, IsUUID } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsUUID } from "class-validator";
 registerEnumType(UserRole, {
   name: "UserRole",
 });
@@ -96,4 +96,16 @@ export class User {
   @Field(() => ActiveSubscription, { nullable: true })
   @IsOptional()
   activeSubscription?: ActiveSubscription;
+
+  @Field(() => Int)
+  @IsNumber()
+  currentCourseCount: number;
+
+  @Field(() => Int)
+  @IsNumber()
+  currentLessonCount: number;
+
+  @Field(() => Int)
+  @IsNumber()
+  additionalTitlesCount: number;
 }
