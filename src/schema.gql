@@ -203,8 +203,8 @@ input LearningSessionInput {
 }
 
 type Lesson {
-  completionTime: Int!
-  courseId: ID!
+  completionTime: Int
+  courseId: ID
   createdAt: DateTime!
   description: String
   id: ID!
@@ -213,9 +213,10 @@ type Lesson {
   lessonBlocks: [LessonBlock]
   lessonTasks: [LessonTasks]
   name: String!
-  subtopicId: ID!
+  subtopicId: ID
   types: [LessonTypeEnum!]!
   updatedAt: DateTime!
+  userId: ID
 }
 
 type LessonBlock {
@@ -252,6 +253,14 @@ input LessonBlockInput {
   text: String
   type: LessonBlockEnum!
   videoUrl: String
+}
+
+input LessonIndependentWithAIInput {
+  additionalParams: String
+  isHasAISearchImage: Boolean!
+  isHasVideo: Boolean!
+  lessonDescription: String
+  lessonTitle: String
 }
 
 input LessonInput {
@@ -402,6 +411,7 @@ type Mutation {
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!
   createCourse(createCourseData: CourseInput!, image: Upload): Course!
   createCourseAIHistory(courseId: ID!): CourseAIHistory!
+  createIndependentLessonWithAI(dto: LessonIndependentWithAIInput!): Lesson!
   createIndependentQuizWithAI(dto: QuizIndependentWithAIInput!): Quiz!
   createLesson(createLessonInput: LessonInput!): Lesson!
   createLessonBlock(createLessonBlockInput: LessonBlockInput!): LessonBlock!
@@ -503,6 +513,7 @@ type Query {
   getAllChats: [Chat!]!
   getAllChatsWithAI(lessonId: ID!): [ChatWithAI!]!
   getAllCourses: [Course!]!
+  getAllIndependentLessons: [Lesson!]!
   getAllIndependentQuizzes: [QuizSummary!]!
   getAllLessons(subtopicId: ID!): [Lesson!]!
   getAllMessageInChatWithAI(dto: GetAllMessagesInput!): [MessageWithAIData!]!

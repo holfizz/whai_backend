@@ -4,7 +4,6 @@ import { PrismaService } from "@/prisma.service";
 import { SubscriptionService } from "@/subscription/subscription.service";
 import { TransactionService } from "@/transaction/transaction.service";
 import { Injectable } from "@nestjs/common";
-import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
 export class AutoRenewalService {
@@ -15,7 +14,8 @@ export class AutoRenewalService {
     private readonly subscriptionService: SubscriptionService,
   ) {}
 
-  @Cron(process.env.NODE_ENV === "development" ? CronExpression.EVERY_MINUTE : CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(process.env.NODE_ENV === "development" ? CronExpression.EVERY_10_SECONDS : CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  //TODO: turn on
   async handleCron() {
     logger.log("Running auto-renewal process");
 
@@ -132,7 +132,6 @@ export class AutoRenewalService {
               const newEndDate = new Date(now);
               newEndDate.setMonth(newEndDate.getMonth() + 1);
 
-              // Update the current subscription's end date and reactivate it
               await this.prisma.subscriptionHistory.update({
                 where: {
                   id: subscription.id,
@@ -141,7 +140,7 @@ export class AutoRenewalService {
                   endedAt: newEndDate,
                   transactionId: newTransaction.id,
                   paymentId: paymentResponse.PaymentId,
-                  isActive: true, // Reactivate the subscription as it's renewed
+                  isActive: true,
                 },
               });
 
@@ -149,7 +148,6 @@ export class AutoRenewalService {
             } catch (error) {
               logger.error(`Error processing auto-renewal for user ${user.id}:`, error);
 
-              // Mark subscription as inactive in case of any other errors
               await this.prisma.subscriptionHistory.update({
                 where: {
                   id: subscription.id,

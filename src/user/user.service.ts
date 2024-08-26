@@ -46,7 +46,6 @@ export class UserService {
               subscriptionDetails: subscriptionType
                 ? {
                     price: subscriptionType.price,
-                    annualDiscountRate: subscriptionType.annualDiscountRate,
                     courseLimitPerMonth: subscriptionType.courseLimitPerMonth,
                     lessonLimitPerCourse: subscriptionType.lessonLimitPerCourse,
                     additionalTitlesLimit: subscriptionType.additionalTitlesLimit,

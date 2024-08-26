@@ -15,6 +15,20 @@ export function InvoiceTemplate({
   name: string;
   autoRenew: boolean;
 }) {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+
+    // Проверяем, что дата действительна
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Месяцы начинаются с 0
+    const year = date.getFullYear();
+
+    return `${day}.${month}.${year}`;
+  };
   return (
     <Html lang="ru">
       <Head>
@@ -32,7 +46,7 @@ export function InvoiceTemplate({
       <Body style={{ backgroundColor: "#f8f4f0", padding: "20px", fontFamily: "Roboto, Verdana, sans-serif" }}>
         <Container style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: "#ffffff", padding: "20px", borderRadius: "20px", boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)" }}>
           <Heading as="h1" style={{ color: "#ffb57f", fontSize: "24px", lineHeight: "32px", textAlign: "center", marginBottom: "20px" }}>
-            Ваш чек от {date}
+            Ваш чек от {formatDate(date)}
           </Heading>
           <Text style={{ color: "#272727", fontSize: "16px", lineHeight: "24px", textAlign: "center", marginBottom: "20px" }}>
             Привет, {name}!

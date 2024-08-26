@@ -42,12 +42,26 @@ export class QuizService {
     });
   }
   async createQuizWithAI(userId: string, dto: QuizWithAIInput, pubSub: PubSub): Promise<Quiz> {
+    // Проверка наличия квиза
     const quiz = await this.prisma.quiz.findUnique({ where: { id: dto.id } });
-    if (!quiz) throw new Error(`Quiz with id ${dto.id} not found.`);
+    if (!quiz) throw new Error(`Quiz with ID ${dto.id} not found.`);
+
+    // Проверка наличия курса
     const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
-    if (!course) {
-      throw new Error(`course with ID ${dto.courseId} not found.`);
+    if (!course) throw new Error(`Course with ID ${dto.courseId} not found.`);
+
+    // Получение информации о пользователе
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
     }
+
+    // Проверка ограничения на количество дополнительных квизов, если isAdditional = true
+    if (quiz.isAdditional && user.currentLessonCount <= 0) {
+      throw new Error("You have reached your quiz creation limit for this month.");
+    }
+
+    // Формирование AI-запроса
     const aiDto: AIDTO = {
       content: {
         createType: "Тест",
@@ -60,15 +74,16 @@ export class QuizService {
       },
     };
 
+    // Получение ответа от AI-сервиса
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const quizJson = this.extractQuizJson(fullContent);
     const parsedContent = JSON.parse(quizJson);
 
-    const { questions, completionTime } = parsedContent;
+    const { questions } = parsedContent;
 
-    return this.createQuizFromAI({
+    const createdQuiz = await this.createQuizFromAI({
       id: quiz.id,
       name: dto.name,
       description: dto.description,
@@ -76,7 +91,16 @@ export class QuizService {
       subtopicId: dto.subtopicId,
       courseId: dto.courseId,
     });
+    if (quiz.isAdditional) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { currentLessonCount: { decrement: 1 } },
+      });
+    }
+
+    return createdQuiz;
   }
+
   async createQuiz(data: QuizInput): Promise<Quiz> {
     return await this.prisma.$transaction(async prisma => {
       const newQuiz = await this.quizRepository.createQuiz(data);
@@ -455,6 +479,7 @@ export class QuizService {
     if (!user) {
       throw new Error(`User with id ${userId} does not exist`);
     }
+
     const quizResult = await this.prisma.quizResult.findFirst({
       where: {
         userId,
@@ -470,28 +495,43 @@ export class QuizService {
     return quizResult;
   }
   async createIndependentQuizWithAI(userId: string, dto: QuizIndependentWithAIInput, pubSub: PubSub): Promise<Quiz> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
+    if (user.currentLessonCount <= 0) {
+      throw new Error("You have reached your quiz creation limit for this month.");
+    }
     const aiDto: AIDTO = {
       content: {
-        createType: dto.toCheckKnowledge ? "Знания" : "Tест",
+        createType: dto.toCheckKnowledge ? "Знания" : "Тест",
         descriptionType: dto.toCheckKnowledge ? "Создай тест на проверку знаний" : "Создай тест",
         courseTitle: dto.courseTitle,
         courseDescription: dto.courseDescription,
       },
     };
-
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const quizJson = this.extractQuizJson(fullContent);
     const parsedContent = JSON.parse(quizJson);
 
-    const { questions, completionTime } = parsedContent;
-    const quiz = await this.prisma.quiz.create({ data: { name: "Test for testing knowledge", userId } });
+    const { questions } = parsedContent;
+
+    const quiz = await this.prisma.quiz.create({
+      data: { name: "Test for testing knowledge", userId, isAdditional: true },
+    });
     if (!quiz) {
       throw new Error("Failed to create quiz.");
     }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { currentLessonCount: { decrement: 1 } },
+    });
+
     return this.createQuizFromAI({
-      id: quiz?.id,
+      id: quiz.id,
       name: dto.courseTitle,
       description: dto.courseDescription,
       questions: questions,

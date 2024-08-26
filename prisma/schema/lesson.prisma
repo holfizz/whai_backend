@@ -46,11 +46,14 @@ model Lesson {
   types        LessonTypeEnum[]
   lessonBlocks LessonBlock[]
   lessonTasks  LessonTask[]
-  courseId     String
-  course       Course           @relation(fields: [courseId], references: [id])
+  courseId     String?
+  course       Course?          @relation(fields: [courseId], references: [id])
   isCompleted  Boolean          @default(false) @map("is_completed")
   subtopic     Subtopic?        @relation(fields: [subtopicId], references: [id])
-  subtopicId   String           @map("subtopic_id")
+  subtopicId   String?          @map("subtopic_id")
+  User         User?            @relation(fields: [userId], references: [id])
+  userId       String?
+  isAdditional Boolean          @default(false) @map("is_additional")
 
   @@map("lessons")
 }

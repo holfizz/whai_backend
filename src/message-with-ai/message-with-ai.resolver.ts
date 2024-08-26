@@ -28,14 +28,19 @@ export class MessageWithAiResolver {
   @Auth("user")
   async createMessageWithAI(@CurrentUser("id") userId: string, @Args("chatWithAIRequestDto") dto: MessageWithAIInput): Promise<any> {
     try {
-      const result = await this.messageWithAiService.getChatAIMAnswers(userId, dto, pubSub);
+      const result = await this.messageWithAiService.createMessageWithAI(userId, dto, pubSub);
 
       return result;
     } catch (error) {
       throw new Error(`Error processing chat message: ${error.message}`);
     }
   }
-
+  @Mutation(() => Boolean)
+  @Auth("user")
+  stopGeneration(@Args("conversationId", { type: () => String }) conversationId: string) {
+    this.messageWithAiService.stopGeneration(conversationId);
+    return true;
+  }
   @Query(() => [MessageWithAIData])
   @Auth("user")
   async getAllMessageInChatWithAI(@CurrentUser("id") userId: string, @Args("dto") dto: GetAllMessagesInput) {

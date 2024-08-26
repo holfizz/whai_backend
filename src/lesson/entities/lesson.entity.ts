@@ -36,23 +36,32 @@ export class Lesson extends BaseEntity {
   @Type(() => LessonTasks)
   lessonTasks?: LessonTasks[];
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsString()
+  @IsOptional()
   @IsUUID()
-  subtopicId: string;
+  subtopicId?: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsString()
+  @IsOptional()
   @IsUUID()
-  courseId: string;
+  courseId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsString()
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
 
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
   isCompleted?: boolean;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @IsNumber()
-  completionTime: number;
+  @IsOptional()
+  completionTime?: number;
 
   @Field(() => Boolean, { nullable: true })
   @IsBoolean()

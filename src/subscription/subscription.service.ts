@@ -21,7 +21,6 @@ export class SubscriptionService {
         data: {
           type: data.type,
           price: data.price,
-          annualDiscountRate: data.annualDiscountRate,
           courseLimitPerMonth: data.courseLimitPerMonth,
           lessonLimitPerCourse: data.lessonLimitPerCourse,
           additionalTitlesLimit: data.additionalTitlesLimit,
