@@ -158,21 +158,18 @@ export class ContentGeneratorService {
             createType: "Блок",
             items: relatedItems,
             userRequest: dto.userRequest,
-            type: dto.type,
+            type: "topic",
             isAutofill: dto.isAutofill,
           },
         };
-
-        // Call the AI service
+        logger.log("AIDto", aiDto);
+        logger.log("relatedItems", relatedItems);
         const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI");
         if (!fullContent) throw new Error("Failed to get content from AI service.");
 
-        // Extract and process the JSON content
         const tdJson = this.extractBlockJson(fullContent);
         const parsedContent = JSON.parse(tdJson);
         logger.log("parsedContent", parsedContent);
-
-        // Create a new topic
         const newTopic = await this.prisma.topic.create({
           data: {
             name: parsedContent.title,
