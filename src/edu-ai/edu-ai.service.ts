@@ -95,7 +95,7 @@ export class EduAiService {
                 const eventData = completeMessage.replace(/^data:/, "").trim();
                 try {
                   const parsedData = JSON.parse(eventData);
-                  // logger.log(parsedData);
+                  logger.log(parsedData);
                   const messageData = {
                     id: randomUUID(),
 

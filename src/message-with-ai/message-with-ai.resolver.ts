@@ -3,7 +3,7 @@ import { CurrentUser } from "@/auth/decorators/user.decorator";
 import { Args, ID, Int, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
 import { ContentGeneratorService } from "./ai-content-generator.service";
-import { GenerateTDInput, GetAllMessagesInput, KnowledgeSumInput, MessageWithAIInput } from "./dto/message-with-ai.input";
+import { BlockInput, GenerateTDInput, GetAllMessagesInput, KnowledgeSumInput, MessageWithAIInput } from "./dto/message-with-ai.input";
 import { UpdateMessageWithAiInput } from "./dto/update-message-with-ai.input";
 import { GenerateTD, KnowledgeSum, MessageWithAI, MessageWithAIData } from "./entities/message-with-ai.entity";
 import { MessageWithAiService } from "./message-with-ai.service";
@@ -72,5 +72,11 @@ export class MessageWithAiResolver {
   @Auth("user")
   async generateKnowledgeSum(@CurrentUser("id") userId: string, @Args("dto") dto: KnowledgeSumInput): Promise<KnowledgeSum> {
     return this.contentGeneratorService.generateKnowledgeSum(dto, userId);
+  }
+  @Mutation(() => String)
+  @Auth("user")
+  async generateBlocks(@Args("blockInput") blockInput: BlockInput, @CurrentUser("id") userId: string): Promise<string> {
+    const result = await this.contentGeneratorService.generateBlocks(blockInput, userId);
+    return result;
   }
 }

@@ -1,5 +1,5 @@
 import { Field, ID, InputType, Int } from "@nestjs/graphql";
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 enum TDType {
   COURSE,
   LESSON,
@@ -60,7 +60,6 @@ export class GenerateTDInput {
   @IsEnum(TDType)
   type: TDType;
 }
-
 @InputType()
 export class KnowledgeSumInput {
   @Field(() => ID)
@@ -74,4 +73,36 @@ export class KnowledgeSumInput {
   @Field(() => ID)
   @IsString()
   courseId: string;
+}
+@InputType()
+export class BlockInput {
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  courseId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  topicId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  subtopicId?: string;
+
+  @Field(() => String)
+  @IsString()
+  @IsOptional()
+  userRequest: string;
+
+  @Field(() => String)
+  @IsString()
+  @IsOptional()
+  type: string;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  @IsOptional()
+  isAutofill: boolean;
 }
