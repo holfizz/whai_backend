@@ -139,6 +139,17 @@ export class ContentGeneratorService {
     let relatedItems = [];
     let aiDto: AIDTO;
 
+    // Fetch the current user to check their additionalTitlesCount
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { additionalTitlesCount: true },
+    });
+
+    if (!user) throw new Error("User not found.");
+
+    // Initialize blocks count to zero
+    let blocksCount = 0;
+
     switch (dto.type) {
       case "topic": {
         if (!dto.courseId) throw new Error("Course ID is required for topic.");
@@ -180,6 +191,7 @@ export class ContentGeneratorService {
 
         // Create subtopics if blocks exist and isAutofill is true
         if (dto.isAutofill && parsedContent.blocks) {
+          blocksCount = parsedContent.blocks.length; // Update blocksCount
           for (const item of parsedContent.blocks) {
             await this.prisma.subtopic.create({
               data: {
@@ -191,7 +203,7 @@ export class ContentGeneratorService {
             });
           }
         }
-        return JSON.stringify(parsedContent, null, 2);
+        break;
       }
 
       case "subtopic": {
@@ -238,6 +250,7 @@ export class ContentGeneratorService {
 
         // Create lessons if blocks exist and isAutofill is true
         if (dto.isAutofill && parsedContent.blocks) {
+          blocksCount = parsedContent.blocks.length; // Update blocksCount
           for (const item of parsedContent.blocks) {
             await this.prisma.lesson.create({
               data: {
@@ -249,7 +262,7 @@ export class ContentGeneratorService {
             });
           }
         }
-        return JSON.stringify(parsedContent, null, 2);
+        break;
       }
 
       case "lesson": {
@@ -272,7 +285,7 @@ export class ContentGeneratorService {
             items: relatedItems,
             userRequest: dto.userRequest,
             type: dto.type,
-            isAutofill: dto.isAutofill,
+            isAutofill: false,
           },
         };
 
@@ -294,7 +307,10 @@ export class ContentGeneratorService {
             subtopicId: dto.subtopicId,
           },
         });
-        return JSON.stringify(parsedContent, null, 2);
+
+        // Decrement additionalTitlesCount by 1 for lessons
+        blocksCount = 1; // For lessons, always decrement by 1
+        break;
       }
 
       case "quiz": {
@@ -317,7 +333,7 @@ export class ContentGeneratorService {
             items: relatedItems,
             userRequest: dto.userRequest,
             type: dto.type,
-            isAutofill: dto.isAutofill,
+            isAutofill: false,
           },
         };
 
@@ -337,15 +353,27 @@ export class ContentGeneratorService {
             subtopicId: dto.subtopicId,
           },
         });
-        return JSON.stringify(parsedContent, null, 2);
+
+        // Decrement additionalTitlesCount by 1 for quizzes
+        blocksCount = 1; // For quizzes, always decrement by 1
+        break;
       }
 
       default:
         throw new Error("Invalid type specified.");
     }
 
+    // Decrement additionalTitlesCount by the number of blocks after successful generation
+    if (dto.isAutofill && blocksCount > 0) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { additionalTitlesCount: user.additionalTitlesCount - blocksCount },
+      });
+    }
+
     return "true";
   }
+
   private extractBlockJson(content: string): string {
     const quizPattern = /```block([\s\S]*?)```/;
     const jsonPattern = /```json([\s\S]*?)```/;
