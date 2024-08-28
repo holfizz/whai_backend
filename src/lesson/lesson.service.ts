@@ -92,7 +92,7 @@ export class LessonService {
     }
 
     const lesson = await this.prisma.lesson.findUnique({ where: { id: dto.id } });
-    if (lesson) {
+    if (!lesson) {
       throw new Error(`Lesson with ID ${dto.id} not found.`);
     }
     if (lesson.isAdditional && user.currentLessonCount <= 0) {
