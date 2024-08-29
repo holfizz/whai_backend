@@ -4,6 +4,7 @@ import { PrismaService } from "@/prisma.service";
 import { SubscriptionService } from "@/subscription/subscription.service";
 import { TransactionService } from "@/transaction/transaction.service";
 import { Injectable } from "@nestjs/common";
+import { SubscriptionNotificationService } from "./Subscription-notification.service";
 
 @Injectable()
 export class AutoRenewalService {
@@ -12,6 +13,7 @@ export class AutoRenewalService {
     private readonly tinkoffService: TinkoffService,
     private readonly transactionService: TransactionService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly subscriptionNotificationService: SubscriptionNotificationService,
   ) {}
 
   // @Cron(process.env.NODE_ENV === "development" ? CronExpression.EVERY_10_SECONDS : CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -166,6 +168,56 @@ export class AutoRenewalService {
       logger.log("Auto-renewal process completed");
     } catch (error) {
       logger.error("Error during auto-renewal:", error);
+    }
+  }
+  // @Cron(CronExpression.EVERY_DAY_AT_NOON)
+  // @Cron(CronExpression.EVERY_MINUTE)
+  async notifyUsersBeforeExpiration() {
+    logger.log("Running notification process for upcoming subscription renewals");
+
+    try {
+      const now = new Date();
+      const threeDaysFromNow = new Date(now);
+      threeDaysFromNow.setDate(now.getDate() + 3);
+
+      // Получаем активные подписки, у которых срок окончания через 3 дня
+      const subscriptionsToNotify = await this.prisma.subscriptionHistory.findMany({
+        where: {
+          isActive: true,
+          endedAt: {
+            lte: threeDaysFromNow,
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      await Promise.all(
+        subscriptionsToNotify.map(async subscription => {
+          const user = subscription.user;
+
+          logger.log(`Sending notification to user ${user.id} about upcoming subscription renewal`);
+
+          try {
+            // Отправка уведомления пользователю
+            await this.subscriptionNotificationService.sendExpirationReminder({
+              to: user.email,
+              name: user.firstName,
+              subscriptionType: subscription.subscriptionType,
+              endDate: subscription.endedAt.toISOString(),
+            });
+
+            logger.log(`Notification sent to user ${user.id} for subscription ending on ${subscription.endedAt.toISOString()}`);
+          } catch (error) {
+            logger.error(`Error sending notification to user ${user.id}:`, error);
+          }
+        }),
+      );
+
+      logger.log("Notification process completed");
+    } catch (error) {
+      logger.error("Error during notification process:", error);
     }
   }
 }
