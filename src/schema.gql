@@ -420,7 +420,6 @@ type Mutation {
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!
   createCourse(createCourseData: CourseInput!, image: Upload): Course!
   createCourseAIHistory(courseId: ID!): CourseAIHistory!
-  createCourseLink(id: String!): Course!
   createIndependentLessonWithAI(dto: LessonIndependentWithAIInput!): Lesson!
   createIndependentQuizWithAI(dto: QuizIndependentWithAIInput!): Quiz!
   createLesson(createLessonInput: LessonInput!): Lesson!
@@ -952,6 +951,10 @@ type User {
   firstName: String!
   id: ID!
   isAutoRenewal: Boolean
+  isFirstCourseCompleted: Boolean!
+  isFirstLessonCompleted: Boolean!
+  isHomeworkCompleted: Boolean!
+  isQuizCompleted: Boolean!
   isVerified: Boolean!
   lastName: String!
   phoneNumber: String!

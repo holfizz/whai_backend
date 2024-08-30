@@ -108,4 +108,20 @@ export class User {
   @Field(() => Int)
   @IsNumber()
   additionalTitlesCount: number;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isFirstCourseCompleted: boolean;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isHomeworkCompleted: boolean;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isQuizCompleted: boolean;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  isFirstLessonCompleted: boolean;
 }

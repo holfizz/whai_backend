@@ -63,10 +63,4 @@ export class CourseResolver {
   async deleteCourse(@CurrentUser("id") userId: string, @Args("id") id: string) {
     return this.courseService.deleteCourse(userId, id);
   }
-
-  @Mutation(() => Course)
-  @Auth("user")
-  async createCourseLink(@CurrentUser("id") userId: string, @Args("id") id: string) {
-    return this.courseService.deleteCourse(userId, id);
-  }
 }
