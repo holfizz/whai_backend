@@ -28,6 +28,7 @@ model SubscriptionHistory {
   updatedAt        DateTime         @updatedAt @map("updated_at")
   subscriptionType SubscriptionType @map("subscription_type")
   price            Float            @map("price")
+  email            String?          @map("email")
   startedAt        DateTime         @map("started_at")
   endedAt          DateTime?        @map("ended_at")
   userId           String           @map("user_id")
