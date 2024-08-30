@@ -6,9 +6,9 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { AutoRenewalService } from "./auto-renewal.service";
+import { SubscriptionNotificationService } from "./subscription-notification.service";
 import { SubscriptionResolver } from "./subscription.resolver";
 import { SubscriptionService } from "./subscription.service";
-import { SubscriptionNotificationService } from "./Subscription-notification.service";
 
 @Module({
   imports: [

@@ -4,7 +4,7 @@ import { PrismaService } from "@/prisma.service";
 import { SubscriptionService } from "@/subscription/subscription.service";
 import { TransactionService } from "@/transaction/transaction.service";
 import { Injectable } from "@nestjs/common";
-import { SubscriptionNotificationService } from "./Subscription-notification.service";
+import { SubscriptionNotificationService } from "./subscription-notification.service";
 
 @Injectable()
 export class AutoRenewalService {
