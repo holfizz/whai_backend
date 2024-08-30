@@ -22,7 +22,7 @@ export class LessonResolver {
   @Mutation(() => Lesson)
   @Auth("user")
   async updateLesson(@Args("updateLessonInput") updateLessonInput: UpdateLesson) {
-    return this.lessonService.updateLesson(updateLessonInput.id, updateLessonInput);
+    return this.lessonService.updateLesson(updateLessonInput);
   }
 
   @Mutation(() => Lesson)

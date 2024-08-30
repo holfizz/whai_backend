@@ -25,6 +25,16 @@ export class CourseService {
         imgUrl,
       },
     });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user.isFirstCourseCompleted) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { isFirstCourseCompleted: true },
+      });
+    }
 
     return {
       ...course,

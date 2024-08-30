@@ -54,5 +54,10 @@ model User {
   currentLessonCount    Int @default(0) @map("current_lesson_count")
   additionalTitlesCount Int @default(0) @map("additional_titles_count")
 
+  isFirstCourseCompleted Boolean @default(false) @map("is_first_course_completed")
+  isHomeworkCompleted    Boolean @default(false) @map("is_homework_completed")
+  isQuizCompleted        Boolean @default(false) @map("is_quiz_completed")
+  isFirstLessonCompleted Boolean @default(false) @map("is_first_lesson_completed")
+
   @@map("users")
 }

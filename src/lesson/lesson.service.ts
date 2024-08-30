@@ -38,12 +38,8 @@ export class LessonService {
       });
   }
 
-  async updateLesson(id: string, data: UpdateLesson): Promise<any> {
-    return await this.prisma.$transaction(async prisma => {
-      await this.lessonRepository.updateLesson(data);
-
-      return this.lessonRepository.findLessonById(id);
-    });
+  async updateLesson(data: UpdateLesson): Promise<any> {
+    await this.lessonRepository.updateLesson(data);
   }
 
   async getLesson(lessonId: string): Promise<any> {
@@ -140,6 +136,12 @@ export class LessonService {
       });
     }
 
+    if (!user.isFirstLessonCompleted) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { isFirstLessonCompleted: true },
+      });
+    }
     return createdLesson;
   }
   async createIndependentLessonWithAI(userId: string, dto: LessonIndependentWithAIInput, pubSub: PubSub): Promise<any> {
@@ -158,7 +160,7 @@ export class LessonService {
     const aiDto: AIDTO = {
       content: {
         createType: "Урок",
-        descriptionType: "Создай урок",
+        createDescription: "Создай урок на заданную тему",
         lessonTitle: dto.lessonTitle,
         lessonDescription: dto.lessonDescription,
         additionalParams: dto.additionalParams,
@@ -166,7 +168,7 @@ export class LessonService {
         isHasAISearchImage: dto.isHasAISearchImage,
       },
     };
-
+    logger.log("aiDto", aiDto);
     // Получение ответа от AI
     const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
@@ -213,7 +215,6 @@ export class LessonService {
         lessonTasks: true,
       },
     });
-
     return lessons.map(lesson => {
       const totalBlocks = lesson.lessonBlocks.length;
       const totalTasks = lesson.lessonTasks.length;

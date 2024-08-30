@@ -413,7 +413,7 @@ export class QuizService {
           quizId,
           courseId,
           subtopicId,
-          totalPercents: averageCorrectnessPercentage, // Use average percentage
+          totalPercents: averageCorrectnessPercentage,
           userAnswers: {
             create: userAnswerEntities,
           },
@@ -422,6 +422,16 @@ export class QuizService {
           userAnswers: true,
         },
       });
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user.isQuizCompleted) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { isQuizCompleted: true },
+        });
+      }
 
       return quizResult;
     });
