@@ -12,11 +12,9 @@ model Course {
   description        String?
   ownerID            String           @map("owner_id")
   publicUrl          String?          @map("public_url")
+  isPublic           Boolean?         @map("is_public")
   tags               String[]
   level              CourseLevelEnum?
-  students           User[]
-  teacherIds         String[]         @map("teacher_ids")
-  studentsId         String[]         @map("students_id")
   quizResult         QuizResult[]
   lessons            Lesson[]
   quizzes            Quiz[]
@@ -28,6 +26,7 @@ model Course {
   isHasVideo         Boolean          @default(false)
   isHasAISearchImage Boolean          @default(false)
   needHomeworks      Boolean          @default(false)
+  User               User[]
 
   @@map("courses")
 }

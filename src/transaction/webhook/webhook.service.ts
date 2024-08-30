@@ -40,12 +40,26 @@ export class WebhookService {
           throw new Error("User ID not found in transaction");
         }
 
+        // Check if the user already has an active subscription
+        const existingSubscription = await this.prisma.subscriptionHistory.findFirst({
+          where: {
+            userId: userId,
+            isActive: true,
+            endedAt: { gte: new Date() },
+          },
+        });
+
+        if (existingSubscription) {
+          throw new Error(`User with id ${userId} already has an active subscription`);
+        }
+
         await this.subscriptionService.activateSubscription(userId, {
           transactionId: transaction.id,
           subscriptionType: transaction.type,
           paymentId: dto.PaymentId,
           months: transaction.months,
         });
+
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         const subscription = await this.prisma.subscription.findUnique({ where: { type: transaction.type } });
         if (user) {
@@ -98,6 +112,6 @@ export class WebhookService {
         logger.warn(`Unhandled payment status: ${dto.Status} for OrderId: ${dto.OrderId}`);
     }
 
-    return "Ok";
+    return "OK";
   }
 }

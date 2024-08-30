@@ -83,6 +83,16 @@ export class SubscriptionService {
       }
 
       // await this.endCurrentSubscription(userId);
+      const updatedUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          currentSubscription: true,
+        },
+      });
+
+      if (!updatedUser) {
+        throw new Error(`User with ID ${userId} not found.`);
+      }
 
       const currentDate = new Date();
       const endDate = new Date(currentDate);
@@ -93,6 +103,7 @@ export class SubscriptionService {
           user: { connect: { id: userId } },
           subscriptionType: dto.subscriptionType,
           price: subscription.price,
+          email: updatedUser.email,
           startedAt: currentDate,
           endedAt: endDate,
           transactionId: dto.transactionId,
@@ -106,17 +117,6 @@ export class SubscriptionService {
           currentSubscriptionType: dto.subscriptionType,
         },
       });
-
-      const updatedUser = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          currentSubscription: true,
-        },
-      });
-
-      if (!updatedUser) {
-        throw new Error(`User with ID ${userId} not found.`);
-      }
 
       return {
         userId: updatedUser.id,
