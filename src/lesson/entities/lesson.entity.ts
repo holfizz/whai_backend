@@ -68,3 +68,39 @@ export class Lesson extends BaseEntity {
   @IsOptional()
   isHasLessonTask?: boolean;
 }
+
+@ObjectType()
+export class PrevNextLesson extends BaseEntity {
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsString()
+  prevLessonId?: string | null;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsString()
+  nextLessonId?: string | null;
+}
+
+@ObjectType()
+export class BreadcrumbsLesson {
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  courseName?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  topicName?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  subtopicName?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  lessonName?: string;
+}

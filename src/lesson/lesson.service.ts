@@ -39,7 +39,7 @@ export class LessonService {
   }
 
   async updateLesson(data: UpdateLesson): Promise<any> {
-    await this.lessonRepository.updateLesson(data);
+    return this.lessonRepository.updateLesson(data);
   }
 
   async getLesson(lessonId: string): Promise<any> {
@@ -291,5 +291,38 @@ export class LessonService {
       throw new Error("Extracted content is not valid JSON.");
     }
     return lessonContent;
+  }
+
+  async getPrevNextLesson(courseId: string, lessonId: string): Promise<{ prevLessonId: string | null; nextLessonId: string | null }> {
+    const lessons = await this.prisma.lesson.findMany({
+      where: { courseId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+
+    const currentIndex = lessons.findIndex(lesson => lesson.id === lessonId);
+
+    if (currentIndex === -1) {
+      throw new Error("Lesson not found in the course");
+    }
+
+    const prevLessonId = currentIndex > 0 ? lessons[currentIndex - 1].id : null;
+    const nextLessonId = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1].id : null;
+
+    return { prevLessonId, nextLessonId };
+  }
+
+  async getBreadcrumbsToLesson({ courseId, topicId, subtopicId, lessonId }: { courseId: string; topicId: string; subtopicId: string; lessonId: string }): Promise<any> {
+    const course = await this.prisma.course.findUnique({ where: { id: courseId } });
+    const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+    const subtopic = await this.prisma.subtopic.findUnique({ where: { id: subtopicId } });
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId } });
+
+    return {
+      courseName: course.name,
+      topicName: topic.name,
+      subtopicName: subtopic.name,
+      lessonName: lesson.name,
+    };
   }
 }

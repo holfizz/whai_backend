@@ -4,7 +4,7 @@ import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { PubSub } from "graphql-subscriptions";
 import { LessonIndependentWithAIInput, LessonInput, LessonWithAIInput, LessonWithAITasksBlocksInput } from "./dto/lesson.input";
 import { UpdateLesson } from "./dto/update-lesson.input";
-import { Lesson } from "./entities/lesson.entity";
+import { BreadcrumbsLesson, Lesson, PrevNextLesson } from "./entities/lesson.entity";
 import { LessonService } from "./lesson.service";
 
 const pubSub = new PubSub();
@@ -77,5 +77,22 @@ export class LessonResolver {
   @Auth("user")
   async getAllIndependentLessons(@CurrentUser("id") userId: string) {
     return this.lessonService.getAllIndependentLessons(userId);
+  }
+
+  @Query(() => PrevNextLesson)
+  @Auth("user")
+  async getPrevNextLesson(@Args("courseId", { type: () => ID }) courseId: string, @Args("lessonId", { type: () => ID }) lessonId: string) {
+    return this.lessonService.getPrevNextLesson(courseId, lessonId);
+  }
+
+  @Query(() => BreadcrumbsLesson)
+  @Auth("user")
+  async getBreadcrumbsToLesson(
+    @Args("courseId", { type: () => ID }) courseId: string,
+    @Args("topicId", { type: () => ID }) topicId: string,
+    @Args("subtopicId", { type: () => ID }) subtopicId: string,
+    @Args("lessonId", { type: () => ID }) lessonId: string,
+  ) {
+    return this.lessonService.getBreadcrumbsToLesson({ courseId, topicId, subtopicId, lessonId });
   }
 }

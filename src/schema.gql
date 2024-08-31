@@ -36,6 +36,13 @@ input BlockInput {
   userRequest: String!
 }
 
+type BreadcrumbsLesson {
+  courseName: String
+  lessonName: String
+  subtopicName: String
+  topicName: String
+}
+
 type Chat {
   createdAt: DateTime!
   id: ID!
@@ -515,6 +522,14 @@ type Notice {
   userId: ID!
 }
 
+type PrevNextLesson {
+  createdAt: DateTime!
+  id: ID!
+  nextLessonId: ID
+  prevLessonId: ID
+  updatedAt: DateTime!
+}
+
 type Query {
   findAllLessons(subtopicId: ID!): [Lesson!]!
   findLessonById(lessonId: ID!): Lesson
@@ -534,6 +549,7 @@ type Query {
   getAllSubtopics(topicId: ID!): [Subtopic!]!
   getAllTasksByLessonId(lessonId: ID!): [LessonTasks!]!
   getAllTopics(courseId: ID!): [Topic!]!
+  getBreadcrumbsToLesson(courseId: ID!, lessonId: ID!, subtopicId: ID!, topicId: ID!): BreadcrumbsLesson!
   getChatWithAI(chatWithAIID: ID!): ChatWithAI!
   getCourse(courseId: ID!): Course!
   getCourseAIHistory(courseAIHistoryId: ID!): CourseAIHistory!
@@ -544,6 +560,7 @@ type Query {
   getLesson(lessonId: ID!): Lesson!
   getMessagesByCourseAIHistoryId(courseAIHistoryId: ID!): [MessageWithAIData!]!
   getNewToken: RefreshTokenResponse!
+  getPrevNextLesson(courseId: ID!, lessonId: ID!): PrevNextLesson!
 
   """
   Retrieves the profile of the currently authenticated user based on their unique identifier.
@@ -876,7 +893,7 @@ input UpdateLesson {
   isCompleted: Boolean
   name: String
   subtopicId: ID
-  types: [LessonTypeEnum!]
+  types: [LessonTypeEnum]
 }
 
 input UpdateLessonBlock {
