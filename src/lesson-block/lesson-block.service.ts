@@ -1,3 +1,4 @@
+import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { LessonBlockInput } from "./dto/lesson-block.input";
@@ -8,17 +9,20 @@ export class LessonBlockService {
   constructor(private prisma: PrismaService) {}
 
   async createLessonBlock(data: LessonBlockInput) {
-    // Check if the lessonId exists
-    const lesson = await this.prisma.lesson.findUnique({ where: { id: data.lessonId } });
-    if (!lesson) {
-      throw new NotFoundException(`Lesson with ID ${data.lessonId} not found`);
-    }
+    try {
+      const lesson = await this.prisma.lesson.findUnique({ where: { id: data.lessonId } });
+      if (!lesson) {
+        throw new NotFoundException(`Lesson with ID ${data.lessonId} not found`);
+      }
 
-    return this.prisma.lessonBlock.create({
-      data: {
-        ...data,
-      },
-    });
+      return this.prisma.lessonBlock.create({
+        data: {
+          ...data,
+        },
+      });
+    } catch (error) {
+      logger.error(error);
+    }
   }
 
   async updateLessonBlock(data: UpdateLessonBlock) {
