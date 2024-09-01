@@ -22,7 +22,7 @@ export class NoticeService {
       select: { telegramId: true },
     });
 
-    await this.telegramService.sendMessage(user.telegramId, notice.title, notice.description);
+    // await this.telegramService.sendMessage(user.telegramId, notice.title, notice.description);
     return notice;
   }
 }

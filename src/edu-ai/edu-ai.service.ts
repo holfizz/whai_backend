@@ -125,6 +125,7 @@ export class EduAiService {
 
               if (filteredMessages.length > 0) {
                 const fullContent = filteredMessages.map(m => m.message.content).join("");
+                logger.log(fullContent);
                 resolve(fullContent);
               } else {
                 resolve([]);

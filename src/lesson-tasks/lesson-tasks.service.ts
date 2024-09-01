@@ -2,9 +2,8 @@ import { EduAiService } from "@/edu-ai/edu-ai.service";
 import { AIDTO } from "@/edu-ai/types/ai.types";
 import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
-import { HttpService } from "@nestjs/axios";
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import * as FormData from "form-data";
+import { TelegramService } from "@/telegram/telegram.service";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PubSub } from "graphql-subscriptions";
 import { FileUpload } from "graphql-upload-ts";
 import { CheckHomeworkDto, LessonTasksInput } from "./dto/lesson-task.input";
@@ -13,9 +12,9 @@ import { UpdateLessonTasks } from "./dto/update-lesson-task.input";
 @Injectable()
 export class LessonTasksService {
   constructor(
-    private prisma: PrismaService,
-    private eduAiService: EduAiService,
-    private readonly httpService: HttpService,
+    private readonly prisma: PrismaService,
+    private readonly eduAiService: EduAiService,
+    private readonly telegramService: TelegramService,
   ) {}
   async createLessonTask(data: LessonTasksInput) {
     return this.prisma.lessonTask.create({
@@ -49,21 +48,23 @@ export class LessonTasksService {
     }
     return await this.prisma.lessonTask.findMany({ where: { lessonId } });
   }
+
   async checkHomework(dto: CheckHomeworkDto, uploadedFile: FileUpload, pubSub: PubSub, userId: string) {
     const lessonTask = await this.prisma.lessonTask.findUnique({ where: { id: dto.lessonTaskId } });
     if (!lessonTask) {
       throw new NotFoundException(`Lesson with ID ${dto.lessonTaskId} not found`);
     }
 
-    // Uploading the file to Coze API
-    const fileId = await this.uploadFile(uploadedFile);
+    // Отправляем файл и получаем ссылку
+    const fileUrl = await this.telegramService.sendFileAndGetMessageUrl(uploadedFile, "photo");
+    console.log("URL сообщения с файлом:", fileUrl);
 
     const aiDto: AIDTO = {
       content: {
-        createType: "Домашнее задание",
+        createType: "Homework",
         taskName: lessonTask.name,
         taskDescription: lessonTask.description,
-        fileId: fileId,
+        file: fileUrl,
       },
     };
 
@@ -75,34 +76,6 @@ export class LessonTasksService {
     logger.log("parsedContent", parsedContent);
   }
 
-  async uploadFile(file: FileUpload): Promise<string> {
-    const { createReadStream, filename, mimetype } = await file;
-    const form = new FormData();
-
-    form.append("file", createReadStream(), {
-      filename,
-      contentType: mimetype,
-    });
-
-    try {
-      const response = await this.httpService
-        .post("https://api.coze.com/v1/files/upload", form, {
-          headers: {
-            Authorization: `Bearer ${process.env.WHAI_AI_KEY}`,
-            ...form.getHeaders(),
-          },
-        })
-        .toPromise();
-
-      if (response.data.code !== 0) {
-        throw new InternalServerErrorException(`Failed to upload file: ${response.data.msg}`);
-      }
-
-      return response.data.data.id;
-    } catch (error) {
-      throw new InternalServerErrorException(`Failed to upload file: ${error.message}`);
-    }
-  }
   private extractLessonTaskJson(content: string): string {
     const lessonPattern = /```homework([\s\S]*?)```/;
     const jsonPattern = /```json([\s\S]*?)```/;
