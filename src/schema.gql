@@ -74,6 +74,10 @@ input ChatWithAIInput {
   title: String
 }
 
+input CheckHomeworkDto {
+  lessonTaskId: String!
+}
+
 type Choice {
   content: String!
   correctAnswerDescription: String
@@ -271,6 +275,14 @@ input LessonBlockInput {
   videoUrl: String
 }
 
+type LessonHomeworkResponse {
+  createdAt: DateTime!
+  id: ID!
+  reason: String!
+  status: String!
+  updatedAt: DateTime!
+}
+
 input LessonIndependentWithAIInput {
   additionalParams: String
   isHasAISearchImage: Boolean!
@@ -424,6 +436,8 @@ enum MessageWithAIRole {
 }
 
 type Mutation {
+  checkHomework(checkHomeworkDto: CheckHomeworkDto!, file: Upload): [LessonHomeworkResponse!]!
+
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
   createChatWithAI(createChatInput: ChatWithAIInput!): ChatWithAI!

@@ -17,3 +17,9 @@ export class LessonTasksInput {
   @IsUUID()
   lessonId: string;
 }
+@InputType()
+export class CheckHomeworkDto {
+  @Field(() => String)
+  @IsString()
+  lessonTaskId: string;
+}

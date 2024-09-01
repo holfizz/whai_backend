@@ -21,3 +21,14 @@ export class LessonTasks extends BaseEntity {
   @IsUUID()
   lessonId: string;
 }
+
+@ObjectType()
+export class LessonHomeworkResponse extends BaseEntity {
+  @Field(() => String)
+  @IsString()
+  status: string;
+
+  @Field(() => String)
+  @IsString()
+  reason?: string;
+}

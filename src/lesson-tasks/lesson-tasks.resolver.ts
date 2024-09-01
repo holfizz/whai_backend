@@ -1,9 +1,14 @@
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 
-import { LessonTasksInput } from "./dto/lesson-task.input";
+import { Auth } from "@/auth/decorators/auth.decorator";
+import { CurrentUser } from "@/auth/decorators/user.decorator";
+import { PubSub } from "graphql-subscriptions";
+import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
+import { CheckHomeworkDto, LessonTasksInput } from "./dto/lesson-task.input";
 import { UpdateLessonTasks } from "./dto/update-lesson-task.input";
-import { LessonTasks } from "./entities/lesson-task.entity";
+import { LessonHomeworkResponse, LessonTasks } from "./entities/lesson-task.entity";
 import { LessonTasksService } from "./lesson-tasks.service";
+const pubSub = new PubSub();
 
 @Resolver(() => LessonTasks)
 export class LessonTasksResolver {
@@ -27,5 +32,21 @@ export class LessonTasksResolver {
   @Query(() => [LessonTasks])
   async getAllTasksByLessonId(@Args("lessonId", { type: () => ID }) lessonId: string) {
     return this.lessonTasksService.getAllTasksByLessonId(lessonId);
+  }
+
+  @Mutation(() => [LessonHomeworkResponse])
+  @Auth("user")
+  async checkHomework(
+    @Args("checkHomeworkDto") checkHomeworkDto: CheckHomeworkDto,
+    @CurrentUser("id") userId: string,
+    @Args("file", { type: () => GraphQLUpload, nullable: true }) image?: FileUpload | null,
+  ) {
+    let uploadedFile: FileUpload | null = null;
+
+    if (image) {
+      uploadedFile = await image;
+    }
+
+    return this.lessonTasksService.checkHomework(checkHomeworkDto, uploadedFile, pubSub, userId);
   }
 }
