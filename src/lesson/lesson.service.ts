@@ -106,8 +106,10 @@ export class LessonService {
         additionalParams: dto.additionalParams,
         isHasVideo: course.isHasVideo,
         isHasAISearchImage: course.isHasAISearchImage,
+        needHomework: course.needHomeworks,
       },
     };
+    logger.log("aiDto", aiDto);
 
     const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
@@ -145,18 +147,14 @@ export class LessonService {
     return createdLesson;
   }
   async createIndependentLessonWithAI(userId: string, dto: LessonIndependentWithAIInput, pubSub: PubSub): Promise<any> {
-    // Проверка наличия пользователя
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    // Проверка лимита создания уроков
     if (user.currentLessonCount <= 0) {
       throw new Error("You have reached your lesson creation limit for this month.");
     }
-
-    // Формирование данных для AI
     const aiDto: AIDTO = {
       content: {
         createType: "Урок",
@@ -232,27 +230,26 @@ export class LessonService {
   async createLessonFromAI(data: LessonWithAITasksBlocksInput): Promise<any> {
     return await this.prisma.$transaction(async prisma => {
       await this.lessonRepository.validateLesson(data);
-      const currentLesson = data.id ? await this.lessonRepository.updateLesson(data) : await this.lessonRepository.createLesson(data);
+      const currentLesson = data.id
+        ? await this.lessonRepository.updateLesson({ name: data.name, description: data.description, types: data.types, id: data.id })
+        : await this.lessonRepository.createLesson(data);
 
-      const lessonBlocks = [];
       if (data.lessonBlocks) {
         for (const lessonBlock of data.lessonBlocks) {
-          const newLessonBlock = await this.lessonBlockService.createLessonBlock({
+          await this.lessonBlockService.createLessonBlock({
             ...lessonBlock,
             lessonId: currentLesson.id,
           });
-          lessonBlocks.push(newLessonBlock);
         }
       }
 
-      const lessonTasks = [];
       if (data.lessonTasks) {
         for (const lessonTask of data.lessonTasks) {
-          const newLessonTask = await this.lessonTasksService.createLessonTask({
+          await this.lessonTasksService.createLessonTask({
             name: lessonTask.name,
+            description: lessonTask.description,
             lessonId: currentLesson.id,
           });
-          lessonTasks.push(newLessonTask);
         }
       }
 

@@ -10,6 +10,7 @@ export class LessonTasksService {
     return this.prisma.lessonTask.create({
       data: {
         name: data.name,
+        description: data.description,
         lessonId: data.lessonId,
       },
     });

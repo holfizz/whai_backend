@@ -309,6 +309,7 @@ input LessonPlanInput {
 
 type LessonTasks {
   createdAt: DateTime!
+  description: String
   id: ID!
   isChecked: Boolean!
   lessonId: ID!
@@ -317,6 +318,7 @@ type LessonTasks {
 }
 
 input LessonTasksInput {
+  description: String
   lessonId: ID!
   name: String!
 }
@@ -893,7 +895,7 @@ input UpdateLesson {
   isCompleted: Boolean
   name: String
   subtopicId: ID
-  types: [LessonTypeEnum]
+  types: [LessonTypeEnum!]
 }
 
 input UpdateLessonBlock {
@@ -911,6 +913,7 @@ input UpdateLessonBlock {
 }
 
 input UpdateLessonTasks {
+  description: String
   id: ID
   lessonId: ID
   name: String
