@@ -4,6 +4,7 @@ import logger from "@/helpers/logger";
 import { PrismaService } from "@/prisma.service";
 import { TelegramService } from "@/telegram/telegram.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { ResponseStatus } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import { FileUpload } from "graphql-upload-ts";
 import { CheckHomeworkDto, LessonTasksInput } from "./dto/lesson-task.input";
@@ -74,6 +75,32 @@ export class LessonTasksService {
     const lessonTaskJson = this.extractLessonTaskJson(fullContent);
     const parsedContent = JSON.parse(lessonTaskJson);
     logger.log("parsedContent", parsedContent);
+
+    await this.prisma.interactionHistory.create({
+      data: {
+        user: { connect: { id: userId } },
+        fileUrl: fileUrl,
+        title: lessonTask.name,
+        response: {
+          create: {
+            status: parsedContent.status as ResponseStatus,
+            reason: parsedContent.reason || null,
+            incorrectParts: parsedContent.incorrect_parts,
+            suggestions: parsedContent.suggestions,
+            completionPercentage: parseInt(parsedContent.completion_percentage),
+            links: parsedContent.links || [],
+          },
+        },
+      },
+    });
+    return {
+      status: parsedContent.status,
+      reason: parsedContent.reason || null,
+      incorrectParts: parsedContent.incorrect_parts,
+      suggestions: parsedContent.suggestions,
+      completionPercentage: parseInt(parsedContent.completion_percentage),
+      links: parsedContent.links || [],
+    };
   }
 
   private extractLessonTaskJson(content: string): string {
