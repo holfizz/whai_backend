@@ -276,11 +276,12 @@ input LessonBlockInput {
 }
 
 type LessonHomeworkResponse {
-  createdAt: DateTime!
-  id: ID!
-  reason: String!
+  completionPercentage: Int!
+  incorrectParts: String!
+  links: [String!]
+  reason: String
   status: String!
-  updatedAt: DateTime!
+  suggestions: String!
 }
 
 input LessonIndependentWithAIInput {

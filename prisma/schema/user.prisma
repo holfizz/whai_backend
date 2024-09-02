@@ -59,5 +59,7 @@ model User {
   isQuizCompleted        Boolean @default(false) @map("is_quiz_completed")
   isFirstLessonCompleted Boolean @default(false) @map("is_first_lesson_completed")
 
+  InteractionHistory InteractionHistory[]
+
   @@map("users")
 }

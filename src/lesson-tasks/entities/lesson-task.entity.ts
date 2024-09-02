@@ -1,6 +1,6 @@
 import { BaseEntity } from "@/helpers/base.entity";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { IsBoolean, IsOptional, IsString, IsUUID } from "class-validator";
+import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
+import { IsArray, IsBoolean, IsInt, IsOptional, IsString, IsUUID } from "class-validator";
 
 @ObjectType()
 export class LessonTasks extends BaseEntity {
@@ -23,12 +23,30 @@ export class LessonTasks extends BaseEntity {
 }
 
 @ObjectType()
-export class LessonHomeworkResponse extends BaseEntity {
+export class LessonHomeworkResponse {
   @Field(() => String)
   @IsString()
   status: string;
 
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  reason?: string;
+
   @Field(() => String)
   @IsString()
-  reason?: string;
+  incorrectParts: string;
+
+  @Field(() => String)
+  @IsString()
+  suggestions: string;
+
+  @Field(() => Int)
+  @IsInt()
+  completionPercentage: number;
+
+  @Field(() => [String], { nullable: true })
+  @IsArray()
+  @IsOptional()
+  links?: string[];
 }

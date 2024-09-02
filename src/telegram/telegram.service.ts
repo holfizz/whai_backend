@@ -1,57 +1,49 @@
-import { AuthService } from "@/auth/auth.service";
-import { PrismaService } from "@/prisma.service";
 import { ConfigService } from "@nestjs/config";
-import { Ctx, Start, Update } from "nestjs-telegraf";
+import { FileUpload } from "graphql-upload-ts";
+import { Update } from "nestjs-telegraf";
 import { Context, Telegraf } from "telegraf";
 import { SceneContext } from "telegraf/typings/scenes";
+
 type MessageContext = Context & SceneContext;
+
 @Update()
 export class TelegramService extends Telegraf<MessageContext> {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-    private readonly authService: AuthService,
-  ) {
-    super(configService.get("TELEGRAM_API_KEY"));
+  constructor(private readonly configService: ConfigService) {
+    super(configService.get<string>("TELEGRAM_API_KEY"));
   }
-  @Start()
-  async handleStartCommand(@Ctx() ctx) {
-    const token = ctx.startPayload || ctx.message.text.split(" ")[1] || "";
-    const telegramId = ctx.from.id.toString();
-    if (!token) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { telegramId },
-        select: { email: true },
-      });
 
-      if (existingUser) {
-        return ctx.reply(`Ваш аккаунт уже привязан к Telegram! Электронная почта: ${String(existingUser.email)}`);
-      } else {
-        return ctx.reply("Не удалось обнаружить токен. Пожалуйста, используйте ссылку, предоставленную на сайте.");
-      }
-    }
-    const authResult = await this.authService.handleTelegramAuth(token, telegramId);
-    if (authResult.userEmail) {
-      return ctx.reply(`Ваш аккаунт успешно привязан к Telegram! Электронная почта: ${String(authResult.userEmail)}`);
-    } else {
-      return ctx.reply("Не удалось привязать аккаунт. Пожалуйста, попробуйте еще раз.");
-    }
-  }
-  async isUserRegisteredInChat(telegramId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { telegramId },
-      select: { id: true },
-    });
-
-    return Boolean(user);
-  }
-  async sendMessage(chatId: string, text: string, description: string): Promise<void> {
-    const message = `<b>${text}</b>\n${description}`;
+  async sendFileAndGetMessageUrl(file: FileUpload, caption?: string): Promise<string> {
     try {
-      await this.telegram.sendMessage(chatId, message, { parse_mode: "HTML" });
+      const chatId = "-1002244125318";
+
+      const { createReadStream, filename } = file;
+
+      const fileStream = createReadStream();
+
+      const result = await this.telegram.sendDocument(
+        chatId,
+        {
+          source: fileStream,
+          filename: filename,
+        },
+        {
+          caption: caption || "",
+        },
+      );
+
+      const fileId = result.document?.file_id;
+      if (!fileId) {
+        throw new Error("Failed to get file ID from Telegram response");
+      }
+
+      const fileInfo = await this.telegram.getFile(fileId);
+
+      const fileUrl = `https://api.telegram.org/file/bot${this.configService.get<string>("TELEGRAM_API_KEY")}/${fileInfo.file_path}`;
+
+      return fileUrl;
     } catch (error) {
-      console.error("Ошибка при отправке сообщения:", error);
-      throw new Error("Не удалось отправить сообщение.");
+      console.error("Failed to send file or get public URL", error);
+      throw new Error("Failed to send file or get public URL");
     }
   }
 }

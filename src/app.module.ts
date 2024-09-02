@@ -29,6 +29,7 @@ import { PlanModule } from "./plan/plan.module";
 import { PrismaService } from "./prisma.service";
 import { QuizModule } from "./quiz/quiz.module";
 import { SubscriptionModule } from "./subscription/subscription.module";
+import { TelegramModule } from "./telegram/telegram.module";
 import { TransactionModule } from "./transaction/transaction.module";
 import { UserModule } from "./user/user.module";
 
@@ -77,12 +78,12 @@ import { UserModule } from "./user/user.module";
     QuizModule,
     LessonBlockModule,
     LessonTasksModule,
+    TelegramModule,
     SubtopicModule,
     TopicModule,
     MessageWithAiModule,
     AnalyticsModule,
     NoticeModule,
-    // TelegramModule,
     EduAiModule,
     PlanModule,
     CourseAIHistoryModule,
