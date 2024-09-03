@@ -80,7 +80,10 @@ export class LessonTasksService {
       data: {
         user: { connect: { id: userId } },
         fileUrl: fileUrl,
+        fileName: uploadedFile.filename,
+        lessonTask: { connect: { id: dto.lessonTaskId } },
         title: lessonTask.name,
+
         response: {
           create: {
             status: parsedContent.status as ResponseStatus,
@@ -93,6 +96,8 @@ export class LessonTasksService {
         },
       },
     });
+    await this.prisma.lessonTask.update({ where: { id: lessonTask.id }, data: { isChecked: parsedContent.status === "COMPLETED" ? true : false } });
+    console.log("Received fullContent:", parsedContent);
     return {
       status: parsedContent.status,
       reason: parsedContent.reason || null,
@@ -104,29 +109,71 @@ export class LessonTasksService {
   }
 
   private extractLessonTaskJson(content: string): string {
+    // Шаблоны для поиска блоков
     const lessonPattern = /```homework([\s\S]*?)```/;
     const jsonPattern = /```json([\s\S]*?)```/;
+
+    // Попытка найти блок homework
     let lessonMatch = content.match(lessonPattern);
+
+    // Если блок homework не найден, пытаемся найти блок json
     if (!lessonMatch || lessonMatch.length < 2) {
-      console.error("Cannot find lesson task block in the provided content.");
-      throw new Error("Cannot find lesson task block in the provided content.");
-    }
-    let lessonContent = lessonMatch[1].trim();
-    let jsonMatch = lessonContent.match(jsonPattern);
-    if (jsonMatch && jsonMatch.length >= 2) {
-      lessonContent = jsonMatch[1].trim();
+      console.warn("Cannot find 'homework' block, trying to find 'json' block.");
+      lessonMatch = content.match(jsonPattern);
+
+      // Если блок json также не найден, выводим ошибку
+      if (!lessonMatch || lessonMatch.length < 2) {
+        console.error("Cannot find 'homework' or 'json' block in the provided content.");
+        throw new Error("Cannot find 'homework' or 'json' block in the provided content.");
+      }
     } else {
-      jsonMatch = content.match(jsonPattern);
+      // Если найден блок homework, проверяем, есть ли внутри него блок json
+      let lessonContent = lessonMatch[1].trim();
+      let jsonMatch = lessonContent.match(jsonPattern);
+
       if (jsonMatch && jsonMatch.length >= 2) {
         lessonContent = jsonMatch[1].trim();
       }
+
+      // Проверка на валидный JSON и возврат результата
+      try {
+        JSON.parse(lessonContent);
+      } catch (e) {
+        console.error("Extracted content is not valid JSON:", lessonContent);
+        throw new Error("Extracted content is not valid JSON.");
+      }
+
+      return lessonContent;
     }
+
+    // Если блок homework не найден, но найден блок json, используем его содержимое
+    const jsonContent = lessonMatch[1].trim();
     try {
-      JSON.parse(lessonContent);
+      JSON.parse(jsonContent);
     } catch (e) {
-      console.error("Extracted content is not valid JSON:", lessonContent);
+      console.error("Extracted content is not valid JSON:", jsonContent);
       throw new Error("Extracted content is not valid JSON.");
     }
-    return lessonContent;
+
+    return jsonContent;
+  }
+  async getInteractionHistory(userId: string, lessonTaskId: string) {
+    const interactionHistory = await this.prisma.interactionHistory.findMany({
+      where: { userId, lessonTaskId: lessonTaskId },
+      include: {
+        response: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return interactionHistory.map(history => ({
+      status: history.response?.status,
+      reason: history.response?.reason || null,
+      incorrectParts: history.response?.incorrectParts,
+      suggestions: history.response?.suggestions,
+      fileName: history.fileName,
+      completionPercentage: parseInt(history.response?.completionPercentage.toString(), 10),
+      links: history.response?.links || [],
+    }));
   }
 }
