@@ -277,6 +277,7 @@ input LessonBlockInput {
 
 type LessonHomeworkResponse {
   completionPercentage: Int!
+  fileName: String!
   incorrectParts: String!
   links: [String!]
   reason: String
@@ -437,7 +438,7 @@ enum MessageWithAIRole {
 }
 
 type Mutation {
-  checkHomework(checkHomeworkDto: CheckHomeworkDto!, file: Upload): [LessonHomeworkResponse!]!
+  checkHomework(checkHomeworkDto: CheckHomeworkDto!, file: Upload): LessonHomeworkResponse!
 
   """Create a new chat associated with the current user."""
   createChat(createChatDto: CreateChatInput!): Chat!
@@ -572,6 +573,7 @@ type Query {
   getCourseAIHistory(courseAIHistoryId: ID!): CourseAIHistory!
   getCourseAIHistoryByCourseId(courseId: ID!): CourseAIHistory!
   getCoursePlan(planId: ID!): CoursePlan!
+  getInteractionHistory(lessonTaskId: String!): [LessonHomeworkResponse!]!
   getLastCourse: Course
   getLastSaveQuizResult(quizId: ID!): QuizResult
   getLesson(lessonId: ID!): Lesson!

@@ -45,6 +45,10 @@ export class LessonHomeworkResponse {
   @IsInt()
   completionPercentage: number;
 
+  @Field(() => String)
+  @IsString()
+  fileName: string;
+
   @Field(() => [String], { nullable: true })
   @IsArray()
   @IsOptional()

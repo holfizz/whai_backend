@@ -34,7 +34,7 @@ export class LessonTasksResolver {
     return this.lessonTasksService.getAllTasksByLessonId(lessonId);
   }
 
-  @Mutation(() => [LessonHomeworkResponse])
+  @Mutation(() => LessonHomeworkResponse)
   @Auth("user")
   async checkHomework(
     @Args("checkHomeworkDto") checkHomeworkDto: CheckHomeworkDto,
@@ -48,5 +48,10 @@ export class LessonTasksResolver {
     }
 
     return this.lessonTasksService.checkHomework(checkHomeworkDto, uploadedFile, pubSub, userId);
+  }
+  @Query(() => [LessonHomeworkResponse])
+  @Auth("user")
+  async getInteractionHistory(@CurrentUser("id") userId: string, @Args("lessonTaskId") lessonTaskId: string): Promise<LessonHomeworkResponse[]> {
+    return this.lessonTasksService.getInteractionHistory(userId, lessonTaskId);
   }
 }

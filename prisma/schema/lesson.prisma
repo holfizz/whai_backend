@@ -32,17 +32,19 @@ model LessonBlock {
 }
 
 model InteractionHistory {
-  id         String         @id @unique @default(uuid())
-  userId     String         @map("user_id")
-  user       User           @relation(fields: [userId], references: [id])
-  lessonId   String?        @map("lesson_id")
-  lessonTask LessonTask?    @relation(fields: [lessonId], references: [id])
-  fileUrl    String         @map("file_url")
-  title      String?        @map("title")
-  response   Response       @relation(fields: [responseId], references: [id])
-  status     ResponseStatus @default(START)
-  message    String?
-  responseId String         @unique
+  id           String         @id @unique @default(uuid())
+  userId       String         @map("user_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  user         User           @relation(fields: [userId], references: [id])
+  lessonTaskId String?        @map("lesson_id")
+  lessonTask   LessonTask?    @relation(fields: [lessonTaskId], references: [id])
+  fileUrl      String         @map("file_url")
+  fileName     String         @default("") @map("file_name")
+  title        String?        @map("title")
+  response     Response       @relation(fields: [responseId], references: [id])
+  status       ResponseStatus @default(START)
+  message      String?
+  responseId   String         @unique
 
   @@map("interaction_history")
 }
