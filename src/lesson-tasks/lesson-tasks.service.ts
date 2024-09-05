@@ -55,7 +55,10 @@ export class LessonTasksService {
     if (!lessonTask) {
       throw new NotFoundException(`Lesson with ID ${dto.lessonTaskId} not found`);
     }
-
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(`User with id ${userId} not found.`);
+    }
     // Отправляем файл и получаем ссылку
     const fileUrl = await this.telegramService.sendFileAndGetMessageUrl(uploadedFile, "photo");
     console.log("URL сообщения с файлом:", fileUrl);
@@ -98,6 +101,10 @@ export class LessonTasksService {
     });
     await this.prisma.lessonTask.update({ where: { id: lessonTask.id }, data: { isChecked: parsedContent.status === "COMPLETED" ? true : false } });
     console.log("Received fullContent:", parsedContent);
+    if (!user.isHomeworkCompleted && parsedContent.status === "COMPLETED") {
+      await this.prisma.user.update({ where: { id: userId }, data: { isHomeworkCompleted: true } });
+    }
+
     return {
       status: parsedContent.status,
       reason: parsedContent.reason || null,
@@ -146,7 +153,6 @@ export class LessonTasksService {
       return lessonContent;
     }
 
-    // Если блок homework не найден, но найден блок json, используем его содержимое
     const jsonContent = lessonMatch[1].trim();
     try {
       JSON.parse(jsonContent);

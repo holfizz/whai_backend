@@ -83,7 +83,11 @@ export class LessonRepository {
             createdAt: "asc",
           },
         },
-        lessonTasks: true,
+        lessonTasks: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
   }
