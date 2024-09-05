@@ -4,7 +4,7 @@ import * as cookieParser from "cookie-parser";
 import { graphqlUploadExpress } from "graphql-upload-ts";
 import { AppModule } from "./app.module";
 import logger from "./helpers/logger";
-
+import { FileTooLargeExceptionFilter } from "./PayloadTooLargeError";
 const start = async () => {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT || 8800;
@@ -15,9 +15,11 @@ const start = async () => {
     allowedHeaders: ["Content-Type", "Authorization", "apollo-require-preflight"],
   });
 
+  app.useGlobalFilters(new FileTooLargeExceptionFilter());
+
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
-  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }) as any);
+  app.use(graphqlUploadExpress({ maxFileSize: 100 * 1024 * 1024, maxFiles: 10 }));
   app.getHttpAdapter().getInstance().disable("x-powered-by");
   await app.listen(PORT, () => {
     logger.log(`server started on PORT ${PORT}`);
