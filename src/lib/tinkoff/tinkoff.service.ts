@@ -16,7 +16,7 @@ export class TinkoffService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async createPayment(paymentData: TinkoffPaymentDto, userId: string): Promise<TinkoffReqResult> {
+  async createPayment(paymentData: TinkoffPaymentDto, userId: string, isSub?: boolean): Promise<TinkoffReqResult> {
     logger.log("Creating payment for user:", userId);
     const subs = await this.prisma.subscription.findUnique({ where: { type: paymentData.subType } });
 
@@ -59,13 +59,13 @@ export class TinkoffService {
     };
 
     logger.log("Payload for Tinkoff request:", payload);
-    const tBankData = await this.request(payload, "Init");
+    const tBankData = await this.request(payload, "Init", isSub);
     await this.prisma.transaction.update({ where: { id: transaction.id }, data: { orderId: tBankData.OrderId } });
 
     return tBankData;
   }
 
-  private async request(dto: any, endpoint: string): Promise<TinkoffReqResult> {
+  private async request(dto: any, endpoint: string, isSub?: boolean): Promise<TinkoffReqResult> {
     try {
       const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
       logger.log("Generating token for request...");
@@ -96,6 +96,10 @@ export class TinkoffService {
         OrderId: dto.OrderId,
         Description: dto.Descriptions,
         Token,
+        ...(dto.isSub !== false && {
+          Recurrent: "Y",
+          CustomerKey: dto.userId,
+        }),
         CustomerKey: dto.userId,
         Recurrent: "Y",
         DATA: {
@@ -153,7 +157,7 @@ export class TinkoffService {
         },
       });
 
-      logger.log("Response from Tinkoff:", data);
+      logger.log("Response SUBS from Tinkoff:", data);
       return data;
     } catch (error) {
       logger.error("Error during request:", error);

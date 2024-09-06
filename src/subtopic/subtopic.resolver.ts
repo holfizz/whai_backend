@@ -1,9 +1,9 @@
+import { Auth } from "@/auth/decorators/auth.decorator";
+import { SubtopicInput } from "@/subtopic/dto/create-subtopic.input";
 import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { UpdateSubtopicInput } from "./dto/update-subtopic.input";
 import { Subtopic } from "./entities/subtopic.entity";
 import { SubtopicService } from "./subtopic.service";
-import { Auth } from "@/auth/decorators/auth.decorator";
-import { SubtopicInput } from "@/subtopic/dto/create-subtopic.input";
 
 @Resolver(() => Subtopic)
 export class SubtopicResolver {
@@ -15,8 +15,8 @@ export class SubtopicResolver {
   }
 
   @Mutation(() => Subtopic)
-  updateSubtopic(@Args("updateSubtopicInput") updateSubtopicInput: UpdateSubtopicInput) {
-    return this.subtopicService.updateSubtopic(updateSubtopicInput.id, updateSubtopicInput);
+  updateSubtopic(@Args("subtopicId") subtopicId: string, @Args("updateSubtopicInput") updateSubtopicInput: UpdateSubtopicInput) {
+    return this.subtopicService.updateSubtopic(subtopicId, updateSubtopicInput);
   }
 
   @Mutation(() => Subtopic)

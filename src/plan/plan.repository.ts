@@ -269,13 +269,20 @@ export class PlanRepository {
   async findPlanById(id: string): Promise<any> {
     const plan = this.prisma.course.findUnique({
       where: { id },
+
       include: {
         topics: {
+          orderBy: { createdAt: "asc" },
           include: {
             subtopics: {
+              orderBy: { createdAt: "asc" },
               include: {
-                lessons: true,
-                quizzes: true,
+                lessons: {
+                  orderBy: { createdAt: "asc" },
+                },
+                quizzes: {
+                  orderBy: { createdAt: "asc" },
+                },
               },
             },
           },

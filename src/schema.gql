@@ -524,7 +524,7 @@ type Mutation {
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
   updateQuiz(updateQuizData: QuizInput!): Quiz!
   updateSubscription(data: SubscriptionInput!, subscriptionType: SubscriptionType!): SubscriptionEntity!
-  updateSubtopic(updateSubtopicInput: UpdateSubtopicInput!): Subtopic!
+  updateSubtopic(subtopicId: String!, updateSubtopicInput: UpdateSubtopicInput!): Subtopic!
   updateTopic(topicId: ID!, updateTopicInput: UpdateTopicInput!): Topic!
 }
 
