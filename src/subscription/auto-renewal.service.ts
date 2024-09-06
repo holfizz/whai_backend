@@ -4,8 +4,8 @@ import { PrismaService } from "@/prisma.service";
 import { SubscriptionService } from "@/subscription/subscription.service";
 import { TransactionService } from "@/transaction/transaction.service";
 import { Injectable } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { SubscriptionNotificationService } from "./subscription-notification.service";
-
 @Injectable()
 export class AutoRenewalService {
   constructor(
@@ -16,160 +16,154 @@ export class AutoRenewalService {
     private readonly subscriptionNotificationService: SubscriptionNotificationService,
   ) {}
 
-  // @Cron(process.env.NODE_ENV === "development" ? CronExpression.EVERY_10_SECONDS : CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  //TODO: turn on
+  @Cron(process.env.NODE_ENV === "development" ? CronExpression.EVERY_10_SECONDS : CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleCron() {
-    logger.log("Running auto-renewal process");
-
     try {
       const now = new Date();
-      const endOfDay = new Date(now);
-      endOfDay.setHours(23, 59, 59, 999);
 
-      // Fetch active subscriptions
       const activeSubscriptions = await this.prisma.subscriptionHistory.findMany({
-        where: {
-          isActive: true,
-        },
-        include: {
-          user: true,
-        },
+        where: { isActive: true },
+        include: { user: true },
       });
 
       await Promise.all(
         activeSubscriptions.map(async subscription => {
-          const user = subscription.user;
+          const user = await this.prisma.user.findUnique({
+            where: { id: subscription.userId },
+          });
 
-          // Check if the subscription has expired
+          if (!user) throw new Error(`User with id ${subscription.userId} not found`);
+
+          const lastTransaction = await this.prisma.transaction.findFirst({
+            where: {
+              userId: user.id,
+              rebillId: { not: null },
+            },
+            orderBy: { createdAt: "desc" },
+          });
+
           if (subscription.endedAt && subscription.endedAt < now) {
-            logger.log(`Subscription for user ${user.id} has expired, checking auto-renewal status`);
+            logger.log(`Subscription for user ${user.id} has expired`);
 
-            // Check if auto-renewal is enabled
+            // Если автообновление отключено
             if (!user.isAutoRenewal) {
-              logger.log(`User ${user.id} has auto-renewal disabled, cancelling subscription`);
+              logger.log(`Auto-renewal is disabled for user ${user.id}, deactivating subscription`);
 
-              // Mark the subscription as inactive
+              // Отключить подписку
               await this.prisma.subscriptionHistory.update({
-                where: {
-                  id: subscription.id,
-                },
-                data: {
-                  isActive: false,
-                },
+                where: { id: subscription.id },
+                data: { isActive: false },
               });
               return;
             }
 
-            // Auto-renewal is enabled, attempt to renew
-            logger.log(`Auto-renewal is enabled for user ${user.id}, attempting to renew subscription`);
-
-            // Fetch the last confirmed or rejected transaction
-            const lastTransaction = await this.prisma.transaction.findFirst({
-              where: {
-                userId: user.id,
-              },
-              orderBy: {
-                createdAt: "desc",
-              },
-            });
-
+            // Если автообновление включено, но нет транзакции
             if (!lastTransaction) {
-              logger.log(`No recent transaction found for user ${user.id}, cancelling auto-renewal`);
+              logger.log(`No last transaction found for user ${user.id}, deactivating subscription`);
               await this.prisma.subscriptionHistory.update({
-                where: {
-                  id: subscription.id,
-                },
-                data: {
-                  isActive: false,
-                },
+                where: { id: subscription.id },
+                data: { isActive: false },
               });
               return;
             }
 
-            // Check the status of the last transaction
+            // Если последняя транзакция была отклонена
             if (lastTransaction.status === "REJECTED") {
-              logger.log(`Last transaction for user ${user.id} was rejected, disabling auto-renewal`);
-
-              // Disable auto-renewal and mark subscription as inactive
+              logger.log(`Last transaction was rejected, disabling auto-renewal for user ${user.id}`);
               await this.prisma.user.update({
                 where: { id: user.id },
                 data: { isAutoRenewal: false },
               });
-
               await this.prisma.subscriptionHistory.update({
-                where: {
-                  id: subscription.id,
-                },
-                data: {
-                  isActive: false,
-                },
+                where: { id: subscription.id },
+                data: { isActive: false },
               });
-
               return;
             }
 
-            try {
-              const paymentData = {
-                TerminalKey: process.env.TBANK_TERMINAL,
-                PaymentId: String(lastTransaction.paymentId),
-                RebillId: String(lastTransaction.rebillId),
-                Amount: lastTransaction.amount,
-              };
-              logger.log(paymentData);
-              const Token = this.tinkoffService.generateToken(paymentData);
-              const paymentResponse = await this.tinkoffService.requestCharge({ ...paymentData, Token }, "Charge");
+            // Отключаем предыдущую подписку
+            await this.prisma.subscriptionHistory.update({
+              where: { id: subscription.id },
+              data: { isActive: false },
+            });
 
-              const newTransaction = await this.prisma.transaction.create({
-                data: {
-                  user: { connect: { id: user.id } },
-                  amount: paymentResponse.Amount,
-                  months: 1,
-                  type: subscription.subscriptionType,
-                  paymentId: paymentResponse.PaymentId,
-                  orderId: paymentResponse.OrderId,
-                  status: "CONFIRMED",
-                },
-              });
+            // Произвести оплату
+            logger.log(`Processing auto-renewal for user ${user.id}`);
 
-              const newEndDate = new Date(now);
-              newEndDate.setMonth(newEndDate.getMonth() + 1);
+            const paymentCreate = await this.tinkoffService.createPayment(
+              {
+                subType: lastTransaction.type,
+                Descriptions: `Subscription for ${lastTransaction.months} months`,
+                userId: user.id,
+                totalAmount: lastTransaction.amount,
+                months: lastTransaction.months,
+              },
+              user.id,
+              true,
+            );
 
+            const paymentData = {
+              TerminalKey: process.env.TBANK_TERMINAL,
+              PaymentId: Number(paymentCreate.PaymentId),
+              RebillId: String(lastTransaction.rebillId),
+            };
+
+            const Token = this.tinkoffService.generateToken(paymentData);
+            const paymentResponse = await this.tinkoffService.requestCharge({ ...paymentData, Token }, "Charge");
+
+            if (paymentResponse.Status !== "CONFIRMED") {
+              logger.log(`Payment failed for user ${user.id}, deactivating subscription`);
               await this.prisma.subscriptionHistory.update({
-                where: {
-                  id: subscription.id,
-                },
-                data: {
-                  endedAt: newEndDate,
-                  transactionId: newTransaction.id,
-                  paymentId: paymentResponse.PaymentId,
-                  isActive: true,
-                },
+                where: { id: subscription.id },
+                data: { isActive: false },
               });
-
-              logger.log(`Successfully renewed subscription for user ${user.id} until ${newEndDate.toISOString()}`);
-            } catch (error) {
-              logger.error(`Error processing auto-renewal for user ${user.id}:`, error);
-
-              await this.prisma.subscriptionHistory.update({
-                where: {
-                  id: subscription.id,
-                },
-                data: {
-                  isActive: false,
-                },
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: { isAutoRenewal: false },
               });
-
-              logger.log(`Failed to renew subscription for user ${user.id}, subscription cancelled`);
+              return;
             }
+
+            const newTransaction = await this.prisma.transaction.update({
+              where: {
+                orderId: paymentResponse.OrderId,
+              },
+              data: {
+                user: { connect: { id: user.id } },
+                amount: lastTransaction.amount,
+                months: lastTransaction.months,
+                type: subscription.subscriptionType,
+                paymentId: paymentResponse.PaymentId,
+                status: "CONFIRMED",
+              },
+            });
+
+            // Создаем новую подписку
+            const newEndDate = new Date(now);
+            newEndDate.setMonth(newEndDate.getMonth() + lastTransaction.months);
+
+            // await this.prisma.subscriptionHistory.create({
+            //   data: {
+            //     user: { connect: { id: user.id } },
+            //     startedAt: new Date(now),
+            //     endedAt: newEndDate,
+            //     transactionId: newTransaction.id,
+            //     paymentId: paymentResponse.PaymentId,
+            //     isActive: true,
+            //     subscriptionType: subscription.subscriptionType,
+            //     price: subscription.price,
+            //   },
+            // });
+
+            logger.log(`Subscription successfully renewed for user ${user.id} until ${newEndDate.toISOString()}`);
           }
         }),
       );
-
-      logger.log("Auto-renewal process completed");
     } catch (error) {
       logger.error("Error during auto-renewal:", error);
     }
   }
+
   // @Cron(CronExpression.EVERY_DAY_AT_NOON)
   // @Cron(CronExpression.EVERY_MINUTE)
   async notifyUsersBeforeExpiration() {

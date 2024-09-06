@@ -193,7 +193,7 @@ export class ContentGeneratorService {
         if (dto.isAutofill && parsedContent.blocks) {
           blocksCount = parsedContent.blocks.length; // Update blocksCount
           for (const item of parsedContent.blocks) {
-            await this.prisma.subtopic.create({
+            const newSubtopic = await this.prisma.subtopic.create({
               data: {
                 name: item.title,
                 description: item.description,
@@ -201,6 +201,21 @@ export class ContentGeneratorService {
                 courseId: dto.courseId,
               },
             });
+
+            // Create lessons inside subtopics if blocks exist within subtopics
+            if (item.blocks && item.blocks.length > 0) {
+              blocksCount += item.blocks.length; // Add sub-blocks to blocksCount
+              for (const subItem of item.blocks) {
+                await this.prisma.lesson.create({
+                  data: {
+                    name: subItem.title,
+                    description: subItem.description,
+                    courseId: dto.courseId,
+                    subtopicId: newSubtopic.id,
+                  },
+                });
+              }
+            }
           }
         }
         break;
