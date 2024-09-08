@@ -1,4 +1,5 @@
 import { NotificationTemplate } from "@/templates/sub-notification.template";
+import { TrialNotificationTemplate } from "@/templates/trial-notification.template";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { render } from "@react-email/render";
@@ -21,6 +22,30 @@ export class SubscriptionNotificationService {
         name,
         subscriptionType,
         endDate,
+      }),
+    });
+  }
+  private emailTrialHTML(params: { name: string; endDate: string; isTrialEndingSoon: boolean }) {
+    return render(
+      TrialNotificationTemplate({
+        name: params.name,
+        endDate: params.endDate,
+        type: params.isTrialEndingSoon ? "reminder" : "notification",
+      }),
+    );
+  }
+
+  async sendTrialExpirationReminder({ to, name, endDate, isTrialEndingSoon }: { to: string; name: string; endDate: string; isTrialEndingSoon: boolean }) {
+    const subject = isTrialEndingSoon ? "Ваша пробная подписка заканчивается через 1 день" : "Ваша пробная подписка истекла";
+
+    await this.mailerService.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      subject,
+      html: this.emailTrialHTML({
+        name,
+        endDate,
+        isTrialEndingSoon,
       }),
     });
   }

@@ -164,7 +164,7 @@ export class AutoRenewalService {
     }
   }
 
-  // @Cron(CronExpression.EVERY_DAY_AT_NOON)
+  @Cron(process.env.NODE_ENV === "production" ? CronExpression.EVERY_DAY_AT_NOON : CronExpression.EVERY_YEAR)
   // @Cron(CronExpression.EVERY_MINUTE)
   async notifyUsersBeforeExpiration() {
     logger.log("Running notification process for upcoming subscription renewals");
@@ -213,5 +213,66 @@ export class AutoRenewalService {
     } catch (error) {
       logger.error("Error during notification process:", error);
     }
+  }
+
+  @Cron(process.env.NODE_ENV === "development" ? CronExpression.EVERY_YEAR : CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async deactivateTrialSubscriptions() {
+    const now = new Date();
+    const oneDayFromNow = new Date(now);
+    oneDayFromNow.setDate(now.getDate() + 1);
+
+    const trialUsers = await this.prisma.user.findMany({
+      where: {
+        isTrial: true,
+        trialEndsAt: { lte: now },
+      },
+    });
+
+    const usersToNotify = await this.prisma.user.findMany({
+      where: {
+        isTrial: true,
+        trialEndsAt: {
+          lte: oneDayFromNow,
+          gt: now,
+        },
+      },
+    });
+
+    await Promise.all(
+      usersToNotify.map(async user => {
+        await this.subscriptionNotificationService.sendTrialExpirationReminder({
+          to: user.email,
+          name: user.firstName,
+          endDate: oneDayFromNow.toISOString(),
+          isTrialEndingSoon: true,
+        });
+
+        console.log(`Notification sent to user ${user.id} about trial ending soon on ${oneDayFromNow.toISOString()}`);
+      }),
+    );
+
+    await Promise.all(
+      trialUsers.map(async user => {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            isTrial: false,
+            trialEndsAt: null,
+            currentCourseCount: 0,
+            currentLessonCount: 0,
+            additionalTitlesCount: 0,
+          },
+        });
+
+        await this.subscriptionNotificationService.sendTrialExpirationReminder({
+          to: user.email,
+          name: user.firstName,
+          endDate: now.toISOString(),
+          isTrialEndingSoon: false,
+        });
+
+        console.log(`Trial subscription for user ${user.id} has expired and has been deactivated.`);
+      }),
+    );
   }
 }
