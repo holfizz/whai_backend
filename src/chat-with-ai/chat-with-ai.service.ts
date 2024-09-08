@@ -34,7 +34,7 @@ export default class ChatWithAIService {
           lessonId,
         },
         orderBy: {
-          createdAt: "asc",
+          createdAt: "desc",
         },
       });
 

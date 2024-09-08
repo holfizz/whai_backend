@@ -133,26 +133,42 @@ export class QuizService {
       },
     });
 
+    console.log("Quizzes:", quizzes);
+
     return quizzes.map(quiz => {
-      // Find the best result based on highest totalPercents
-      const bestQuizResult = quiz.quizResult.reduce((best, current) => (current.totalPercents > (best?.totalPercents ?? 0) ? current : best), null);
+      // Найти лучший результат
+      const bestQuizResult = quiz.quizResult.reduce((best, current) => {
+        return current.totalPercents > (best?.totalPercents ?? 0) ? current : best;
+      }, null);
+
+      console.log("Best Quiz Result:", bestQuizResult);
 
       if (bestQuizResult) {
         const totalQuestions = quiz.questions.length;
         const userAnswers = bestQuizResult.userAnswers;
 
-        const correctAnswersCount = userAnswers.filter(ua => ua.correctnessPercentage === 100).length;
-        const wrongAnswersCount = userAnswers.length - correctAnswersCount;
+        console.log("Total Questions:", totalQuestions);
+        console.log("User Answers:", userAnswers);
 
+        // Подсчёт правильных ответов и общего количества ответов
+        const correctAnswersCount = userAnswers.filter(ua => ua.correctnessPercentage === 100).length;
+        const totalAnswersCount = userAnswers.length;
+
+        console.log("Correct Answers Count:", correctAnswersCount);
+        console.log("Total Answers Count:", totalAnswersCount);
+
+        // Расчет процентов выполненных заданий
         const totalPercents = totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
+
+        console.log("Total Percents:", totalPercents);
 
         return {
           id: quiz.id,
           name: quiz.name,
           description: quiz.description,
-          totalPercents,
+          totalPercents: bestQuizResult.totalPercents,
           correctAnswers: correctAnswersCount,
-          wrongAnswers: wrongAnswersCount,
+          wrongAnswers: totalQuestions - correctAnswersCount,
         };
       }
 

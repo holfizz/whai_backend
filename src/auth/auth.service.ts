@@ -269,7 +269,6 @@ export class AuthService {
         httpOnly: true,
         domain: process.env.DOMAIN,
         secure: process.env.NODE_ENV === "development",
-
         expires: new Date(0),
         sameSite: process.env.NODE_ENV === "development" ? "none" : "lax",
       });
