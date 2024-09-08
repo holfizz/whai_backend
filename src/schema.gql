@@ -438,6 +438,7 @@ enum MessageWithAIRole {
 }
 
 type Mutation {
+  activateTrialSubscription: Boolean!
   checkHomework(checkHomeworkDto: CheckHomeworkDto!, file: Upload): LessonHomeworkResponse!
 
   """Create a new chat associated with the current user."""
@@ -517,10 +518,6 @@ type Mutation {
   updateMessageWithAi(updateMessageWithAiInput: UpdateMessageWithAiInput!): MessageWithAIData!
   updateOrCreateLearningSession(LearningSessionInput: LearningSessionInput!): LearningSession!
   updatePlan(planId: ID!, updatePlanInput: CoursePlanInput!): CoursePlan!
-
-  """
-  Updates the profile of the currently authenticated user with the provided information and, optionally, profile picture.
-  """
   updateProfile(dto: UpdateUserInput!, picture: Upload): User!
   updateQuiz(updateQuizData: QuizInput!): Quiz!
   updateSubscription(data: SubscriptionInput!, subscriptionType: SubscriptionType!): SubscriptionEntity!
@@ -580,10 +577,6 @@ type Query {
   getMessagesByCourseAIHistoryId(courseAIHistoryId: ID!): [MessageWithAIData!]!
   getNewToken: RefreshTokenResponse!
   getPrevNextLesson(courseId: ID!, lessonId: ID!): PrevNextLesson!
-
-  """
-  Retrieves the profile of the currently authenticated user based on their unique identifier.
-  """
   getProfile: User!
   getQuiz(quizId: ID!): QuizDetails!
   getSubscription(subscriptionType: SubscriptionType!): SubscriptionEntity!
@@ -968,9 +961,12 @@ input UpdateUserInput {
   firstName: String
   id: ID
   isAutoRenewal: Boolean
+  isTrial: Boolean
+  isTrialUsed: Boolean
   lastName: String
   password: String
   phoneNumber: String
+  trialEndsAt: String
   userMode: UserMode
 }
 
@@ -992,12 +988,15 @@ type User {
   isFirstLessonCompleted: Boolean!
   isHomeworkCompleted: Boolean!
   isQuizCompleted: Boolean!
+  isTrial: Boolean
+  isTrialUsed: Boolean!
   isVerified: Boolean!
   lastName: String!
   phoneNumber: String!
   resetPasswordExpiration: DateTime
   resetPasswordToken: String
   roles: [UserRole!]!
+  trialEndsAt: DateTime
   updatedAt: String!
 }
 

@@ -42,17 +42,20 @@ model User {
 
   currentSubscriptionType SubscriptionType?     @unique @map("current_subscription_type")
   subscriptionHistory     SubscriptionHistory[]
-  isTrial                 Boolean               @default(false) @map("is_trial")
-  trialEndsAt             DateTime?             @map("trial_ends_at")
-  quizzes                 Quiz[]
-  lessons                 Lesson[]
-  isAutoRenewal           Boolean               @default(false) @map("is_auto_renewal")
-  currentSubscription     Subscription?         @relation(fields: [currentSubscriptionType], references: [type])
-  Transaction             Transaction[]
+
+  quizzes             Quiz[]
+  lessons             Lesson[]
+  isAutoRenewal       Boolean       @default(false) @map("is_auto_renewal")
+  currentSubscription Subscription? @relation(fields: [currentSubscriptionType], references: [type])
+  Transaction         Transaction[]
 
   currentCourseCount    Int @default(0) @map("current_course_count")
   currentLessonCount    Int @default(0) @map("current_lesson_count")
   additionalTitlesCount Int @default(0) @map("additional_titles_count")
+
+  isTrial     Boolean   @default(false) @map("is_trial")
+  trialEndsAt DateTime? @map("trial_ends_at")
+  isTrialUsed Boolean   @default(false) @map("is_trial_used")
 
   isFirstCourseCompleted Boolean @default(false) @map("is_first_course_completed")
   isHomeworkCompleted    Boolean @default(false) @map("is_homework_completed")

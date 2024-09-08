@@ -1,5 +1,5 @@
 import { Field, InputType, registerEnumType } from "@nestjs/graphql";
-import { IsBoolean, IsEmail, IsEnum, IsString, MinLength } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validator";
 export enum UserMode {
   "STUDENT" = "STUDENT",
   "CREATOR" = "CREATOR",
@@ -46,4 +46,17 @@ export class UserInput {
   @Field(() => Boolean)
   @IsBoolean()
   isAutoRenewal: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  isTrial?: boolean;
+
+  @Field(type => Boolean)
+  @IsOptional()
+  isTrialUsed?: boolean;
+
+  @Field(type => String)
+  @IsOptional()
+  trialEndsAt?: string;
 }

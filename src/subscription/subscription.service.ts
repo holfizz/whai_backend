@@ -1,5 +1,5 @@
 import { PrismaService } from "@/prisma.service";
-import { ForbiddenException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { SubscriptionType } from "@prisma/client";
 import { ActivateDto, SubscriptionInput } from "./dto/create-subscription.input";
 
@@ -152,5 +152,44 @@ export class SubscriptionService {
       console.error("Error ending current subscription:", error);
       throw new InternalServerErrorException("Failed to end current subscription");
     }
+  }
+  async activateTrialSubscription(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (user.isTrialUsed) {
+      throw new BadRequestException("Trial subscription has already been used and cannot be activated again");
+    }
+
+    if (user.isTrial) {
+      throw new BadRequestException("Trial subscription is already active");
+    }
+
+    const trialDurationDays = 3;
+    const currentDate = new Date();
+    const endDate = new Date(currentDate);
+    endDate.setMonth(currentDate.getDay() + trialDurationDays);
+
+    const trialEndDate = new Date(currentDate);
+    trialEndDate.setDate(currentDate.getDate() + trialDurationDays);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isTrial: true,
+        trialEndsAt: trialEndDate,
+        isTrialUsed: true,
+        currentCourseCount: 2,
+        currentLessonCount: 10,
+        additionalTitlesCount: 20,
+      },
+    });
+
+    return true;
   }
 }

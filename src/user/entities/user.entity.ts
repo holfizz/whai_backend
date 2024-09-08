@@ -77,6 +77,19 @@ export class User {
   @Field(type => String)
   email: string;
 
+  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  isTrial?: boolean;
+
+  @Field(type => Boolean)
+  @IsOptional()
+  isTrialUsed?: boolean;
+
+  @Field(type => Date, { nullable: true })
+  @IsOptional()
+  trialEndsAt?: Date;
+
   @Field(type => [UserRole])
   roles: UserRole[];
 

@@ -36,4 +36,10 @@ export class SubscriptionResolver {
   ) {
     return this.subscriptionService.updateSubscription(subscriptionType, data);
   }
+
+  @Mutation(() => Boolean)
+  @Auth("user")
+  async activateTrialSubscription(@CurrentUser("id") userId: string) {
+    return this.subscriptionService.activateTrialSubscription(userId);
+  }
 }
