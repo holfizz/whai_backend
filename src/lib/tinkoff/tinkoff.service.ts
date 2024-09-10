@@ -74,8 +74,10 @@ export class TinkoffService {
         Amount: dto.Amount,
         OrderId: dto.OrderId,
         Description: dto.Descriptions,
-        Recurrent: "Y",
-        CustomerKey: user.id,
+        ...(!isSub && {
+          Recurrent: "Y",
+          CustomerKey: user.id,
+        }),
       });
 
       logger.log("Generated Token:", Token);
@@ -96,12 +98,10 @@ export class TinkoffService {
         OrderId: dto.OrderId,
         Description: dto.Descriptions,
         Token,
-        ...(dto.isSub !== false && {
+        ...(!isSub && {
           Recurrent: "Y",
-          CustomerKey: dto.userId,
+          CustomerKey: user.id,
         }),
-        CustomerKey: dto.userId,
-        Recurrent: "Y",
         DATA: {
           Phone: tinkoffTypePhoneNumber(user.phoneNumber),
           Email: user.email,
