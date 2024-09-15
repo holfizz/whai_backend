@@ -10,6 +10,7 @@ export enum FileType {
   AVATAR = "avatar",
   DOCUMENT = "document",
 }
+
 @Injectable()
 export class FileService {
   createFile(type: FileType, file: FileUpload): string {
@@ -21,7 +22,8 @@ export class FileService {
       const { createReadStream, filename } = file;
       const fileExtension = path.extname(filename);
       const fileName = `${uuid.v4()}${fileExtension}`;
-      const filePath = path.resolve(__dirname, "..", "static", type);
+      // Путь к файлам в папке static в корневой директории
+      const filePath = path.resolve(__dirname, "..", "..", "static", type);
 
       if (!fs.existsSync(filePath)) {
         fs.mkdirSync(filePath, { recursive: true });
@@ -38,7 +40,8 @@ export class FileService {
 
   removeFile(fileName: string) {
     try {
-      const filePath = path.resolve(__dirname, "..", "static", fileName);
+      // Путь к файлам в папке static в корневой директории
+      const filePath = path.resolve(__dirname, "..", "..", "..", "..", "static", fileName);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }

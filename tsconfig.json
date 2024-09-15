@@ -19,7 +19,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@/*": ["*"],
-    },
+      "@/*": ["*"]
+    }
   },
+  "exclude": ["static"]
 }
