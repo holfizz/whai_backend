@@ -63,7 +63,8 @@ import { UserModule } from "./user/user.module";
     }),
 
     ServeStaticModule.forRoot({
-      rootPath: path.resolve(__dirname, "../static"),
+      rootPath: path.resolve(__dirname, "..", "static"),
+      serveRoot: "/api",
     }),
     AuthModule,
     UserModule,

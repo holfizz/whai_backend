@@ -243,6 +243,7 @@ export class ContentGeneratorService {
             isAutofill: dto.isAutofill,
           },
         };
+        logger.log(aiDto);
 
         // Call the AI service
         const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI");
@@ -303,6 +304,7 @@ export class ContentGeneratorService {
             isAutofill: false,
           },
         };
+        logger.log(aiDto);
 
         // Call the AI service
         const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI");
@@ -351,7 +353,7 @@ export class ContentGeneratorService {
             isAutofill: false,
           },
         };
-
+        logger.log(aiDto);
         // Call the AI service
         const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI");
         if (!fullContent) throw new Error("Failed to get content from AI service.");

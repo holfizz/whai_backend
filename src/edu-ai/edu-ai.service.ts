@@ -17,7 +17,7 @@ export class EduAiService {
   ) {}
 
   async getAIModelAnswer(conversationId: string | null, userId: string, dto: AIDTO, botMode: "ChatAI" | "EduAI", pubSub?: PubSub): Promise<any> {
-    let messagesHis: any[];
+    let messagesHis: any[] = [];
     if (conversationId) {
       const messagesHistory = await this.prisma.messageWithAI.findMany({
         where: {
@@ -45,17 +45,13 @@ export class EduAiService {
       default:
         throw new Error("Invalid bot mode");
     }
+
     const abortController = new AbortController();
     this.abortControllers.set(conversationId, abortController);
-    const storedAbortController = this.abortControllers.get(conversationId);
-    if (storedAbortController) {
-      logger.log(`AbortController успешно сохранен для conversationId: ${conversationId}`);
-    } else {
-      logger.warn(`Не удалось сохранить AbortController для conversationId: ${conversationId}`);
-    }
+
     return new Promise((resolve, reject) => {
       let dataBuffer = "";
-      let messages = [];
+      let messages: any[] = [];
 
       this.httpService
         .post(
@@ -67,7 +63,7 @@ export class EduAiService {
             query: JSON.stringify(dto.content),
             content_type: "answer",
             stream: true,
-            chat_history: messagesHis || [],
+            chat_history: messagesHis,
           },
           {
             headers: {
@@ -98,7 +94,6 @@ export class EduAiService {
                   logger.log(parsedData);
                   const messageData = {
                     id: randomUUID(),
-
                     event: parsedData.event,
                     message: {
                       ...parsedData.message,
@@ -120,7 +115,7 @@ export class EduAiService {
             });
 
             response.data.on("end", () => {
-              this.abortControllers.delete(conversationId); // Удаляем контроллер после завершения
+              this.abortControllers.delete(conversationId); // Remove controller after completion
               const filteredMessages = messages.filter(m => m.message && m.message.type === "answer");
 
               if (filteredMessages.length > 0) {
@@ -133,13 +128,13 @@ export class EduAiService {
             });
 
             response.data.on("error", error => {
-              this.abortControllers.delete(conversationId); // Удаляем контроллер при ошибке
+              this.abortControllers.delete(conversationId); // Remove controller on error
               console.error("Error with the stream:", error);
               reject(error);
             });
           }),
-          catchError(async error => {
-            this.abortControllers.delete(conversationId);
+          catchError(error => {
+            this.abortControllers.delete(conversationId); // Remove controller on HTTP error
             return throwError(() => new Error(`HTTP error: ${error}`));
           }),
         )
