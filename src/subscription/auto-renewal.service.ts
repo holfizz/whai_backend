@@ -54,6 +54,14 @@ export class AutoRenewalService {
                 where: { id: subscription.id },
                 data: { isActive: false },
               });
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  currentCourseCount: 0,
+                  currentLessonCount: 0,
+                  additionalTitlesCount: 0,
+                },
+              });
               return;
             }
 
@@ -63,6 +71,14 @@ export class AutoRenewalService {
               await this.prisma.subscriptionHistory.update({
                 where: { id: subscription.id },
                 data: { isActive: false },
+              });
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  currentCourseCount: 0,
+                  currentLessonCount: 0,
+                  additionalTitlesCount: 0,
+                },
               });
               return;
             }
@@ -78,6 +94,14 @@ export class AutoRenewalService {
                 where: { id: subscription.id },
                 data: { isActive: false },
               });
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  currentCourseCount: 0,
+                  currentLessonCount: 0,
+                  additionalTitlesCount: 0,
+                },
+              });
               return;
             }
 
@@ -86,7 +110,14 @@ export class AutoRenewalService {
               where: { id: subscription.id },
               data: { isActive: false },
             });
-
+            await this.prisma.user.update({
+              where: { id: user.id },
+              data: {
+                currentCourseCount: 0,
+                currentLessonCount: 0,
+                additionalTitlesCount: 0,
+              },
+            });
             // Произвести оплату
             logger.log(`Processing auto-renewal for user ${user.id}`);
 
@@ -120,6 +151,14 @@ export class AutoRenewalService {
               await this.prisma.user.update({
                 where: { id: user.id },
                 data: { isAutoRenewal: false },
+              });
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  currentCourseCount: 0,
+                  currentLessonCount: 0,
+                  additionalTitlesCount: 0,
+                },
               });
               return;
             }
