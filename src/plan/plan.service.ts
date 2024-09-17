@@ -68,8 +68,14 @@ export class PlanService {
     if (!user) {
       throw new Error("User not found");
     }
+    const activeSubscription = await this.prisma.subscriptionHistory.findFirst({
+      where: {
+        userId,
+        endedAt: { gte: new Date() },
+      },
+    });
 
-    if (user.currentCourseCount <= 0) {
+    if (user.currentCourseCount <= 0 || !activeSubscription) {
       throw new Error("You have reached your course creation limit for this month.");
     }
     const courseAIHistory = await this.prisma.courseAIHistory.findUnique({

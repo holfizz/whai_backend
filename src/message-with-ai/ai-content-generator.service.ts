@@ -17,7 +17,13 @@ export class ContentGeneratorService {
     if (!user) {
       throw new Error(`User with ID ${userId} not found.`);
     }
-    if (user.additionalTitlesCount <= 0) {
+    const activeSubscription = await this.prisma.subscriptionHistory.findFirst({
+      where: {
+        userId,
+        endedAt: { gte: new Date() },
+      },
+    });
+    if (user.additionalTitlesCount <= 0 || !activeSubscription) {
       throw new Error("No additional titles available for generation.");
     }
     const aiDto: AIDTO = {

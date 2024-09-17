@@ -184,21 +184,13 @@ export class QuizService {
   }
 
   async getAllIndependentQuizzes(userId: string): Promise<QuizSummary[]> {
-    // Fetch quizzes matching the criteria
     const quizzes = await this.prisma.quiz.findMany({
       where: {
         userId: userId,
-        AND: [
-          { subtopicId: null },
-          { courseId: null },
-          {
-            quizResult: {
-              some: {
-                userId: userId,
-              },
-            },
-          },
-        ],
+        AND: [{ subtopicId: null }, { courseId: null }],
+      },
+      orderBy: {
+        createdAt: "desc",
       },
       include: {
         quizResult: {
@@ -214,6 +206,7 @@ export class QuizService {
     });
 
     return quizzes.map(quiz => {
+      // Find the best quiz result, if any
       const bestQuizResult = quiz.quizResult.reduce((best, current) => (current.totalPercents > (best?.totalPercents ?? 0) ? current : best), null);
 
       if (bestQuizResult) {
@@ -235,6 +228,7 @@ export class QuizService {
         };
       }
 
+      // Return quiz with 0 percent if no results are found
       return {
         id: quiz.id,
         name: quiz.name,
@@ -545,7 +539,12 @@ export class QuizService {
     const { questions } = parsedContent;
 
     const quiz = await this.prisma.quiz.create({
-      data: { name: "Test for testing knowledge", userId, isAdditional: true },
+      data: {
+        name: dto.courseTitle,
+        description: dto.courseDescription,
+        userId,
+        isAdditional: true,
+      },
     });
     if (!quiz) {
       throw new Error("Failed to create quiz.");

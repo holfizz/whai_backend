@@ -35,6 +35,19 @@ export class MessageWithAiService {
     return content.trim();
   }
   async createMessageWithAI(userId: string, dto: MessageWithAIInput, pubSub: PubSub): Promise<any> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
+    const activeSubscription = await this.prisma.subscriptionHistory.findFirst({
+      where: {
+        userId,
+        endedAt: { gte: new Date() },
+      },
+    });
+    if (user.additionalTitlesCount <= 0 || !activeSubscription) {
+      throw new Error("You don't have a subscription, you can't send requests");
+    }
     const chatWithAI = await this.prisma.chatWithAI.findUnique({
       where: { id: dto.chatWithAIId },
     });

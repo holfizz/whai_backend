@@ -59,6 +59,61 @@ export class LessonTasksService {
     if (!user) {
       throw new Error(`User with id ${userId} not found.`);
     }
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id: lessonTask.lessonId },
+      select: {
+        lessonBlocks: {
+          orderBy: {
+            createdAt: "asc", // Сортировка по дате создания (от старого к новому)
+          },
+          select: {
+            type: true,
+            text: true,
+            code: true,
+            videoUrl: true,
+            imageUrl: true,
+            caption: true,
+          },
+        },
+      },
+    });
+
+    // Если урок не найден, бросаем ошибку
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonTask.lessonId} not found`);
+    }
+
+    // Собираем содержимое урока по блокам
+    let lessonData = "";
+
+    lesson.lessonBlocks.forEach(block => {
+      switch (block.type) {
+        case "TEXT":
+          if (block.text) {
+            lessonData += `Text Block: ${block.text}\n\n`;
+          }
+          break;
+        case "CODE":
+          if (block.code) {
+            lessonData += `Code Block:\n${block.code}\n\n`;
+          }
+          break;
+        case "VIDEO":
+          if (block.videoUrl) {
+            lessonData += `Video URL: ${block.videoUrl}\n\n`;
+          }
+          break;
+        case "IMAGE":
+          if (block.imageUrl && block.caption) {
+            lessonData += `Image URL: ${block.imageUrl}\nCaption: ${block.caption}\n\n`;
+          } else if (block.imageUrl) {
+            lessonData += `Image URL: ${block.imageUrl}\n\n`;
+          }
+          break;
+        default:
+          break;
+      }
+    });
     // Отправляем файл и получаем ссылку
     const fileUrl = await this.telegramService.sendFileAndGetMessageUrl(uploadedFile, "photo");
     console.log("URL сообщения с файлом:", fileUrl);
@@ -67,6 +122,7 @@ export class LessonTasksService {
       content: {
         createType: "Homework",
         taskName: lessonTask.name,
+        lessonData: lessonData,
         taskDescription: lessonTask.description,
         file: fileUrl,
       },
