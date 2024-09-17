@@ -179,8 +179,6 @@ export class LessonService {
     if (!parsedContent.lessonBlocks || !Array.isArray(parsedContent.lessonBlocks)) {
       throw new Error("Invalid lesson blocks data.");
     }
-
-    // Создание урока
     const lesson = await this.prisma.lesson.create({
       data: {
         name: dto.lessonTitle,
@@ -188,6 +186,12 @@ export class LessonService {
         isAdditional: true,
         lessonBlocks: {
           create: parsedContent.lessonBlocks,
+        },
+        lessonTasks: {
+          create: parsedContent.lessonTasks.map((task: any) => ({
+            name: task.name,
+            description: task.description,
+          })),
         },
         User: { connect: { id: userId } },
       },
@@ -208,6 +212,9 @@ export class LessonService {
         userId: userId,
         AND: [{ courseId: null }, { subtopicId: null }],
       },
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
         lessonBlocks: true,
         lessonTasks: true,
@@ -221,6 +228,7 @@ export class LessonService {
         id: lesson.id,
         name: lesson.name,
         description: lesson.description,
+        lessonTasks: lesson.lessonTasks,
         totalBlocks,
         totalTasks,
       };
