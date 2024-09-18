@@ -32,6 +32,7 @@ import { SubscriptionModule } from "./subscription/subscription.module";
 import { TelegramModule } from "./telegram/telegram.module";
 import { TransactionModule } from "./transaction/transaction.module";
 import { UserModule } from "./user/user.module";
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { UserModule } from "./user/user.module";
     CourseAIHistoryModule,
     SubscriptionModule,
     TransactionModule,
+    StatisticsModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: JwtStrategy }],
 })

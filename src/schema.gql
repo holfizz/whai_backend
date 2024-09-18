@@ -583,6 +583,7 @@ type Query {
   getSubscriptionByUserId: SubscriptionEntity!
   getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
+  getUserRegistrationsByMonth: [UserRegistrationStats!]!
   isActivated(activationLink: ActivationLinkInput!): Boolean!
   logout: Boolean!
   messageWithAi(id: Int!): MessageWithAIData!
@@ -1017,6 +1018,12 @@ input UserAnswerInput {
 enum UserMode {
   CREATOR
   STUDENT
+}
+
+type UserRegistrationStats {
+  count: Int!
+  month: String!
+  year: Int!
 }
 
 enum UserRole {
