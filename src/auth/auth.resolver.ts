@@ -30,13 +30,8 @@ export class AuthResolver {
   @Query(() => RefreshTokenResponse)
   async getNewToken(@Context("req") req: Request, @Context("res") res: Response) {
     const authHeader = req.headers["authorization"];
-    logger.log("Authorization Header:", authHeader);
-
+    logger.log(":", authHeader);
     const refreshTokenFromHeader = authHeader ? authHeader.split(" ")[1] : null;
-
-    logger.log("req.cookies", req.cookies);
-    logger.log("Authorization Header:", req.header);
-
     if (!refreshTokenFromHeader) {
       this.authService.removeRefreshTokenFromResponse(res);
       throw new UnauthorizedException("Refresh token not passed");
@@ -45,7 +40,6 @@ export class AuthResolver {
     const { refreshToken, ...response } = await this.authService.getNewTokens(refreshTokenFromHeader);
 
     this.authService.addRefreshTokenToResponse(res, refreshToken);
-    logger.log(2, response);
 
     return response;
   }

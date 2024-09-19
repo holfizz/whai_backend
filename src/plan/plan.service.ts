@@ -75,7 +75,7 @@ export class PlanService {
       },
     });
 
-    if (user.currentCourseCount <= 0 || !activeSubscription) {
+    if (user.currentCourseCount <= 0 && !activeSubscription) {
       throw new Error("You have reached your course creation limit for this month.");
     }
     const courseAIHistory = await this.prisma.courseAIHistory.findUnique({

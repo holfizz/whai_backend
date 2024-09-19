@@ -101,6 +101,7 @@ type Course {
   description: String
   id: ID!
   imgUrl: String
+  isTrial: Boolean
   level: CourseLevelEnum
   name: String!
   progressPercents: Float!

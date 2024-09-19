@@ -23,7 +23,7 @@ export class ContentGeneratorService {
         endedAt: { gte: new Date() },
       },
     });
-    if (user.additionalTitlesCount <= 0 || !activeSubscription) {
+    if (user.additionalTitlesCount <= 0 && !activeSubscription) {
       throw new Error("No additional titles available for generation.");
     }
     const aiDto: AIDTO = {

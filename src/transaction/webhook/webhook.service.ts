@@ -14,7 +14,6 @@ export class WebhookService {
   ) {}
 
   async tinkoff(dto: TinkoffNotificationDto): Promise<string> {
-    console.log("LOOOOOG");
     console.log(dto);
     const transaction = await this.prisma.transaction.findFirst({
       where: { id: dto.OrderId },
@@ -63,6 +62,8 @@ export class WebhookService {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         const subscription = await this.prisma.subscription.findUnique({ where: { type: transaction.type } });
         if (user) {
+          await this.prisma.course.updateMany({ where: { userId: user.id }, data: { isTrial: false } });
+
           await this.prisma.user.update({
             where: { id: userId },
             data: {
