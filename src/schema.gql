@@ -101,6 +101,7 @@ type Course {
   description: String
   id: ID!
   imgUrl: String
+  isTrial: Boolean
   level: CourseLevelEnum
   name: String!
   progressPercents: Float!
@@ -583,6 +584,7 @@ type Query {
   getSubscriptionByUserId: SubscriptionEntity!
   getSubtopic(subtopicId: ID!): Subtopic!
   getTopic(topicId: ID!): Topic!
+  getUserCounts: [UserCountStat!]!
   getUserRegistrationsByMonth: [UserRegistrationStats!]!
   isActivated(activationLink: ActivationLinkInput!): Boolean!
   logout: Boolean!
@@ -1013,6 +1015,11 @@ input UserAnswerInput {
   matchingAnswers: [MatchingAnswerInput!]
   questionId: ID!
   selectedAnswers: [String!]
+}
+
+type UserCountStat {
+  name: String!
+  value: String!
 }
 
 enum UserMode {

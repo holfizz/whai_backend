@@ -2,7 +2,7 @@ import { CourseAIHistory } from "@/couse-ai-history/entities/course_ai_history.e
 import { BaseEntity } from "@/helpers/base.entity";
 import { Field, Float, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { CourseLevelEnum } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
 
 registerEnumType(CourseLevelEnum, {
   name: "CourseLevelEnum",
@@ -27,6 +27,11 @@ export class Course extends BaseEntity {
   @IsOptional()
   @IsUrl()
   imgUrl?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isTrial?: boolean;
 
   @Field(() => String, { nullable: true })
   @IsOptional()

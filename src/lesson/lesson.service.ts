@@ -74,17 +74,19 @@ export class LessonService {
     if (!courseAIHistory) {
       throw new Error(`Chat with AI ID ${dto.courseAIHistoryId} not found.`);
     }
-
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
     // Проверка наличия курса
     const course = await this.prisma.course.findUnique({ where: { id: dto.courseId } });
     if (!course) {
       throw new Error(`Course with ID ${dto.courseId} not found.`);
     }
-
-    // Получение информации о пользователе
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found.`);
+    const isTrialExpired = user.trialEndsAt && new Date(user.trialEndsAt) < new Date();
+    logger.log("!!user.currentSubscriptionType", !!user.currentSubscriptionType);
+    if (!user.currentSubscriptionType || (course.isTrial && isTrialExpired)) {
+      throw new Error("Access to this trial course is denied. Your trial has expired or you already have an active subscription.");
     }
 
     const lesson = await this.prisma.lesson.findUnique({ where: { id: dto.id } });

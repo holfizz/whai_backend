@@ -17,14 +17,6 @@ export class CourseService {
     if (image) {
       imgUrl = this.fileService.createFile(FileType.AVATAR, image);
     }
-
-    const course = await this.prisma.course.create({
-      data: {
-        ...data,
-        ownerID: userId,
-        imgUrl,
-      },
-    });
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -35,6 +27,16 @@ export class CourseService {
         data: { isFirstCourseCompleted: true },
       });
     }
+    const isTrialActive = user.trialEndsAt && new Date(user.trialEndsAt) > new Date();
+    const course = await this.prisma.course.create({
+      data: {
+        ...data,
+        isTrial: isTrialActive,
+        ownerID: userId,
+        imgUrl,
+        userId,
+      },
+    });
 
     return {
       ...course,

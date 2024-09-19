@@ -11,3 +11,11 @@ export class UserRegistrationStats {
   @Field(() => Int)
   count: number;
 }
+@ObjectType()
+export class UserCountStat {
+  @Field(() => String)
+  name: string;
+
+  @Field(() => String)
+  value: number;
+}
