@@ -1,11 +1,15 @@
 import { PrismaService } from "@/prisma.service";
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import * as dayjs from "dayjs";
 @Injectable()
 export class StatisticsService {
   constructor(private prisma: PrismaService) {}
 
-  async getUserRegistrationsByMonth() {
+  async getUserRegistrationsByMonth(userId: string) {
+    const admin = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!admin || !admin.roles.includes("ADMIN")) {
+      throw new ForbiddenException("Only administrators can create subscriptions");
+    }
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
@@ -81,5 +85,43 @@ export class StatisticsService {
     });
 
     return months; // Возвращаем массив месяцев
+  }
+  async getNumbers(userId: string) {
+    const admin = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!admin || !admin.roles.includes("ADMIN")) {
+      throw new ForbiddenException("Only administrators can create subscriptions");
+    }
+    const usersCount = await this.prisma.user.count();
+
+    const activeUsersCount = await this.prisma.user.count({
+      where: {
+        updatedAt: {
+          gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+        },
+      },
+    });
+
+    const newUsersLastMonth = await this.prisma.user.count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+        },
+      },
+    });
+
+    return [
+      {
+        name: "Users",
+        value: usersCount,
+      },
+      {
+        name: "Active Users",
+        value: activeUsersCount,
+      },
+      {
+        name: "Last Month",
+        value: newUsersLastMonth,
+      },
+    ];
   }
 }
