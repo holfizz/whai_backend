@@ -1,4 +1,3 @@
-import logger from "@/helpers/logger";
 import { UnauthorizedException } from "@nestjs/common";
 import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { Request, Response } from "express";
@@ -30,7 +29,6 @@ export class AuthResolver {
   @Query(() => RefreshTokenResponse)
   async getNewToken(@Context("req") req: Request, @Context("res") res: Response) {
     const authHeader = req.headers["authorization"];
-    logger.log(":", authHeader);
     const refreshTokenFromHeader = authHeader ? authHeader.split(" ")[1] : null;
     if (!refreshTokenFromHeader) {
       this.authService.removeRefreshTokenFromResponse(res);

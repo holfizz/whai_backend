@@ -97,7 +97,7 @@ export class PlanService {
       },
     };
 
-    const fullContent = await this.eduAiService.getAIModelAnswer(courseAIHistory.id, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const planJson = this.extractPlanJson(fullContent);
