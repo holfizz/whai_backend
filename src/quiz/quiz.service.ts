@@ -75,7 +75,7 @@ export class QuizService {
     };
 
     // Получение ответа от AI-сервиса
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const quizJson = this.extractQuizJson(fullContent);
@@ -530,7 +530,7 @@ export class QuizService {
         courseDescription: dto.courseDescription,
       },
     };
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const quizJson = this.extractQuizJson(fullContent);

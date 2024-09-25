@@ -35,7 +35,7 @@ export class ContentGeneratorService {
       },
     };
 
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.conversationId, userId, aiDto, "EduAI");
+    const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI");
     if (!fullContent) throw new Error("Failed to get content from AI service.");
     const tdJson = this.extractTDJson(fullContent);
 
@@ -104,7 +104,7 @@ export class ContentGeneratorService {
       },
     };
 
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.conversationId, userId, aiDto, "EduAI");
+    const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI");
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const tdJson = this.extractKnowledgeSumJson(fullContent);

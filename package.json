@@ -58,12 +58,10 @@
     "graphql-upload-ts": "^2.1.2",
     "graphql-ws": "^5.16.0",
     "joi": "^17.13.0",
-    "langchain": "^0.1.36",
     "mammoth": "^1.7.0",
     "nestjs-telegraf": "^2.7.0",
     "ngrok": "5.0.0-beta.2",
     "nodemailer": "^6.9.8",
-    "openai": "^4.27.0",
     "passport-jwt": "^4.0.1",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^4.0.379",
@@ -75,9 +73,13 @@
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.5",
     "telegraf": "^4.16.3",
+<<<<<<< HEAD
     "telegraf-session-local": "^2.1.1",
     "uuid": "^10.0.0",
     "zustand": "^4.5.4"
+=======
+    "telegraf-session-local": "^2.1.1"
+>>>>>>> 7850ceeed19c39007cfd126c5bac3f55b3e962f5
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

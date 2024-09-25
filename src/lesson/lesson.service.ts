@@ -113,7 +113,7 @@ export class LessonService {
     };
     logger.log("aiDto", aiDto);
 
-    const fullContent = await this.eduAiService.getAIModelAnswer(dto.courseAIHistoryId, userId, aiDto, "EduAI", pubSub);
+    const fullContent = await this.eduAiService.getAIModelAnswer(null, userId, aiDto, "EduAI", pubSub);
     if (!fullContent) throw new Error("Failed to get content from AI service.");
 
     const lessonJson = this.extractLessonJson(fullContent);
