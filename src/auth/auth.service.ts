@@ -263,8 +263,6 @@ export class AuthService {
 
   removeRefreshTokenFromResponse(res: Response) {
     try {
-      const expiresIn = new Date();
-      expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
       res.cookie(this.REFRESH_TOKEN_NAME, "", {
         httpOnly: true,
         domain: process.env.DOMAIN,
