@@ -86,9 +86,8 @@ export class LessonService {
     const isTrialExpired = user.trialEndsAt && new Date(user.trialEndsAt) < new Date();
     logger.log("!!user.currentSubscriptionType", !!user.currentSubscriptionType);
     if (!user.currentSubscriptionType || (course.isTrial && isTrialExpired)) {
-      throw new Error("Access to this trial course is denied. Your trial has expired or you already have an active subscription.");
+      throw new Error(`Access to this trial course is denied. Your trial has expired or you already have an active subscription.`);
     }
-
     const lesson = await this.prisma.lesson.findUnique({ where: { id: dto.id } });
     if (!lesson) {
       throw new Error(`Lesson with ID ${dto.id} not found.`);
