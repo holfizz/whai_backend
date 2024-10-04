@@ -1,0 +1,16 @@
+model ReferralIncome {
+  id        String   @id @unique @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String
+  user   User?  @relation(fields: [userId], references: [id])
+
+  referredUserId String
+
+  amount Float @map("income_amount")
+
+  paymentDate DateTime @default(now()) @map("payment_date")
+
+  @@map("referral_incomes")
+}

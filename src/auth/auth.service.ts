@@ -75,6 +75,7 @@ export class AuthService {
           email: dto.email,
           password: await bcrypt.hash(dto.password, 5),
           activationLink: activationLink,
+          // referralCode: dto.referralCode,
           isVerified: process.env.NODE_ENV === "development" ? true : false,
         },
       });

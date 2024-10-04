@@ -78,13 +78,13 @@ export class PlanService {
     if (user.currentCourseCount <= 0 && !activeSubscription) {
       throw new Error("You have reached your course creation limit for this month.");
     }
-    const courseAIHistory = await this.prisma.courseAIHistory.findUnique({
-      where: { id: dto.courseAIHistoryId },
-    });
+    // const courseAIHistory = await this.prisma.courseAIHistory.findUnique({
+    //   where: { id: dto.courseAIHistoryId },
+    // });
 
-    if (!courseAIHistory) {
-      throw new Error(`courseAIHistory with ID ${dto.courseAIHistoryId} not found.`);
-    }
+    // if (!courseAIHistory) {
+    //   throw new Error(`courseAIHistory with ID ${dto.courseAIHistoryId} not found.`);
+    // }
     const aiDto: AIDTO = {
       content: {
         createType: "План",

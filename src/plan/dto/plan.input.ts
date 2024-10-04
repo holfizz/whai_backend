@@ -199,9 +199,10 @@ export class CoursePlanWithAIInput {
   additionalParams?: string;
 
   @IsString()
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  courseAIHistoryId: string;
+  @IsOptional()
+  courseAIHistoryId?: string;
 
   @Field(() => ID)
   @IsUUID()

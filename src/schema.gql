@@ -152,7 +152,7 @@ input CoursePlanInput {
 
 input CoursePlanWithAIInput {
   additionalParams: String
-  courseAIHistoryId: ID!
+  courseAIHistoryId: ID
   courseId: ID!
   description: String
   isHasVideo: Boolean
@@ -753,6 +753,7 @@ input SignUpInput {
   lastName: String!
   password: String!
   phoneNumber: String!
+  referralCode: String
 }
 
 type Subscription {
